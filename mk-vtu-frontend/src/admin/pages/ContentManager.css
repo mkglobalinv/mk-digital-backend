@@ -1,0 +1,394 @@
+.content-manager-wrapper {
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .content-manager-wrapper {
+    padding: 10px;
+  }
+}
+
+
+.manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+
+.header-info h1 {
+  font-size: 1.8rem;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.header-info p {
+  color: #6B7280;
+  font-size: 0.95rem;
+}
+
+.add-content-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-content-btn:hover {
+  background: #2563EB;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.tabs-navigation {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #E5E7EB;
+  padding-bottom: 10px;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #6B7280;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+
+.content-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s;
+}
+
+.content-card:hover {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.content-card.inactive {
+  opacity: 0.7;
+  background: #F9FAFB;
+}
+
+.card-preview {
+  height: 140px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.status-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.card-title-row h3 {
+  font-size: 1.1rem;
+  color: #111827;
+  margin: 0;
+}
+
+.status-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.card-message {
+  color: #4B5563;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.link-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #F3F4F6;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-top: 8px;
+  font-size: 13.3px;
+  color: #6B7280;
+  width: fit-content;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #F3F4F6;
+  padding-top: 12px;
+}
+
+.edit-btn, .delete-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.edit-btn {
+  background: #F3F4F6;
+  color: #4B5563;
+}
+
+.edit-btn:hover {
+  background: #E5E7EB;
+}
+
+.delete-btn {
+  background: #FEF2F2;
+  color: #EF4444;
+}
+
+.delete-btn:hover {
+  background: #FEE2E2;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px;
+  background: #F9FAFB;
+  border: 2px dashed #E5E7EB;
+  border-radius: 12px;
+  color: #6B7280;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content-card {
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.modal-content-card h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.image-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F9FAFB;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.image-input-group input {
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkbox-group input {
+  width: 18px;
+  height: 18px;
+}
+
+.modal-footer-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.save-btn {
+  flex: 2;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  flex: 1;
+  background: #F3F4F6;
+  color: #4B5563;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* Button Feedback States */
+.add-content-btn:active, 
+.tab-btn:active, 
+.edit-btn:active, 
+.delete-btn:active, 
+.save-btn:active, 
+.cancel-btn:active,
+.status-toggle:active {
+  transform: scale(0.92);
+  filter: brightness(0.85);
+}
+
+.add-content-btn:hover {
+  background: #2563EB;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.tab-btn:hover {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.tab-btn.active:hover {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.edit-btn:hover {
+  background: #E5E7EB;
+  color: #1F2937;
+}
+
+.delete-btn:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.save-btn:hover {
+  background: #2563EB;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.cancel-btn:hover {
+  background: #E5E7EB;
+}
+
+.status-toggle:hover {
+  transform: scale(1.1);
+}
+
+.global-badge {
+  font-size: 10px;
+  background: #E0E7FF;
+  color: #4338CA;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}

@@ -1,0 +1,89 @@
+.withdrawal-container {
+    padding: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.withdrawal-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+}
+
+.withdrawal-header-row h1 {
+    font-size: 38.7px;
+    font-weight: 800;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* Request Cards */
+.request-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.request-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--soft-shadow);
+    transition: var(--transition-base);
+}
+
+.request-card:hover {
+    box-shadow: var(--premium-shadow);
+    border-color: var(--primary);
+}
+
+.request-user {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.request-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--primary-glow);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.request-amount {
+    font-size: 33.9px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 16px 0;
+}
+
+.bank-box {
+    background: var(--bg-color);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.bank-detail {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15.7px;
+    margin-bottom: 4px;
+}
+
+.bank-detail span { color: var(--text-gray); }
+.bank-detail strong { color: var(--text-dark); }

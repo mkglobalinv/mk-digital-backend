@@ -1,0 +1,70 @@
+"use client";
+
+import React from 'react';
+import Link from 'next/link';
+import { ArrowLeft, User, Briefcase, ArrowRight } from 'lucide-react';
+
+export default function GetStarted() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 font-sans">
+      <div className="w-full max-w-md">
+        <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-8 font-medium transition-colors">
+          <ArrowLeft size={16} /> Back to Home
+        </Link>
+        
+        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-2xl shadow-slate-200/50 border border-slate-100">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">WELCOME TO 9JASUB</h1>
+            <p className="text-slate-500 font-medium">Please select your account type to continue.</p>
+          </div>
+
+          <div className="space-y-4">
+            <a 
+              href={`${appUrl}/onboarding`}
+              className="group block w-full p-6 bg-white border-2 border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer relative overflow-hidden"
+            >
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <User size={24} />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-700 mb-1">Personal Account</h3>
+                  <p className="text-sm text-slate-500 font-medium">Data, Airtime & Bills</p>
+                </div>
+                <ArrowRight className="text-slate-300 group-hover:text-blue-500 transition-colors" />
+              </div>
+            </a>
+
+            <a 
+              href={`${appUrl}/business/signup`}
+              className="group block w-full p-6 bg-slate-900 border-2 border-slate-900 rounded-2xl hover:bg-slate-800 transition-all cursor-pointer relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-12 h-12 bg-white/10 text-white rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <Briefcase size={24} />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="text-lg font-bold text-white mb-1">Own Your VTU Website & App</h3>
+                  <p className="text-sm text-slate-300 font-medium">Start your own VTU business</p>
+                </div>
+                <ArrowRight className="text-slate-400 group-hover:text-white transition-colors" />
+              </div>
+            </a>
+          </div>
+
+          <div className="mt-10 text-center">
+            <p className="text-sm text-slate-500 font-medium">
+              Already have an account?{' '}
+              <a href={`${appUrl}/login`} className="text-blue-600 font-bold hover:underline">
+                Sign In
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

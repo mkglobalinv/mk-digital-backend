@@ -1,0 +1,44 @@
+{
+  "buildId": "6a185ec0c97137ca6feb73ff",
+  "resellerId": "6a12c70cf6f5c5b02744800c",
+  "appName": "kdata",
+  "packageName": "com.mksubdata.app",
+  "generatedAt": "2026-05-28T15:27:19.167Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": null,
+    "iconUrl": "/reseller-assets/kdata/icon.png",
+    "splashUrl": "/reseller-assets/kdata/splash.png",
+    "featureGraphicUrl": "/reseller-assets/kdata/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/kdata/screenshot_login.png",
+      "/reseller-assets/kdata/screenshot_dashboard.png",
+      "/reseller-assets/kdata/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-05-28T15:27:18.862Z",
+    "pwaUrl": "https://getstat.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with kdata.",
+    "fullDescription": "kdata is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "khalidfagge12@gmail.com",
+    "privacyPolicyUrl": "https://getstat.9jasub.com/privacy-policy",
+    "websiteUrl": "https://getstat.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 22305,
+    "memoryUsageMb": 46,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/kdata"
+  },
+  "infrastructure": {
+    "signature": "59773bfa550964c1764a8c3bd84f4236a66f017d720c3e5b2787d38041f59792",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

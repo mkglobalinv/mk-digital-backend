@@ -1,0 +1,580 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, 
+  CreditCard, 
+  TrendingUp, 
+  ShieldCheck, 
+  Globe, 
+  CheckCircle, 
+  ArrowUpRight, 
+  Wallet,
+  Zap,
+  ArrowRight,
+  Lock,
+  Copy,
+  Send,
+  Share2
+} from 'lucide-react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  BarChart,
+  Bar
+} from 'recharts';
+import { useNavigate } from 'react-router-dom';
+import API from '../../api';
+import { supabase } from '../../supabaseClient';
+import ResellerBusinessProfile from '../components/ResellerBusinessProfile';
+import './ResellerDashboard.css';
+
+const ResellerDashboard = ({ user }) => {
+    const navigate = useNavigate();
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [copied, setCopied] = useState(false);
+    const [showShareMore, setShowShareMore] = useState(false);
+
+    const getResellerWebsiteUrl = () => {
+        if (user?.customDomain) {
+            return user.customDomain.startsWith('http') ? user.customDomain : `https://${user.customDomain}`;
+        }
+        const sub = user?.subdomain || 'app';
+        return `https://${sub}.mksubdata.com`;
+    };
+
+    const websiteUrl = getResellerWebsiteUrl();
+    const shareText = `Buy cheap data, airtime and pay bills easily on my VTU website:\n${websiteUrl}`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(websiteUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const shareOnWhatsApp = () => {
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+        window.open(url, '_blank');
+    };
+
+    const shareOnTelegram = () => {
+        const url = `https://t.me/share/url?url=${encodeURIComponent(websiteUrl)}&text=${encodeURIComponent("Buy cheap data, airtime and pay bills easily on my VTU website!")}`;
+        window.open(url, '_blank');
+    };
+
+    const shareOnFacebook = () => {
+        const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(websiteUrl)}`;
+        window.open(url, '_blank');
+    };
+
+    const shareNative = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: user?.branding?.siteName || 'My VTU Website',
+                text: 'Buy cheap data, airtime and pay bills easily on my VTU website!',
+                url: websiteUrl
+            }).catch(err => console.log('Share canceled', err));
+        }
+    };
+
+    useEffect(() => {
+        if (!user?._id) return;
+        
+        fetchStats();
+
+        // Listen for realtime wallet balance changes directly
+        const walletChannel = supabase.channel(`dashboard-wallet-${user._id}`)
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'wallets', filter: `user_id=eq.${user._id}` },
+                (payload) => {
+                    console.log('[Dashboard] Wallet update detected:', payload.new);
+                    // Incrementally update the wallet balance in the UI without a full refetch
+                    setStats(prev => {
+                        if (!prev) return prev;
+                        // Use balance1 + balance2 for total wallet balance, or whatever logic is needed
+                        // Typically, earningsBalance is separate, and balance1 is normal
+                        return {
+                            ...prev,
+                            walletBalance: payload.new.earnings_balance // Assuming earnings wallet is the main displayed one
+                        };
+                    });
+                }
+            )
+            .subscribe();
+
+        // Listen for global manual wallet refetch triggers
+        const handleWalletRefresh = () => fetchStats();
+        window.addEventListener('wallet:refresh', handleWalletRefresh);
+
+        return () => {
+            supabase.removeChannel(walletChannel);
+            window.removeEventListener('wallet:refresh', handleWalletRefresh);
+        };
+    }, [user?._id]);
+
+    const fetchStats = async () => {
+        try {
+            const res = await API.get('/api/reseller/stats');
+            setStats(res.data);
+        } catch (err) {
+            console.error("Failed to fetch reseller stats", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) return (
+        <div className="reseller-loader-container">
+            <div className="reseller-loader">Loading Business Console...</div>
+        </div>
+    );
+
+    const businessCards = [
+        { id: 'users', title: "Total Customers", value: stats?.totalUsers || 0, icon: <Users size={24} color="#6366f1" />, trend: "+12%", bg: "#eff6ff" },
+        { id: 'todaySales', title: "Today Sales", value: `₦${(stats?.todaySales || stats?.revenue || 0).toLocaleString()}`, icon: <TrendingUp size={24} color="#f59e0b" />, trend: "+18%", bg: "#fffbeb" },
+        { id: 'tx', title: "Total Transactions", value: stats?.totalTransactions || 0, icon: <CreditCard size={24} color="#10b981" />, trend: "+5.4%", bg: "#ecfdf5" },
+        { id: 'balance', title: "Wallet Balance", value: `₦${(stats?.walletBalance || 0).toLocaleString()}`, icon: <Wallet size={24} color="#6366f1" />, trend: "Active", bg: "#f8fafc" },
+        { id: 'commission', title: "Commission Earned", value: `₦${(stats?.totalProfit || 0).toLocaleString()}`, icon: <ShieldCheck size={24} color="#8b5cf6" />, trend: "+2.1%", bg: "#f5f3ff" },
+        { id: 'status', title: "Active Services", value: user?.subdomain ? "Active" : "Pending", icon: <Globe size={24} color={user?.subdomain ? "#10b981" : "#ef4444"} />, trend: "Online", bg: "#f8fafc" },
+    ];
+
+    const onboardingSteps = [
+        { id: 1, label: 'Brand Name', done: !!user?.branding?.siteName },
+        { id: 2, label: 'Logo Upload', done: !!user?.branding?.logo },
+        { id: 3, label: 'Subdomain', done: !!user?.subdomain },
+        { id: 4, label: 'Pricing Rules', done: stats?.pricingSet || false },
+        { id: 5, label: 'First Customer', done: (stats?.totalUsers || 0) > 0 },
+        { id: 6, label: 'Custom Domain', done: !!user?.customDomain },
+    ];
+
+    const completedSteps = onboardingSteps.filter(s => s.done).length;
+    const progressPct = Math.round((completedSteps / onboardingSteps.length) * 100);
+
+    // Trial Calculation
+    const daysRemaining = user?.trialEndDate ? Math.max(0, Math.ceil((new Date(user.trialEndDate) - new Date()) / (1000 * 60 * 60 * 24))) : 0;
+    const isTrialActive = !user?.isResellerActivated && daysRemaining > 0;
+    const isTrialExpired = !user?.isResellerActivated && daysRemaining <= 0;
+
+    const handlePayActivation = async () => {
+        if (window.confirm("Activate your business for ₦5,000? This fee will be deducted from your earnings wallet.")) {
+            try {
+                const res = await API.post('/api/reseller/pay-activation');
+                alert(res.data.message);
+                window.location.reload();
+            } catch (err) {
+                alert(err.response?.data?.message || "Activation failed. Ensure you have enough balance.");
+            }
+        }
+    };
+
+    const daysUntilPremiumExpiry = user?.subscriptionExpiresAt ? Math.max(0, Math.ceil((new Date(user.subscriptionExpiresAt) - new Date()) / (1000 * 60 * 60 * 24))) : 0;
+
+    return (
+        <div className="reseller-dashboard-view">
+            <div className="dashboard-section-header">
+                <div className="header-top-row">
+                    <div>
+                        <h1 style={{ letterSpacing: '-0.5px', color: '#0f172a' }}>Business Overview</h1>
+                        <p style={{ fontSize: '15px', color: '#64748b', marginTop: '4px' }}>Welcome back, <strong style={{ color: '#0f172a' }}>{user?.name}</strong>. Here's what's happening with your platform today.</p>
+                    </div>
+                    {user?.resellerTier === 'premium' ? (
+                        <div className="badge-premium">
+                            <ShieldCheck size={14} style={{ marginRight: '6px' }} />
+                            Premium Partner
+                        </div>
+                    ) : (
+                        <div className="badge-starter">
+                            Basic Reseller
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Trial / Activation Banner */}
+            {!user?.isResellerActivated && (
+                <div className={`trial-banner ${isTrialActive ? 'active' : 'expired'}`}>
+                    <div className="banner-icon-box">
+                        <Zap size={32} color={isTrialActive ? "#3b82f6" : "#ef4444"} fill={isTrialActive ? "#3b82f6" : "#ef4444"} fillOpacity={0.1} />
+                    </div>
+                    <div className="banner-text">
+                        <h3>
+                            {isTrialActive ? `Free Trial: ${daysRemaining} Days Remaining` : 'Trial Expired'}
+                        </h3>
+                        <p>
+                            {isTrialActive 
+                                ? 'Activate your business now to ensure uninterrupted service after the trial ends.' 
+                                : 'Your business is currently in a grace period/suspended. Pay activation fee to restore services.'}
+                        </p>
+                    </div>
+                    <button className="banner-btn" onClick={handlePayActivation}>
+                        Activate Business (₦5,000)
+                    </button>
+                </div>
+            )}
+
+            {/* Premium Status Banner */}
+            {user?.resellerTier === 'premium' && (
+                <div className="premium-banner">
+                    <div className="banner-main">
+                        <div className="banner-icon-box small">
+                            <ShieldCheck size={24} color="#8b5cf6" />
+                        </div>
+                        <div className="banner-text">
+                            <h4>Premium Subscription Active</h4>
+                            <p>
+                                Expires in <strong>{daysUntilPremiumExpiry} days</strong> ({new Date(user.subscriptionExpiresAt).toLocaleDateString()})
+                            </p>
+                        </div>
+                    </div>
+                    <button className="banner-btn secondary" onClick={() => navigate('/reseller/premium')}>
+                        Extend Subscription
+                    </button>
+                </div>
+            )}
+
+            <ResellerBusinessProfile user={user} />
+
+            {/* Onboarding Progress */}
+            {progressPct < 100 && (
+                <div className="onboarding-tracker">
+                    <div className="tracker-header">
+                        <h3>Complete Your Brand Setup</h3>
+                        <span className="progress-pct">{progressPct}% Completed</span>
+                    </div>
+                    <div className="tracker-steps">
+                        {onboardingSteps.map(step => (
+                            <div key={step.id} className={`tracker-step ${step.done ? 'done' : ''}`}>
+                                {step.done ? <CheckCircle size={16} className="check-icon" /> : <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #cbd5e1' }}></div>}
+                                <span>{step.label}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* My Website Link Section */}
+            <div className="business-card" style={{ marginBottom: '24px', padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--reseller-primary)', flexShrink: 0 }}>
+                        <Globe size={20} />
+                    </div>
+                    <div>
+                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--reseller-text-dark)' }}>My Website Link</h3>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: 'var(--reseller-text-muted)', lineHeight: '1.4' }}>
+                            Promote your VTU website online to get more customers and grow your business faster.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Clean URL Card */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: '#f8fafc',
+                    border: '1px solid var(--reseller-border)',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    marginBottom: '16px',
+                    gap: '12px'
+                }}>
+                    <span style={{
+                        fontFamily: 'monospace',
+                        fontSize: '14.5px',
+                        color: 'var(--reseller-primary)',
+                        fontWeight: 700,
+                        wordBreak: 'break-all',
+                        flex: 1
+                    }}>
+                        {websiteUrl}
+                    </span>
+                    <button 
+                        onClick={handleCopy}
+                        style={{
+                            background: 'white',
+                            border: '1px solid var(--reseller-border)',
+                            borderRadius: '8px',
+                            padding: '8px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--reseller-text-muted)',
+                            transition: 'all 0.2s',
+                            flexShrink: 0
+                        }}
+                        title="Copy Link"
+                    >
+                        {copied ? <CheckCircle size={16} color="var(--reseller-success)" /> : <Copy size={16} />}
+                    </button>
+                </div>
+
+                {/* Quick Action Buttons */}
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <button 
+                        onClick={handleCopy}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            background: 'white',
+                            border: '1px solid var(--reseller-border)',
+                            color: 'var(--reseller-text-dark)',
+                            padding: '10px 18px',
+                            borderRadius: '10px',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            flex: '1 1 auto'
+                        }}
+                    >
+                        <Copy size={16} />
+                        <span>Copy Link</span>
+                    </button>
+                    
+                    <button 
+                        onClick={shareOnWhatsApp}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            background: '#25D366',
+                            border: 'none',
+                            color: 'white',
+                            padding: '10px 18px',
+                            borderRadius: '10px',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 4px 10px rgba(37, 211, 102, 0.2)',
+                            flex: '1 1 auto'
+                        }}
+                    >
+                        <Send size={16} />
+                        <span>Share on WhatsApp</span>
+                    </button>
+
+                    <button 
+                        onClick={() => setShowShareMore(!showShareMore)}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            background: 'rgba(99, 102, 241, 0.08)',
+                            border: 'none',
+                            color: 'var(--reseller-primary)',
+                            padding: '10px 18px',
+                            borderRadius: '10px',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            flex: '1 1 auto'
+                        }}
+                    >
+                        <Share2 size={16} />
+                        <span>Share More</span>
+                    </button>
+                </div>
+
+                {/* Share More Dropdown/Sub-card */}
+                {showShareMore && (
+                    <div className="share-more-options-panel" style={{
+                        marginTop: '16px',
+                        padding: '16px',
+                        background: '#f8fafc',
+                        borderRadius: '12px',
+                        border: '1px solid var(--reseller-border)',
+                        display: 'flex',
+                        gap: '12px',
+                        flexWrap: 'wrap',
+                        animation: 'fadeIn 0.25s ease'
+                    }}>
+                        <button 
+                            onClick={shareOnTelegram}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                background: '#0088cc',
+                                border: 'none',
+                                color: 'white',
+                                padding: '8px 14px',
+                                borderRadius: '8px',
+                                fontSize: '12.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                flex: '1 1 auto',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            Telegram
+                        </button>
+                        <button 
+                            onClick={shareOnFacebook}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                background: '#3b5998',
+                                border: 'none',
+                                color: 'white',
+                                padding: '8px 14px',
+                                borderRadius: '8px',
+                                fontSize: '12.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                flex: '1 1 auto',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            Facebook
+                        </button>
+                        {navigator.share && (
+                            <button 
+                                onClick={shareNative}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    background: 'var(--reseller-primary)',
+                                    border: 'none',
+                                    color: 'white',
+                                    padding: '8px 14px',
+                                    borderRadius: '8px',
+                                    fontSize: '12.5px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    flex: '1 1 auto',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                System Share
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Stats Grid */}
+            <div className="business-stats-grid">
+                {businessCards.map(card => (
+                    <div key={card.id} className="business-stat-card">
+                        <div className="stat-card-header">
+                            <div className="stat-icon-box" style={{ background: card.bg }}>
+                                {card.icon}
+                            </div>
+                            <div className={`stat-trend ${card.trend.includes('+') ? 'up' : ''}`}>
+                                {card.trend.includes('+') && <ArrowUpRight size={14} />}
+                                {card.trend}
+                            </div>
+                        </div>
+                        <div className="stat-card-body">
+                            <h3>{card.title}</h3>
+                            <h2>{card.value}</h2>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="dashboard-main-grid">
+                {/* Analytics Chart */}
+                <div className="business-card">
+                    <div className="card-title-bar">
+                        <h3>Growth Analytics</h3>
+                        <select style={{ border: 'none', background: 'none', fontSize: '14.3px', fontWeight: 600, color: 'var(--reseller-primary)' }}>
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                        </select>
+                    </div>
+                    <div style={{ height: '300px', padding: '20px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={stats?.daily || []}>
+                                <defs>
+                                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="var(--reseller-primary)" stopOpacity={0.1}/>
+                                        <stop offset="95%" stopColor="var(--reseller-primary)" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
+                                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
+                                <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                                <Area type="monotone" dataKey="profit" stroke="var(--reseller-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Quick Business Actions */}
+                <div className="business-card">
+                    <div className="card-title-bar">
+                        <h3>Quick Business Actions</h3>
+                    </div>
+                    <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', background: '#f8fafc' }}>
+                        {/* Fund Wallet */}
+                        <div onClick={() => navigate('/reseller/wallet')} className="quick-action-card">
+                           <div className="quick-action-icon-box" style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
+                               <Wallet size={26} color="var(--reseller-primary)" />
+                           </div>
+                           <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>Fund Wallet</h4>
+                        </div>
+                        {/* Buy Data */}
+                        <div onClick={() => navigate('/reseller/purchase')} className="quick-action-card">
+                           <div className="quick-action-icon-box" style={{ background: 'rgba(245, 158, 11, 0.1)' }}>
+                               <Zap size={26} color="#f59e0b" />
+                           </div>
+                           <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>Buy Data</h4>
+                        </div>
+                        {/* Transfer Funds */}
+                        <div onClick={() => navigate('/reseller/wallet')} className="quick-action-card">
+                           <div className="quick-action-icon-box" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
+                               <Send size={26} color="#10b981" />
+                           </div>
+                           <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>Transfer Funds</h4>
+                        </div>
+                        {/* Manage Customers */}
+                        <div onClick={() => navigate('/reseller/customers')} className="quick-action-card">
+                           <div className="quick-action-icon-box" style={{ background: 'rgba(59, 130, 246, 0.1)' }}>
+                               <Users size={26} color="#3b82f6" />
+                           </div>
+                           <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>Manage Customers</h4>
+                        </div>
+                        {/* Upgrade to VIP */}
+                        <div onClick={() => navigate('/reseller/premium')} className="quick-action-card" style={{ background: 'linear-gradient(135deg, #4f46e5, #9333ea)', border: 'none' }}>
+                           <div className="quick-action-icon-box" style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)' }}>
+                               <ShieldCheck size={26} color="#ffffff" />
+                           </div>
+                           <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>Upgrade to VIP</h4>
+                        </div>
+                        {/* View Reports */}
+                        <div onClick={() => navigate('/reseller/transactions')} className="quick-action-card">
+                           <div className="quick-action-icon-box" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                               <TrendingUp size={26} color="#8b5cf6" />
+                           </div>
+                           <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>View Reports</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {copied && (
+                <div className="copy-success-toast">
+                    <CheckCircle size={16} />
+                    <span>Website link copied!</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ResellerDashboard;

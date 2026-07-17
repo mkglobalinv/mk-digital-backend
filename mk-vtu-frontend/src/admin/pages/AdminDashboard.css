@@ -1,0 +1,500 @@
+/* Modern HSL Design System variables for Admin Dashboard */
+:root {
+  --primary-glow: hsla(245, 100%, 60%, 0.15);
+  --success-glow: hsla(145, 100%, 45%, 0.15);
+  --warning-glow: hsla(38, 100%, 50%, 0.15);
+  --danger-glow: hsla(0, 100%, 55%, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+.admin-dashboard-modern {
+    padding: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+    background: transparent;
+    font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Hero Section */
+.dashboard-hero-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--soft-shadow);
+}
+
+@media (max-width: 768px) {
+    .dashboard-hero-modern {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+}
+
+.hero-left h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-dark);
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+
+.hero-left p {
+    color: var(--text-gray);
+    font-size: 15px;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+/* Time Filter System */
+.timeframe-pill-container {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 4px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    gap: 4px;
+}
+
+.timeframe-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-gray);
+    font-weight: 700;
+    font-size: 13.5px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.timeframe-btn:hover {
+    color: var(--text-dark);
+}
+
+.timeframe-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px hsla(245, 100%, 60%, 0.3);
+}
+
+/* High-Density Business KPIs Grid */
+.business-kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    box-shadow: var(--soft-shadow);
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+    box-shadow: var(--premium-shadow);
+}
+
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.kpi-icon-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kpi-icon-wrap.blue { background: #DBEAFE; color: #3B82F6; }
+.kpi-icon-wrap.emerald { background: #D1FAE5; color: #10B981; }
+.kpi-icon-wrap.purple { background: #F5F3FF; color: #8B5CF6; }
+.kpi-icon-wrap.amber { background: #FEF3C7; color: #D97706; }
+.kpi-icon-wrap.indigo { background: #E0E7FF; color: #4F46E5; }
+.kpi-icon-wrap.pink { background: #FCE7F3; color: #EC4899; }
+.kpi-icon-wrap.rose { background: #FFE4E6; color: #F43F5E; }
+.kpi-icon-wrap.cyan { background: #ECFEFF; color: #06B6D4; }
+
+.kpi-trend {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.kpi-trend.up { background: var(--success-glow); color: #10B981; }
+.kpi-trend.neutral { background: var(--primary-glow); color: var(--primary); }
+
+.kpi-label {
+    font-size: 12.5px;
+    color: var(--text-gray);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.kpi-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 6px 0;
+    letter-spacing: -0.5px;
+}
+
+.kpi-subtext {
+    font-size: 12.5px;
+    color: var(--text-light);
+}
+
+/* Middle Analytics Row */
+.middle-analytics-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+    .middle-analytics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.analytics-widget-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    box-shadow: var(--soft-shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.widget-header h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+/* Real-time Activity Feed */
+.live-activity-feed {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 320px;
+    padding-right: 4px;
+}
+
+.live-activity-feed::-webkit-scrollbar {
+    width: 4px;
+}
+
+.live-activity-feed::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    border-radius: var(--radius-md);
+}
+
+.activity-item:hover {
+    background: var(--bg-color);
+}
+
+.activity-marker {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.activity-marker.pulse::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    animation: marker-pulse 1.5s infinite;
+}
+
+.activity-marker.blue { background: #3B82F6; color: #3B82F6; }
+.activity-marker.green { background: #10B981; color: #10B981; }
+.activity-marker.purple { background: #8B5CF6; color: #8B5CF6; }
+.activity-marker.pink { background: #EC4899; color: #EC4899; }
+.activity-marker.red { background: #EF4444; color: #EF4444; }
+
+.activity-content {
+    flex-grow: 1;
+}
+
+.activity-message {
+    font-size: 13px;
+    color: var(--text-dark);
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.activity-time {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+}
+
+.live-status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #10B981;
+    background: var(--success-glow);
+    padding: 4px 10px;
+    border-radius: 50px;
+    text-transform: uppercase;
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10B981;
+    animation: marker-pulse 1.2s infinite;
+}
+
+/* Infrastructure Telemetry Row */
+.bottom-telemetry-grid {
+    display: grid;
+    grid-template-columns: 1fr 2.5fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 992px) {
+    .bottom-telemetry-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.health-gauge-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--soft-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.circular-gauge-container {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 16px 0;
+}
+
+.gauge-svg {
+    transform: rotate(-90deg);
+}
+
+.gauge-value-display {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.gauge-num {
+    font-size: 38px;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1;
+}
+
+.gauge-pct {
+    font-size: 14px;
+    color: var(--text-gray);
+    font-weight: 600;
+}
+
+.health-status-badge {
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 50px;
+    margin-top: 12px;
+}
+
+.health-status-badge.green {
+    background: var(--success-glow);
+    color: #10B981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.health-status-badge.yellow {
+    background: var(--warning-glow);
+    color: #D97706;
+    border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.health-status-badge.red {
+    background: var(--danger-glow);
+    color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.telemetry-node-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.telemetry-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    transition: all 0.2s ease;
+}
+
+.telemetry-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--card-shadow);
+}
+
+.telemetry-header {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-gray);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.telemetry-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+
+.telemetry-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.telemetry-status-indicator.success { color: #10B981; }
+.telemetry-status-indicator.warning { color: #D97706; }
+.telemetry-status-indicator.error { color: #EF4444; }
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.status-dot.ping {
+    animation: marker-pulse 1.2s infinite;
+}
+
+/* Horizontal percentage bar styling for countries/cities list */
+.location-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+}
+
+.location-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.location-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.location-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.location-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+/* Animations */
+@keyframes marker-pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 currentColor;
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}

@@ -1,0 +1,226 @@
+.blog-manager-wrapper {
+  padding: 20px;
+  background: var(--bg-color);
+  min-height: calc(100vh - 70px);
+}
+
+.blog-filters {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  padding: 10px 15px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  width: 300px;
+  gap: 10px;
+}
+
+.search-bar input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 16.9px;
+}
+
+.blog-table-container {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  overflow-x: auto;
+}
+
+.blog-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.blog-table th {
+  text-align: left;
+  padding: 15px;
+  color: var(--text-light);
+  font-weight: 600;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.blog-table td {
+  padding: 15px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.post-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.post-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.category-badge {
+  background: #eff6ff;
+  color: #3b82f6;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 14.5px;
+  font-weight: bold;
+}
+
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 14.5px;
+  font-weight: bold;
+}
+
+.status-badge.published {
+  background: #dcfce7;
+  color: #10b981;
+}
+
+.status-badge.draft {
+  background: #fef9c3;
+  color: #eab308;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.icon-btn.edit {
+  color: #3b82f6;
+  background: #eff6ff;
+}
+.icon-btn.edit:hover { background: #dbeafe; }
+
+.icon-btn.delete {
+  color: #ef4444;
+  background: #fef2f2;
+}
+.icon-btn.delete:hover { background: #fee2e2; }
+
+/* Modal Styles */
+.blog-modal {
+  width: 900px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.blog-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+}
+
+.publish-card {
+  background: var(--bg-color);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.publish-card h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 19.4px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.w-full { width: 100%; }
+.mt-4 { margin-top: 20px; }
+
+.img-preview {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.section-title {
+  font-size: 19.4px;
+  color: var(--text-dark);
+  margin: 30px 0 15px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+/* Rich Text Editor */
+.rich-editor-container {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.editor-toolbar {
+  background: var(--bg-color);
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: 5px;
+}
+
+.editor-toolbar button {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+}
+
+.editor-toolbar button:hover {
+  background: var(--bg-color);
+  color: var(--text-dark);
+}
+
+.editor-content {
+  padding: 15px;
+  min-height: 250px;
+  max-height: 400px;
+  overflow-y: auto;
+  outline: none;
+  background: var(--bg-card);
+}
+
+.editor-content:focus {
+  background: #fafafa;
+}
+
+.editor-content h3 { font-size: 24.2px; font-weight: bold; margin-bottom: 10px; }
+.editor-content p { margin-bottom: 10px; }
+.editor-content ul { padding-left: 20px; margin-bottom: 10px; }
+
+.right-align {
+  justify-content: flex-end;
+}

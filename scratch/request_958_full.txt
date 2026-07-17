@@ -1,0 +1,166 @@
+<USER_REQUEST>
+CRITICAL SYSTEM OPTIMIZATION & NODE HEALTH RECOVERY
+
+The platform backend is currently under heavy stress and requires immediate optimization before adding more features.
+
+==================================================
+CURRENT SYSTEM STATUS
+
+Admin telemetry currently shows:
+
+- Node Health Score: 45/100
+- Memory Usage: 91%
+- Node Latency: 2952ms
+- System Degradation warning active
+
+This is causing:
+
+- slow dashboard response
+- delayed balance refresh
+- websocket lag
+- pending transaction delays
+- slower app generation
+- unstable realtime updates
+- performance degradation
+
+==================================================
+MAIN OBJECTIVE
+
+Stabilize and optimize the entire backend infrastructure before further feature expansion.
+
+==================================================
+PRIORITY TASKS
+
+==================================================
+
+1. STOP MULTIPLE NODE/NPM INSTANCES
+   ==================================================
+
+Investigate and terminate duplicate:
+
+- npm run dev
+- websocket servers
+- frontend dev servers
+- build watchers
+- telemetry workers
+
+Only necessary production services should remain active.
+
+==================================================
+2. FIND AND FIX MEMORY LEAKS
+
+Investigate possible memory leaks caused by:
+
+- unclosed websocket connections
+- repeated realtime subscriptions
+- duplicated listeners
+- intervals not cleared
+- recursive polling
+- stale sockets
+- unused event emitters
+- infinite frontend refresh loops
+
+Ensure all listeners and intervals are properly cleaned up on component unmount/logout/disconnect.
+
+==================================================
+3. OPTIMIZE REALTIME SYSTEM
+
+Realtime updates must ONLY trigger when data changes.
+
+Avoid:
+
+- constant polling
+- unnecessary refresh loops
+- repeated websocket broadcasts
+- full dashboard refreshes
+
+Use event-driven updates instead.
+
+==================================================
+4. REDUCE TELEMETRY LOAD
+
+The infrastru
+<truncated 1270 bytes>
+n abandoned sockets
+- restart unhealthy workers automatically
+
+Prevent complete system degradation.
+
+==================================================
+9. MOVE IMPORTANT SERVICES TO PRODUCTION MODE
+
+Do NOT run heavy production testing on development builds.
+
+Use:
+
+- production build
+- optimized runtime
+- compressed assets
+- proper process manager (PM2 or equivalent)
+
+==================================================
+10. ADD SYSTEM RESOURCE MONITORING
+
+Track and display:
+
+- CPU usage
+- RAM usage
+- active websocket count
+- active requests
+- queue sizes
+- slow API endpoints
+- build process load
+- failed background jobs
+
+==================================================
+11. OPTIMIZE DASHBOARD PERFORMANCE
+
+Prevent dashboards from overloading backend resources.
+
+Especially optimize:
+
+- admin telemetry dashboard
+- reseller analytics
+- live balances
+- transaction activity feeds
+
+==================================================
+12. BACKEND STABILITY PRIORITY
+
+Do NOT prioritize new frontend/UI features until backend health improves.
+
+Backend stability now has higher priority than visual enhancements.
+
+==================================================
+TARGET PERFORMANCE
+
+Expected optimized targets:
+
+✅ Node Health: 80–95
+✅ Memory Usage: below 70%
+✅ Node Latency: below 500ms
+✅ Stable realtime updates
+✅ Faster transactions
+✅ Instant wallet refresh
+✅ Smooth reseller dashboard
+✅ Stable websocket system
+✅ Better app generation performance
+
+==================================================
+IMPORTANT
+
+The platform is now evolving into a full VTU ecosystem with:
+
+- retail users
+- reseller infrastructure
+- realtime wallets
+- live telemetry
+- app generation
+- transaction streaming
+- websocket services
+
+The backend architecture must now be optimized for scalability and stability before continuing major feature expansion.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-28T09:12:38-07:00.
+</ADDITIONAL_METADATA>

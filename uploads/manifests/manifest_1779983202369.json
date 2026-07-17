@@ -1,0 +1,44 @@
+{
+  "buildId": null,
+  "resellerId": "69da0faf90c99dec54270739",
+  "appName": "findata",
+  "packageName": "com.mksubdata.app",
+  "generatedAt": "2026-05-28T15:46:42.367Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1779983196988-79292633-findata-release.apk",
+    "iconUrl": "/reseller-assets/findata/icon.png",
+    "splashUrl": "/reseller-assets/findata/splash.png",
+    "featureGraphicUrl": "/reseller-assets/findata/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/findata/screenshot_login.png",
+      "/reseller-assets/findata/screenshot_dashboard.png",
+      "/reseller-assets/findata/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-05-28T15:46:41.988Z",
+    "pwaUrl": "https://pin1data.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with findata.",
+    "fullDescription": "findata is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "unuktar@gmail.com",
+    "privacyPolicyUrl": "https://pin1data.9jasub.com/privacy-policy",
+    "websiteUrl": "https://pin1data.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 18332,
+    "memoryUsageMb": 28,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/findata"
+  },
+  "infrastructure": {
+    "signature": "65b7b631f107170db34e469a1ad2d48505f3d445bdba4a37354b5fba9609c0e6",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

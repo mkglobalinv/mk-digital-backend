@@ -1,0 +1,44 @@
+{
+  "buildId": "6a516aea24433859cdaefa40",
+  "resellerId": "6a4edc37cb6c7df2997ec38c",
+  "appName": "ashdata",
+  "packageName": "com.ashdata.app",
+  "generatedAt": "2026-07-11T08:54:46.465Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1783759996635-405589358-ashdata-release.apk",
+    "iconUrl": "/reseller-assets/ashdata/icon.png",
+    "splashUrl": "/reseller-assets/ashdata/splash.png",
+    "featureGraphicUrl": "/reseller-assets/ashdata/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/ashdata/screenshot_login.png",
+      "/reseller-assets/ashdata/screenshot_dashboard.png",
+      "/reseller-assets/ashdata/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-07-11T08:54:13.729Z",
+    "pwaUrl": "https://ashdata.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with ashdata.",
+    "fullDescription": "ashdata is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "arewaonlineb@gmail.com",
+    "privacyPolicyUrl": "https://ashdata.9jasub.com/privacy-policy",
+    "websiteUrl": "https://ashdata.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 238132,
+    "memoryUsageMb": 47,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/ashdata"
+  },
+  "infrastructure": {
+    "signature": "8b70464497701572e3ba50180f2f1221626329e59cbaf96da9832771a475fe7b",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

@@ -1,0 +1,159 @@
+.analytics-wrapper {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.analytics-header {
+  margin-bottom: 20px;
+}
+
+.analytics-header h1 {
+  font-size: 29.0px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.analytics-header p {
+  color: var(--text-light);
+  font-size: 18.2px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-info h3 {
+  font-size: 16.9px;
+  color: var(--text-light);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 29.0px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.analytics-card h2 {
+  font-size: 21.8px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 12px;
+  font-size: 15.7px;
+  font-weight: 600;
+  color: var(--text-light);
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-table td {
+  padding: 14px 12px;
+  font-size: 16.9px;
+  color: var(--text-dark);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.user-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-cell span {
+  font-weight: 600;
+}
+
+.user-cell small {
+  color: var(--text-light);
+  font-size: 14.5px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13.3px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-pending { background: #fff7ed; color: #f97316; border: 1px solid #ffedd5; }
+.status-approved { background: #f0fdf4; color: #22c55e; border: 1px solid #dcfce7; }
+
+.admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-light);
+  font-weight: 500;
+}

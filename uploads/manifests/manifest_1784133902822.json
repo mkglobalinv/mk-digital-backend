@@ -1,0 +1,44 @@
+{
+  "buildId": "6a57b7ffe364f1f7d8a44a37",
+  "resellerId": "6a575adde9174d59e33ab142",
+  "appName": "Refer34",
+  "packageName": "com.refer34.app",
+  "generatedAt": "2026-07-15T16:45:02.670Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1784133754240-540546750-refer34-release.apk",
+    "iconUrl": "/reseller-assets/refer34/icon.png",
+    "splashUrl": "/reseller-assets/refer34/splash.png",
+    "featureGraphicUrl": "/reseller-assets/refer34/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/refer34/screenshot_login.png",
+      "/reseller-assets/refer34/screenshot_dashboard.png",
+      "/reseller-assets/refer34/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-07-15T16:44:49.963Z",
+    "pwaUrl": "https://refer34.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Refer34.",
+    "fullDescription": "Refer34 is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "reffar34@gmail.com",
+    "privacyPolicyUrl": "https://refer34.9jasub.com/privacy-policy",
+    "websiteUrl": "https://refer34.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 268677,
+    "memoryUsageMb": 49,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/refer34"
+  },
+  "infrastructure": {
+    "signature": "4d03e924b9bf34888e8ce0e46b2c3c286430875f070d91c4a2593ed034837058",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

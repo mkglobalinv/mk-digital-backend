@@ -1,0 +1,33 @@
+﻿Γùç injected env (30) from .env // tip: Γîÿ enable debugging { debug: true }
+=== TRANSACTION ===
+{
+  "_id": "6a1d5eb0bed877f49dbbef47",
+  "userId": "69ff8fbca78f5b5c92488b51",
+  "amount": 325,
+  "type": "debit",
+  "status": "failed",
+  "reference": "6710958527",
+  "provider_trace": [],
+  "isSandbox": false,
+  "provider": "VTPass",
+  "provider_used": "clubkonnect",
+  "verificationStatus": "unverified",
+  "description": "Data: 500.0 (Failed: Data plan undefined not found in database.) [REFUND ON HOLD]",
+  "phone": "08133131020",
+  "network": "MTN",
+  "countryCode": "NG",
+  "cost_price": 325,
+  "selling_price": 325,
+  "profit": 0,
+  "resellerId": "69ef83dd3d8c8fc4916be6a6",
+  "retry_count": 1,
+  "balance_deducted": true,
+  "isApiRequest": true,
+  "isInternal": false,
+  "createdAt": "2026-06-01T10:28:00.669Z",
+  "__v": 0
+}
+=== API LOGS ===
+[]
+=== PROVIDER LOGS ===
+[]

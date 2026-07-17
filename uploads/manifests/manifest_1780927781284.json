@@ -1,0 +1,44 @@
+{
+  "buildId": "6a26ccba19d98be9be42b798",
+  "resellerId": "6a262399bbf0cf876bbf4d69",
+  "appName": "cm1",
+  "packageName": "com.cm1.app",
+  "generatedAt": "2026-06-08T14:09:41.244Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1780927765868-97187000-cm1-release.apk",
+    "iconUrl": "/reseller-assets/cm1/icon.png",
+    "splashUrl": "/reseller-assets/cm1/splash.png",
+    "featureGraphicUrl": "/reseller-assets/cm1/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/cm1/screenshot_login.png",
+      "/reseller-assets/cm1/screenshot_dashboard.png",
+      "/reseller-assets/cm1/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-06-08T14:09:38.685Z",
+    "pwaUrl": "https://cm1.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with cm1.",
+    "fullDescription": "cm1 is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "kuluaplaystore@gmail.com",
+    "privacyPolicyUrl": "https://cm1.9jasub.com/privacy-policy",
+    "websiteUrl": "https://cm1.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 95484,
+    "memoryUsageMb": 44,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/cm1"
+  },
+  "infrastructure": {
+    "signature": "4c3aa40857d2aa68b0aa5f07400522cace162163e743f7dcfe98aed03556bc65",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

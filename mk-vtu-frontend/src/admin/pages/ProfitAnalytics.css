@@ -1,0 +1,72 @@
+.profit-container {
+    padding: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.profit-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.profit-header-row h1 {
+    font-size: 38.7px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.profit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.profit-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--soft-shadow);
+    transition: var(--transition-base);
+}
+
+.profit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--premium-shadow);
+    border-color: var(--primary);
+}
+
+.profit-label {
+    font-size: 14.5px;
+    font-weight: 800;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.profit-value {
+    font-size: 33.9px;
+    font-weight: 800;
+    color: var(--text-dark);
+}
+
+.profit-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    font-size: 15.7px;
+    color: var(--text-gray);
+}
+
+.margin-badge {
+    padding: 4px 10px;
+    background: var(--primary-glow);
+    color: var(--primary);
+    border-radius: 6px;
+    font-weight: 700;
+}

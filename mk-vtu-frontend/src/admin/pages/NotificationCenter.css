@@ -1,0 +1,142 @@
+.notif-container {
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.studio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+}
+
+.studio-header h1 {
+    font-size: 38.7px;
+    font-weight: 800;
+    color: var(--text-dark);
+    letter-spacing: -0.5px;
+}
+
+.studio-header p {
+    color: var(--text-gray);
+    font-size: 19.4px;
+    margin-top: 4px;
+}
+
+.notif-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 32px;
+}
+
+@media (max-width: 1024px) {
+    .notif-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.broadcast-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 40px;
+    box-shadow: var(--soft-shadow);
+}
+
+.target-selector-modern {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.target-option {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-base);
+    text-align: center;
+}
+
+.target-option:hover {
+    border-color: var(--primary);
+    background: var(--bg-card);
+}
+
+.target-option.active {
+    background: var(--primary-glow);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.target-option.active .target-icon {
+    transform: scale(1.1);
+}
+
+.target-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--soft-shadow);
+    transition: var(--transition-base);
+}
+
+.target-option.active .target-icon {
+    background: var(--primary);
+    color: white;
+}
+
+.target-label {
+    font-size: 15.7px;
+    font-weight: 700;
+}
+
+/* Stats */
+.notif-sidebar-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    text-align: center;
+    box-shadow: var(--soft-shadow);
+    position: sticky;
+    top: 32px;
+}
+
+.notif-illustration {
+    width: 120px;
+    height: 120px;
+    background: var(--primary-glow);
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+}
+
+.notif-sidebar-card h3 {
+    font-size: 24.2px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.notif-sidebar-card p {
+    font-size: 16.9px;
+    color: var(--text-gray);
+    line-height: 1.6;
+}

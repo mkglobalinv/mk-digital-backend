@@ -1,0 +1,1 @@
+import { sendEmail, sendAdminOTPEmail } from '../services/emailService.js'; async function run() { try { const result = await sendAdminOTPEmail('test@example.com', '123456'); console.log('Result:', result); } catch(e) { console.error('CAUGHT ERROR:', e); } process.exit(0); } run();

@@ -1,0 +1,161 @@
+.login-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-color); 
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-bg-top {
+  display: none; 
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--gray-border);
+  position: relative;
+}
+
+.login-avatar-container {
+  margin-bottom: 24px;
+}
+
+.login-avatar {
+  width: 80px;
+  height: 80px;
+  background: var(--bg-color);
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--fb-blue);
+  box-shadow: none;
+}
+
+.login-title {
+  color: var(--fb-blue);
+  font-size: 38.7px; 
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-shadow: none;
+  letter-spacing: -1px;
+}
+
+.login-subtitle {
+  color: var(--text-dark);
+  font-size: 21.8px;
+  font-weight: 500;
+  margin-bottom: 32px;
+  text-shadow: none;
+  text-align: center;
+}
+
+.fingerprint-container {
+  width: 60px;
+  height: 60px;
+  background: var(--bg-color);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: none;
+  border: 1px solid var(--gray-border);
+  margin-bottom: 16px;
+  color: var(--text-light);
+}
+
+.fingerprint-text {
+  color: var(--text-light);
+  font-weight: 500;
+  font-size: 16.9px;
+  margin-bottom: 24px;
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pwd-show {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 16.9px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px 16px;
+  background-color: var(--fb-blue); 
+  color: var(--white);
+  font-size: 21.8px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background-color 0.2s;
+}
+
+.login-btn:hover {
+  background-color: var(--fb-blue-hover);
+}
+
+.login-btn:active {
+  background-color: #145dbf;
+  transform: scale(0.98);
+}
+
+.login-footer {
+  margin-top: 24px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-top: 1px solid var(--gray-border);
+  padding-top: 24px;
+}
+
+.register-btn {
+  background: var(--success); 
+  color: var(--white);
+  border: none;
+  font-weight: 600;
+  font-size: 19.4px;
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.register-btn:hover {
+  background-color: #36a420;
+}
+
+.not-my-account {
+  color: var(--fb-blue);
+  font-weight: 600;
+  font-size: 16.9px;
+  cursor: pointer;
+}

@@ -1,0 +1,23 @@
+.promotion-grid-container {
+  margin: 20px 0;
+  width: 100%;
+}
+
+.promotion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .promotion-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .promotion-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+

@@ -1,0 +1,524 @@
+{
+  "mtn_gifting_data": [
+    {
+      "plan_code": "M110MBS",
+      "amount": 99,
+      "label": "110MB = N99 (1 Day)"
+    },
+    {
+      "plan_code": "M1m2GB",
+      "amount": 495,
+      "label": "1.2GB = N495 (1 month) Access All Social Apps"
+    },
+    {
+      "plan_code": "M2m5GB",
+      "amount": 650,
+      "label": "2.5GB = N650 (2 Days)12hrs YouTube Buffer"
+    },
+    {
+      "plan_code": "M2m5GBS",
+      "amount": 893,
+      "label": "2.5GB = N893 (2 Days)"
+    },
+    {
+      "plan_code": "M2GBS",
+      "amount": 745,
+      "label": "2GB = N745 (2 Days)"
+    },
+    {
+      "plan_code": "M3m2GBS",
+      "amount": 990,
+      "label": "3.2GB =N990 (2 Days)"
+    },
+    {
+      "plan_code": "M1GBS",
+      "amount": 796,
+      "label": "1GB = N796 (7Days)"
+    },
+    {
+      "plan_code": "M2GBS2",
+      "amount": 1480,
+      "label": "2GB = N1480 (1 Month)"
+    },
+    {
+      "plan_code": "M2m5GBS1",
+      "amount": 2480,
+      "label": "2.5GB = N2480 (1 Month)"
+    },
+    {
+      "plan_code": "M2m7GBS",
+      "amount": 1990,
+      "label": "2.7GB = N1990 (1Month)"
+    },
+    {
+      "plan_code": "M3m5GBS",
+      "amount": 2480,
+      "label": "3.5GB = N2480 (1 Month)"
+    },
+    {
+      "plan_code": "M6GBS",
+      "amount": 2480,
+      "label": "6GB = N2480 (Weekly)"
+    },
+    {
+      "plan_code": "M7GBS",
+      "amount": 3450,
+      "label": "7GB = N3450 (1 Month) +2GB All Night Streaming"
+    },
+    {
+      "plan_code": "M11GBS",
+      "amount": 3500,
+      "label": "11GB = N3500 (Weekly)"
+    },
+    {
+      "plan_code": "M12m5GBS",
+      "amount": 5435,
+      "label": "12.5GB = N5435(1 Month)"
+    },
+    {
+      "plan_code": "M14m5GBS",
+      "amount": 4950,
+      "label": "14.5GB = N4950 (1 Month)"
+    },
+    {
+      "plan_code": "M20GBS",
+      "amount": 7380,
+      "label": "20GB = N7380 (1MONTH) + 4GB All Night Streaming"
+    },
+    {
+      "plan_code": "M25GBS",
+      "amount": 8850,
+      "label": "25GB = N8850 (1 Month)"
+    },
+    {
+      "plan_code": "M36GBS",
+      "amount": 10850,
+      "label": "36GB = N10850 (1 Month)"
+    },
+    {
+      "plan_code": "M65GBS",
+      "amount": 15800,
+      "label": "65GB = N15800 (1 Month)"
+    },
+    {
+      "plan_code": "M75GBS",
+      "amount": 17700,
+      "label": "75GB = N17700 (1 Month)"
+    },
+    {
+      "plan_code": "M90GBS",
+      "amount": 24650,
+      "label": "90GB = N24650 (2 Months)"
+    },
+    {
+      "plan_code": "M150GBS",
+      "amount": 39500,
+      "label": "150GB = N39500 (2 Month)"
+    },
+    {
+      "plan_code": "M165GBS",
+      "amount": 34500,
+      "label": "165GB = N34500 (1 Month)"
+    },
+    {
+      "plan_code": "M200GBS",
+      "amount": 49200,
+      "label": "200GB = N49200 (2 Months)"
+    },
+    {
+      "plan_code": "M250GBS",
+      "amount": 54500,
+      "label": "250GB  = N54500 (1 Month)"
+    },
+    {
+      "plan_code": "M800GBS",
+      "amount": 123500,
+      "label": "800GB  = N123500 (1 Year)"
+    }
+  ],
+  "glo_data": [
+    {
+      "plan_code": "G500MB",
+      "amount": 245,
+      "label": "500MB = N245 (30 DAYS)"
+    },
+    {
+      "plan_code": "G1GB1",
+      "amount": 335,
+      "label": "1GB = N335 ( 3 DAYS)"
+    },
+    {
+      "plan_code": "G3GB1",
+      "amount": 850,
+      "label": "3GB = N850 ( 3 DAYS)"
+    },
+    {
+      "plan_code": "G5GB1",
+      "amount": 1380,
+      "label": "5GB = N1380 (3 DAYS)"
+    },
+    {
+      "plan_code": "G1GB2",
+      "amount": 360,
+      "label": "1GB = N360 (7 DAYS)"
+    },
+    {
+      "plan_code": "G1GB2",
+      "amount": 990,
+      "label": "3GB = N990 (7 DAYS)"
+    },
+    {
+      "plan_code": "G5GB2",
+      "amount": 1580,
+      "label": "5GB = N1580 (7DAYS)"
+    },
+    {
+      "plan_code": "G1GB3",
+      "amount": 360,
+      "label": "1GB = N360 (14 DAYS) Night Plan"
+    },
+    {
+      "plan_code": "G3GB3",
+      "amount": 990,
+      "label": "3GB = N990 (14 DAYS) Night Plan"
+    },
+    {
+      "plan_code": "G5GB3",
+      "amount": 1640,
+      "label": "5GB = N1640   (14 DAYS)Night Plan"
+    },
+    {
+      "plan_code": "G10GB1",
+      "amount": 3300,
+      "label": "10GB = N3300   (14 DAYS)Night Plan"
+    },
+    {
+      "plan_code": "G1GB4",
+      "amount": 450,
+      "label": "1GB = N450 (30 DAYS)"
+    },
+    {
+      "plan_code": "G2GB4",
+      "amount": 900,
+      "label": "2GB = N900  (30 DAYS)"
+    },
+    {
+      "plan_code": "G3GB4",
+      "amount": 1350,
+      "label": "3GB = N1350 (30 DAYS)"
+    },
+    {
+      "plan_code": "G5GB4",
+      "amount": 2200,
+      "label": "5GB = N2200 (30 DAYS)"
+    },
+    {
+      "plan_code": "G10GB2",
+      "amount": 4250,
+      "label": "10GB = N4250 (30 DAYS)"
+    }
+  ],
+  "9mobile_data": [
+    {
+      "plan_code": "E300MB",
+      "amount": 200,
+      "label": "300MB = N200 (30 Days)"
+    },
+    {
+      "plan_code": "E500MB",
+      "amount": 300,
+      "label": "500MB = NGN300 (30 Days)"
+    },
+    {
+      "plan_code": "E1GB",
+      "amount": 500,
+      "label": "1GB = NGN500 (30 Days)"
+    },
+    {
+      "plan_code": "E2GB",
+      "amount": 980,
+      "label": "2GB  = NGN980 (30 Days)"
+    },
+    {
+      "plan_code": "E3GB",
+      "amount": 1500,
+      "label": "3GB = NGN1500 (30 Days)"
+    },
+    {
+      "plan_code": "E5GB",
+      "amount": 2500,
+      "label": "5GB = NGN2500 (30 Days)"
+    },
+    {
+      "plan_code": "E10GB",
+      "amount": 5000,
+      "label": "10GB = NGN5000 (30 Days)"
+    },
+    {
+      "plan_code": "E15GB",
+      "amount": 6950,
+      "label": "15GB = NGN6950 (30 Days){Gifting}"
+    },
+    {
+      "plan_code": "E20GB",
+      "amount": 9500,
+      "label": "20GB = NGN9500 (30 Days)"
+    },
+    {
+      "plan_code": "E40GB",
+      "amount": 18800,
+      "label": "40GB = NGN18800 (30 Days)"
+    }
+  ],
+  "airtel_data": [
+    {
+      "plan_code": "A200MB",
+      "amount": 199,
+      "label": "200MB =N199 (2Days)  social plan"
+    },
+    {
+      "plan_code": "A300MB",
+      "amount": 298,
+      "label": "300MB =N298 (2Days)  social plan"
+    },
+    {
+      "plan_code": "A1GBS",
+      "amount": 338,
+      "label": "1GB =N338 (3Days) social plan"
+    },
+    {
+      "plan_code": "A2GB",
+      "amount": 782,
+      "label": "2GB =N782 (2Days)  social plan"
+    },
+    {
+      "plan_code": "A3a2GB",
+      "amount": 980,
+      "label": "3.2GB = N980 (2Days)  social plan"
+    },
+    {
+      "plan_code": "A5GB",
+      "amount": 1475,
+      "label": "5GB = N1475 (2Days)"
+    },
+    {
+      "plan_code": "A1GB",
+      "amount": 830,
+      "label": "1GB =N830 (7Days)"
+    },
+    {
+      "plan_code": "A1a5GB",
+      "amount": 530,
+      "label": "1.5GB =N530 (7Days)"
+    },
+    {
+      "plan_code": "A3a5GB",
+      "amount": 1513,
+      "label": "3.5GB = N1513 (7Days)"
+    },
+    {
+      "plan_code": "A6GB",
+      "amount": 2475,
+      "label": "6GB = N2475 (7Days)"
+    },
+    {
+      "plan_code": "A10GBS",
+      "amount": 2975,
+      "label": "10GB = N2975 (7Days)"
+    },
+    {
+      "plan_code": "A18GB",
+      "amount": 4955,
+      "label": "18GB =N4955 (7Days)"
+    },
+    {
+      "plan_code": "A35GB",
+      "amount": 9900,
+      "label": "35GB =N9900 (7Days) Ulimited Ultra Router"
+    },
+    {
+      "plan_code": "A2GB",
+      "amount": 1478,
+      "label": "2GB = N1478 (30Days)"
+    },
+    {
+      "plan_code": "A3GB",
+      "amount": 1975,
+      "label": "3GB =N1975 (30Days)"
+    },
+    {
+      "plan_code": "A4GB",
+      "amount": 2477,
+      "label": "4GB =N2477 (30Days)"
+    },
+    {
+      "plan_code": "A8GB",
+      "amount": 2975,
+      "label": "8GB =N2975 (30Days)"
+    },
+    {
+      "plan_code": "A10GB",
+      "amount": 3950,
+      "label": "10GB =N3950 (30Days)"
+    },
+    {
+      "plan_code": "A13GB",
+      "amount": 4955,
+      "label": "13GB =N4955 (30Days)"
+    },
+    {
+      "plan_code": "A18GB",
+      "amount": 5940,
+      "label": "18GB =N5940 (30Days)"
+    },
+    {
+      "plan_code": "A25GB",
+      "amount": 7900,
+      "label": "25GB =N7900 (30Days)"
+    },
+    {
+      "plan_code": "A60GB",
+      "amount": 14900,
+      "label": "60GB =N14900 (30Days)"
+    },
+    {
+      "plan_code": "A75GB",
+      "amount": 14980,
+      "label": "75GB =N14980 (30Days)"
+    },
+    {
+      "plan_code": "A100GB",
+      "amount": 19800,
+      "label": "100GB =N19800 (30Days)"
+    },
+    {
+      "plan_code": "A160GB",
+      "amount": 29750,
+      "label": "160GB =N29750 (30Days)"
+    }
+  ],
+  "mtn_data_share": [
+    {
+      "plan_code": "M500MBS",
+      "amount": 350,
+      "label": "500MB = N350 (7 Days)"
+    },
+    {
+      "plan_code": "M1GBS",
+      "amount": 450,
+      "label": "1GB = N450 (7 Days)"
+    },
+    {
+      "plan_code": "M2GBS",
+      "amount": 850,
+      "label": "2GB = N850 (7 Days)"
+    },
+    {
+      "plan_code": "M3GBS",
+      "amount": 1200,
+      "label": "3GB = N1200 (7 Days)"
+    },
+    {
+      "plan_code": "M1GBS2",
+      "amount": 580,
+      "label": "1GB = N580 (30 Days)"
+    },
+    {
+      "plan_code": "M2GBS2",
+      "amount": 950,
+      "label": "2GB = N950 (30 Days)"
+    },
+    {
+      "plan_code": "M3GBS2",
+      "amount": 1250,
+      "label": "3GB = N1250 (30 Days)"
+    },
+    {
+      "plan_code": "M5GBS",
+      "amount": 1800,
+      "label": "5GB = N1800 (30 Days)"
+    }
+  ],
+  "mtn_awoof_gifting": [
+    {
+      "plan_code": "M1GBA",
+      "amount": 275,
+      "label": "1GB = N275 (1 Day)"
+    },
+    {
+      "plan_code": "M2a5GB",
+      "amount": 600,
+      "label": "2.5GB = N600 (1 Day)"
+    },
+    {
+      "plan_code": "M1a5GB",
+      "amount": 995,
+      "label": "1.5GB = N995 (7 Days)"
+    },
+    {
+      "plan_code": "M3a2GB",
+      "amount": 995,
+      "label": "3.2GB = N995 (2 Days)"
+    },
+    {
+      "plan_code": "M1a8GB",
+      "amount": 1498,
+      "label": "1.8GB = N1498 (30 Days)  +(335 airtime)"
+    },
+    {
+      "plan_code": "M5GBA",
+      "amount": 1160,
+      "label": "5GB = N1160 (14 Days)"
+    },
+    {
+      "plan_code": "M6GBA",
+      "amount": 2485,
+      "label": "6GB = N2485 (7 Days)"
+    },
+    {
+      "plan_code": "M7GBA",
+      "amount": 1795,
+      "label": "7GB = N1795 (2 Days)"
+    },
+    {
+      "plan_code": "M11GBA",
+      "amount": 3450,
+      "label": "11GB = N3450 (7 Days)"
+    },
+    {
+      "plan_code": "M12m5GBA",
+      "amount": 4390,
+      "label": "12.5GB = N4390 (14 Days)"
+    },
+    {
+      "plan_code": "M14m5GBA",
+      "amount": 4950,
+      "label": "14.5GB = N4950 (30Days) +30 days for XTRASPECIAL"
+    },
+    {
+      "plan_code": "M15GBA",
+      "amount": 3890,
+      "label": "15GB = N3890 (7Days)"
+    },
+    {
+      "plan_code": "M18GBA",
+      "amount": 5860,
+      "label": "18GB = N5860 (14Days)"
+    },
+    {
+      "plan_code": "M20GBA",
+      "amount": 4985,
+      "label": "20GB = N4985 (7Days)"
+    },
+    {
+      "plan_code": "M28GBA",
+      "amount": 7780,
+      "label": "28GB = N7780 (7Days)"
+    },
+    {
+      "plan_code": "M40GBA",
+      "amount": 9800,
+      "label": "40GB = N9800(14 Days)"
+    }
+  ]
+}

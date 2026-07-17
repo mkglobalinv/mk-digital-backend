@@ -1,0 +1,44 @@
+{
+  "buildId": "6a186796e60e193383b761a6",
+  "resellerId": "69d9f51ed0478b745fa704cb",
+  "appName": "Datasub",
+  "packageName": "com.mksubdata.testbrandedapp",
+  "generatedAt": "2026-05-28T16:07:35.187Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1779984447315-775976974-datasub-release.apk",
+    "iconUrl": "/reseller-assets/datasub/icon.png",
+    "splashUrl": "/reseller-assets/datasub/splash.png",
+    "featureGraphicUrl": "/reseller-assets/datasub/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/datasub/screenshot_login.png",
+      "/reseller-assets/datasub/screenshot_dashboard.png",
+      "/reseller-assets/datasub/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-05-28T16:07:31.515Z",
+    "pwaUrl": "https://datasub.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Datasub.",
+    "fullDescription": "Datasub is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "unuktar1@gmail.com",
+    "privacyPolicyUrl": "https://datasub.9jasub.com/privacy-policy",
+    "websiteUrl": "https://datasub.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 176812,
+    "memoryUsageMb": 72,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/datasub"
+  },
+  "infrastructure": {
+    "signature": "091cab1089cbccd1dcb5f9cfc92d87eecd579d7c22387b8c28ea9a5ad974225f",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

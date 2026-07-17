@@ -1,0 +1,44 @@
+{
+  "buildId": "6a186916e60e193383b76252",
+  "resellerId": "69fe7204c7bb98851e75d05b",
+  "appName": "Lightdataapp",
+  "packageName": "com.mksubdata.datahub",
+  "generatedAt": "2026-05-28T16:11:52.745Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1779984707283-935100982-lightdataapp-release.apk",
+    "iconUrl": "/reseller-assets/lightdataapp/icon.png",
+    "splashUrl": "/reseller-assets/lightdataapp/splash.png",
+    "featureGraphicUrl": "/reseller-assets/lightdataapp/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/lightdataapp/screenshot_login.png",
+      "/reseller-assets/lightdataapp/screenshot_dashboard.png",
+      "/reseller-assets/lightdataapp/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-05-28T16:11:51.250Z",
+    "pwaUrl": "https://datahub.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Lightdataapp.",
+    "fullDescription": "Lightdataapp is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "muktauma128@gmail.com",
+    "privacyPolicyUrl": "https://datahub.9jasub.com/privacy-policy",
+    "websiteUrl": "https://datahub.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 50576,
+    "memoryUsageMb": 49,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/lightdataapp"
+  },
+  "infrastructure": {
+    "signature": "e8e947b04ca5c3d37a71e34fbbf003f40e4828b2c325b274a81ac09c9b960a82",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

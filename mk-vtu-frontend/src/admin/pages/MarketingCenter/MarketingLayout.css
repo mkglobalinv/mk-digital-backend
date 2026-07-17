@@ -1,0 +1,127 @@
+.marketing-center-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 20px;
+}
+
+.marketing-center-header {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.marketing-title-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.marketing-main-icon {
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+  padding: 12px;
+  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+}
+
+.marketing-title-area h2 {
+  margin: 0 0 4px 0;
+  font-size: 22px;
+  color: var(--text-dark);
+}
+
+.marketing-title-area p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.marketing-container {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 500px;
+}
+
+.marketing-sidebar {
+  width: 240px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.sidebar-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.marketing-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: var(--text-dark);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin-bottom: 4px;
+}
+
+.marketing-nav-link:hover:not(.disabled) {
+  background: rgba(139, 92, 246, 0.05);
+  color: #8b5cf6;
+}
+
+.marketing-nav-link.active {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.marketing-nav-link.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.marketing-nav-link .badge {
+  margin-left: auto;
+  font-size: 10px;
+  background: var(--border-color);
+  padding: 2px 6px;
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+
+.marketing-content {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .marketing-container {
+    flex-direction: column;
+  }
+  .marketing-sidebar {
+    width: 100%;
+  }
+}

@@ -1,0 +1,1 @@
+import { sendEmail } from '../services/emailService.js'; async function run() { try { await sendEmail(undefined, 'test', 'test'); console.log('Success'); } catch(e) { console.error('THROWN:', e); } process.exit(0); } run();

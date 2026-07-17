@@ -1,0 +1,104 @@
+.banner-wrapper {
+  animation: fadeIn 0.4s ease;
+}
+
+.banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.add-btn {
+  background: #10b981;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.banner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.banner-item {
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.banner-preview {
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.inactive-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.banner-info {
+  padding: 20px;
+}
+
+.banner-info h3 {
+  font-size: 19.4px;
+  margin-bottom: 4px;
+}
+
+.banner-info p {
+  color: var(--text-light);
+  font-size: 15.7px;
+  margin-bottom: 16px;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.banner-actions button {
+  background: var(--bg-color);
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-light);
+}
+
+/* Modal Styling */
+.banner-modal input {
+  margin-bottom: 16px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  cursor: pointer;
+  font-size: 16.9px;
+  font-weight: 500;
+}
+
+.save-btn { background: #10b981; color: #fff; }

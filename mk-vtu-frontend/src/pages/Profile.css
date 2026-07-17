@@ -1,0 +1,312 @@
+/* Profile.css - Premium Theme */
+
+.profile-page {
+  background-color: var(--bg-color);
+}
+
+.profile-header-premium {
+  padding: 29px 18px 22px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+
+.profile-header-premium h2 {
+  font-size: 29.0px;
+  font-weight: 800;
+}
+
+.logout-btn-header {
+  background: none;
+  border: none;
+  color: var(--text-gray);
+  cursor: pointer;
+}
+
+.profile-hero {
+  padding: 36px 18px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.profile-avatar-container {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: var(--primary);
+}
+
+.profile-display-name {
+  font-size: 24.2px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.profile-email {
+  font-size: 16.9px;
+  color: var(--text-gray);
+  margin-bottom: 16px;
+}
+
+.premium-badge {
+  background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12.1px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.profile-menu-container {
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 29px;
+}
+
+.menu-group-title {
+  font-size: 13.3px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-gray);
+  margin-bottom: 12px;
+}
+
+.premium-menu-item {
+  width: 100%;
+  padding: 13px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.premium-menu-item:last-child {
+  border-bottom: none;
+}
+
+.premium-menu-item:hover:not(.no-hover) {
+  padding-left: 8px;
+}
+
+.menu-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-icon-wrapper.blue { background-color: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+.menu-icon-wrapper.green { background-color: rgba(16, 185, 129, 0.1); color: #10B981; }
+.menu-icon-wrapper.orange { background-color: rgba(245, 158, 11, 0.1); color: #F59E0B; }
+.menu-icon-wrapper.slate { background-color: rgba(71, 85, 105, 0.1); color: #475569; }
+.menu-icon-wrapper.red { background-color: rgba(239, 68, 68, 0.1); color: #EF4444; }
+
+.menu-text {
+  font-size: 18.2px;
+  font-weight: 600;
+}
+
+.menu-status {
+  font-size: 13.3px;
+  font-weight: 700;
+}
+
+.menu-status.success { color: #10B981; }
+
+.premium-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  padding: 2px;
+  background-color: var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.premium-toggle.on { background-color: #10B981; }
+
+.toggle-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.premium-toggle.on .toggle-thumb { transform: translateX(20px); }
+
+.danger-item .menu-text { color: var(--danger); }
+
+.full-logout-btn {
+  margin-top: 24px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background-color: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.full-logout-btn:hover {
+  background-color: var(--danger);
+  color: white;
+}
+
+/* Modal & Form Styles */
+.premium-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.premium-modal {
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 400px;
+  border-radius: 21px;
+  padding: 21px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.modal-header h3 {
+  font-size: 21.8px;
+  font-weight: 800;
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  color: var(--text-gray);
+  cursor: pointer;
+}
+
+.modal-msg {
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 15.7px;
+  font-weight: 500;
+}
+
+.modal-msg.success { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+.modal-msg.error { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px;
+  color: white;
+  font-size: 16.9px;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.modal-submit-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.pin-menu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pin-opt-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  border-radius: 16px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pin-opt-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.premium-badge.verified {
+  background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+}
+
+.premium-badge.unverified {
+  background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
+}
+
+.menu-status.pending {
+  color: #F59E0B;
+}

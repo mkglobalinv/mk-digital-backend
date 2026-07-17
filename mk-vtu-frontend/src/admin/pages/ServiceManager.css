@@ -1,0 +1,318 @@
+.service-manager-wrapper {
+  animation: fadeIn 0.4s ease;
+}
+
+.section-header {
+  margin-bottom: 24px;
+}
+
+.mt-40 { margin-top: 40px; }
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.service-card {
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.2s;
+}
+
+.service-card:hover { transform: translateY(-4px); }
+
+.service-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--bg-color);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+}
+
+.service-info h3 { font-size: 19.4px; margin-bottom: 2px; }
+.service-info p { font-size: 14.5px; color: var(--text-light); }
+
+.toggle-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.toggle-btn.on { color: #10b981; }
+.toggle-btn.off { color: #cbd5e1; }
+
+/* Pricing Grid */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.pricing-card {
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.pricing-info h4 { font-size: 16.9px; margin-bottom: 4px; }
+.pricing-info span { font-size: 13.3px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.pricing-input {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  background: var(--bg-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 4px 12px;
+}
+
+.pricing-input input {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  width: 100%;
+  font-size: 19.4px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.unit {
+  font-weight: 700;
+  color: var(--text-light);
+  margin-left: 8px;
+}
+
+/* --- ADMIN STATUS CENTER LAYOUT --- */
+.admin-status-section {
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  margin-top: 40px;
+}
+
+.admin-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.admin-status-header h3 {
+  font-size: 19.4px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-dark);
+}
+
+.btn-add-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-status:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.status-form-card {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  animation: slideDown 0.3s ease;
+}
+
+.status-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group select, .form-group input {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  outline: none;
+  font-size: 14.5px;
+  color: var(--text-dark);
+  font-weight: 600;
+  transition: border-color 0.2s;
+}
+
+.form-group select:focus, .form-group input:focus {
+  border-color: #2563eb;
+}
+
+.form-group-full {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-submit {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-submit:hover { background: #059669; }
+
+.btn-cancel {
+  background: #e2e8f0;
+  color: var(--text-gray);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-cancel:hover { background: #cbd5e1; }
+
+/* Status table list */
+.admin-table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.admin-status-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-status-table th {
+  background: var(--bg-color);
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-status-table td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--text-gray);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 500;
+}
+
+.admin-status-table tr:last-child td {
+  border-bottom: none;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.status-badge.active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.status-badge.delayed { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.status-badge.maintenance { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.status-badge.informational { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+
+.status-badge .badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.audience-tag {
+  background: var(--bg-color);
+  color: var(--text-gray);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.admin-btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  color: var(--text-light);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-btn-icon:hover {
+  background: var(--bg-color);
+  color: var(--text-dark);
+}
+
+.admin-btn-icon.delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+

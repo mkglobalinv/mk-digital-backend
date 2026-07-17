@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Local backups
+backups/
+builds/
+ghost_users_dump/
+
+# Local MongoDB binaries
+mongodb-win32-x86_64-windows-8.2.6/
+
+# Frontend builds
+mk-vtu-frontend/node_modules/
+mk-management-frontend/node_modules/
+mk-subdata-website/node_modules/
+
+mk-vtu-frontend/dist/
+mk-management-frontend/dist/
+mk-subdata-website/.next/
