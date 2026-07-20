@@ -1,0 +1,44 @@
+{
+  "buildId": "6a5c8c571b05b6a36b9db680",
+  "resellerId": "6a57648ce9174d59e33abd3f",
+  "appName": "Issemb",
+  "packageName": "com.issemb.app",
+  "generatedAt": "2026-07-19T08:37:00.629Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1784450207251-278092466-issemb-release.apk",
+    "iconUrl": "/reseller-assets/issemb/icon.png",
+    "splashUrl": "/reseller-assets/issemb/splash.png",
+    "featureGraphicUrl": "/reseller-assets/issemb/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/issemb/screenshot_login.png",
+      "/reseller-assets/issemb/screenshot_dashboard.png",
+      "/reseller-assets/issemb/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-07-19T08:36:58.209Z",
+    "pwaUrl": "https://issembro.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Issemb.",
+    "fullDescription": "Issemb is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "issaembrodery@gmail.com",
+    "privacyPolicyUrl": "https://issembro.9jasub.com/privacy-policy",
+    "websiteUrl": "https://issembro.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 76557,
+    "memoryUsageMb": 59,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/issemb"
+  },
+  "infrastructure": {
+    "signature": "a4d886213bcbf1e01ab363ff9f5ef06f88187e01a00877f7848c06c50d5fdb3f",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

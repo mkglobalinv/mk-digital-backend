@@ -1,0 +1,44 @@
+{
+  "buildId": "6a5c843a625037a6cb5a4e63",
+  "resellerId": "6a54887e7a006d0e80fec70e",
+  "appName": "banner site",
+  "packageName": "com.mksubdata.app",
+  "generatedAt": "2026-07-19T08:02:44.561Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1784448135837-882366771-bannersite-release.apk",
+    "iconUrl": "/reseller-assets/bannersite/icon.png",
+    "splashUrl": "/reseller-assets/bannersite/splash.png",
+    "featureGraphicUrl": "/reseller-assets/bannersite/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/bannersite/screenshot_login.png",
+      "/reseller-assets/bannersite/screenshot_dashboard.png",
+      "/reseller-assets/bannersite/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-07-19T08:02:38.731Z",
+    "pwaUrl": "https://banner.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with banner site.",
+    "fullDescription": "banner site is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "mysuppo@gmail.com",
+    "privacyPolicyUrl": "https://banner.9jasub.com/privacy-policy",
+    "websiteUrl": "https://banner.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 106368,
+    "memoryUsageMb": 60,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/bannersite"
+  },
+  "infrastructure": {
+    "signature": "c89abdbd9247eada01a2ac1fb17732c0a4d11216d5090593aee25e24e2a47dfe",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

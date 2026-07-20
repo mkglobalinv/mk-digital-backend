@@ -1,0 +1,12 @@
+[PAGE LOG] [debug] [vite] connecting...
+[PAGE LOG] [debug] [vite] connected.
+[PAGE LOG] [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[PAGE LOG] [log] [DEBUG-FORENSIC] Login.jsx mounted
+[PAGE LOG] [log] [Biometric] Checking availability...
+[PAGE LOG] [warning] WebSocket connection to 'ws://localhost:5173/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established.
+[PAGE LOG] [log] [DEBUG-FORENSIC] Login.jsx unmounting
+[PAGE LOG] [log] [DEBUG-FORENSIC] Login.jsx mounted
+[PAGE LOG] [log] [Biometric] Checking availability...
+[PAGE LOG] [log] [Biometric] Platform authenticator available: false
+[PAGE LOG] [log] [Biometric] Platform authenticator available: false
+[PAGE LOG] [log] SW Registered: http://localhost:5173/
