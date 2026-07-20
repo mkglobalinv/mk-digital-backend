@@ -2126,6 +2126,12 @@ app.delete("/api/admin/blog/:id", adminAuth, async (req, res) => {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Root Health Check (must be before SPA wildcard)
+app.get("/health", (req, res) => {
+    res.json({ status: "success", message: "System is healthy", timestamp: new Date().toISOString() });
+});
+
 app.use(express.static(path.join(__dirname, "mk-vtu-frontend", "dist")));
 app.get(/.*/, (req, res) => {
     if (req.path.startsWith("/api") || req.path.startsWith("/auth") || req.path.startsWith("/user") || req.path.startsWith("/buy-") || req.path.startsWith("/reseller-assets")) return res.status(404).end();
