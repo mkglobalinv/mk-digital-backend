@@ -2129,7 +2129,18 @@ const __dirname = path.dirname(__filename);
 
 // Root Health Check (must be before SPA wildcard)
 app.get("/health", (req, res) => {
-    res.json({ status: "success", message: "System is healthy", timestamp: new Date().toISOString() });
+    const dbState = mongoose.connection.readyState;
+    const states = {
+        0: "disconnected",
+        1: "connected",
+        2: "connecting",
+        3: "disconnecting"
+    };
+    res.json({
+        status: dbState === 1 ? "success" : "error",
+        database: states[dbState] || "unknown",
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.use(express.static(path.join(__dirname, "mk-vtu-frontend", "dist")));
