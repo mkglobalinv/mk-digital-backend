@@ -33,6 +33,8 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   const [cableId, setCableId] = useState('');
   const [packageId, setPackageId] = useState('');
   const [smartcard, setSmartCard] = useState('');
+  const [cablePlans, setCablePlans] = useState([]);
+  const [fetchingCablePlans, setFetchingCablePlans] = useState(false);
   
   // Electricity state
   const [discoId, setDiscoId] = useState('');
@@ -158,8 +160,24 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   }, [network, activeTab, isInternational]);
 
   // Re-filter plans when category changes (no extra fetch needed)
-  // The dataPlans array holds all plans for the network, filter by category in render
+  useEffect(() => {
+    setDataPlan('');
+    setAmount('');
+  }, [dataCategory]);
 
+  useEffect(() => {
+    if (activeTab === 'cable' && cablePlans.length === 0) {
+      setFetchingCablePlans(true);
+      API.get('/api/vtu/cable/plans')
+        .then(res => {
+            if (res.data && res.data.plans) {
+                setCablePlans(res.data.plans);
+            }
+        })
+        .catch(err => console.error("Error fetching cable plans:", err))
+        .finally(() => setFetchingCablePlans(false));
+    }
+  }, [activeTab]);
 
   const fetchDataPlans = async () => {
     if (!network) return;
@@ -327,10 +345,10 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
         rData.amount = amount || 0;
       }
       else if (activeTab === 'cable') {
-        if (!cableId || !packageId || !smartcard || !phone) throw new Error("Missing cable details");
-        res = await API.post('/buy-cable', { ...commonPayload, cableId, packageId, smartcard, phone, amount: 2000 }, { headers: { Authorization: token } }); 
+        if (!cableId || !packageId || !smartcard || !phone || !amount) throw new Error("Missing cable details");
+        res = await API.post('/buy-cable', { ...commonPayload, cableId, packageId, smartcard, phone, amount: Number(amount) }, { headers: { Authorization: token } }); 
         rData.desc = `Cable TV ${cableId} (${smartcard})`;
-        rData.amount = 2000;
+        rData.amount = amount;
       }
       else if (activeTab === 'electricity') {
         if (!discoId || !meterNumber || !amount || !phone) throw new Error("Missing electricity details");
@@ -712,11 +730,19 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
         );
       
       case 'cable':
+        const providerMap = { '01': 'dstv', '02': 'gotv', '03': 'startimes' };
+        const selectedProviderString = providerMap[cableId];
+        const availableCablePlans = cablePlans.filter(p => p.provider === selectedProviderString);
+
         return (
           <>
             <div className="purchase-input-group">
               <label>Provider</label>
-              <select className="purchase-input" value={cableId} onChange={(e) => setCableId(e.target.value)} required>
+              <select className="purchase-input" value={cableId} onChange={(e) => {
+                  setCableId(e.target.value);
+                  setPackageId('');
+                  setAmount('');
+              }} required>
                 <option value="" disabled>Select Provider...</option>
                 <option value="01">DStv</option>
                 <option value="02">GOtv</option>
@@ -724,8 +750,21 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
               </select>
             </div>
             <div className="purchase-input-group">
-              <label>Package ID</label>
-              <input type="text" className="purchase-input" placeholder="e.g. GOtv Max" value={packageId} onChange={(e) => setPackageId(e.target.value)} required />
+              <label>Package {fetchingCablePlans && <Loader2 className="animate-spin" size={14} style={{ display: 'inline', marginLeft: 6 }} />}</label>
+              <select className="purchase-input" value={packageId} onChange={(e) => {
+                  setPackageId(e.target.value);
+                  const selectedPlan = availableCablePlans.find(p => p.plan_id === e.target.value);
+                  if (selectedPlan) {
+                      setAmount(selectedPlan.price);
+                  }
+              }} required disabled={!cableId || fetchingCablePlans}>
+                  <option value="" disabled>{fetchingCablePlans ? 'Loading plans...' : 'Select Package...'}</option>
+                  {availableCablePlans.map(plan => (
+                      <option key={plan.plan_id} value={plan.plan_id}>
+                          {plan.name} - ₦{plan.price.toLocaleString()}
+                      </option>
+                  ))}
+              </select>
             </div>
             <div className="purchase-input-group">
               <label>SmartCard Number</label>
@@ -733,12 +772,16 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
             </div>
             <div className="purchase-input-group">
               <label>Phone Number</label>
+              <input type="tel" className="purchase-input" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+            </div>
+            <div className="purchase-input-group">
+              <label>Amount (₦)</label>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <input type="tel" className="purchase-input" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+                <input type="number" className="purchase-input" value={amount} onChange={(e) => setAmount(e.target.value)} required readOnly style={{ background: '#f5f5f5', cursor: 'not-allowed' }} />
                 <button 
                   type="button" 
                   onClick={() => {
-                    if (cableId && packageId && smartcard && phone) {
+                    if (cableId && packageId && smartcard && phone && amount) {
                       setShowPinModal(true);
                       setTransactionPin('');
                     } else {
@@ -1025,7 +1068,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
            <div className="purchase-summary" style={{ marginTop: '20px', padding: '15px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px' }}>
               <span className="summary-label">Total Estimate:</span>
               <span className="summary-value" style={{ fontWeight: 'bold', fontSize: '19.8px' }}>
-                {activeTab === 'airtime' || activeTab === 'electricity' 
+                {activeTab === 'airtime' || activeTab === 'electricity' || activeTab === 'cable'
                   ? (amount ? `₦${Number(amount).toLocaleString()}` : '₦0')
                   : activeTab === 'epin'
                   ? `₦${(Number(epinValue)*Number(quantity)).toLocaleString()}`

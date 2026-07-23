@@ -1,0 +1,51 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name 9jasub.com *.9jasub.com;
+
+    # Optional: Redirect HTTP to HTTPS immediately
+    # return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name 9jasub.com *.9jasub.com;
+
+    # Cloudflare Origin CA or Let's Encrypt Wildcard Certificates
+    ssl_certificate /etc/nginx/ssl/9jasub.com.pem;
+    ssl_certificate_key /etc/nginx/ssl/9jasub.com.key;
+
+    # SSL Optimization (Modern Cipher Suites)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # Root Directory for direct asset fallback (optional, Node serves it, but this is faster if needed)
+    # root /home/user/mk-digital-backend/mk-vtu-frontend/dist;
+
+    location / {
+        proxy_pass http://127.0.0.1:8800;
+        proxy_http_version 1.1;
+        
+        # Websocket Support
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        
+        # Proper Host and IP Headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_addrs;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Cache Bypass
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Optional: Cache static assets directly via Nginx
+    location /assets/ {
+        proxy_pass http://127.0.0.1:8800/assets/;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+    }
+}

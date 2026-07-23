@@ -339,10 +339,11 @@ export const login = async (req, res) => {
             });
         }
         // Phase 11: Independence Redirect
-        if (user.independence_redirect_enabled && user.admin_subdomain) {
+        if (user.independence_redirect_enabled && (user.admin_subdomain || user.subdomain)) {
+             const targetSub = user.subdomain || user.admin_subdomain;
              return res.status(403).json({ 
                  redirect: true, 
-                 targetUrl: `https://${user.admin_subdomain}.9jasub.com`, 
+                 targetUrl: `https://${targetSub}.9jasub.com/business/login`, 
                  message: "You now manage your business through your Website Admin Portal. Opening your Admin Portal...",
                  isBusiness: true 
              });

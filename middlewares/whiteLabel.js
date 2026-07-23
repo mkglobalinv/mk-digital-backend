@@ -17,8 +17,10 @@ export const whiteLabelMiddleware = async (req, res, next) => {
     const mainDomains = [
         'localhost:5173', 
         'localhost:5000', 
+        'localhost:8800',
         '127.0.0.1:5173',
         '127.0.0.1:5000',
+        '127.0.0.1:8800',
         '9jasub.com', 
         'www.9jasub.com', 
         'app.9jasub.com',
@@ -42,12 +44,12 @@ export const whiteLabelMiddleware = async (req, res, next) => {
                 console.log(`[WhiteLabel] Domain ${host} resolved from cache.`);
             } else {
                 console.log(`[WhiteLabel] Domain ${host} is not a main domain. Checking for reseller...`);
-                // Check if it's a subdomain, custom domain, or Phase 11 admin_subdomain
+                const sub = host.split('.')[0];
                 reseller = await User.findOne({
                     $or: [
-                        { subdomain: host.split('.')[0] },
+                        { subdomain: sub },
                         { customDomain: host },
-                        { admin_subdomain: host.split('.')[0] }
+                        { admin_subdomain: sub }
                     ]
                 });
                 

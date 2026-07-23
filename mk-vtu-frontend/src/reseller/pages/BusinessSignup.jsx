@@ -124,9 +124,10 @@ const BusinessSignup = ({ setToken }) => {
             localStorage.setItem("token", loginRes.data.token);
             if (setToken) setToken(loginRes.data.token);
             // Show the Activation Success Screen
+            const sub = regRes.data.subdomain || regRes.data.admin_subdomain;
             setSuccessInfo({
-                adminSubdomain: regRes.data.admin_subdomain,
-                adminUrl: `https://${regRes.data.admin_subdomain}.9jasub.com`
+                adminSubdomain: sub,
+                adminUrl: `https://${sub}.9jasub.com/business/login`
             });
             window.dispatchEvent(new CustomEvent('toast:show', { detail: { message: "Website Created Successfully!", type: "success" } }));
         } else {

@@ -70,6 +70,10 @@ import developerRoutes from "./routes/developerRoutes.js";
 import { transactionIdempotency } from "./middlewares/idempotency.js";
 import { startMemoryMonitor, registerCleanup } from "./services/memoryProtectionService.js";
 import { clearResellerCache } from "./middlewares/whiteLabel.js";
+import { initializeTestMode } from "./utils/testModeAdapter.js";
+
+// Initialize mock adapter if in TEST_MODE
+initializeTestMode();
 import { clearTelemetryCache, getLatestCpuUsage } from "./controllers/adminController.js";
 import resellerPricingRoutes from "./routes/reseller/resellerPricingRoutes.js";
 import retailPurchaseRoutes from "./routes/retail/retailPurchaseRoutes.js";
@@ -206,6 +210,21 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads"), {
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// Root Health Check (must be before SPA wildcard and whiteLabel)
+app.get("/health", (req, res) => {
+    const dbState = mongoose.connection.readyState;
+    const states = {
+        0: "disconnected",
+        1: "connected",
+        2: "connecting",
+        3: "disconnecting"
+    };
+    res.json({
+        status: dbState === 1 ? "success" : "error",
+        database: states[dbState] || "unknown",
+        timestamp: new Date().toISOString()
+    });
+});
 app.use(whiteLabelMiddleware);
 app.use(maintenanceMiddleware);
 
@@ -1160,6 +1179,35 @@ app.get("/api/reseller/premium-pricing", auth, async (req, res) => {
 // [DEPRECATED] });
 
 // ---------------- VTU SERVICES ----------------
+
+app.get("/api/vtu/cable/plans", auth, async (req, res) => {
+    try {
+        const response = await axios.get("https://www.nellobytesystems.com/APICableTVPackagesV1.asp", { timeout: 15000 });
+        const data = response.data;
+        if (!data || !data.TV_ID) throw new Error("Invalid response from provider");
+        
+        let allPlans = [];
+        for (const [providerName, providerArray] of Object.entries(data.TV_ID)) {
+            if (Array.isArray(providerArray) && providerArray.length > 0) {
+                const products = providerArray[0].PRODUCT;
+                if (Array.isArray(products)) {
+                    products.forEach(p => {
+                        allPlans.push({
+                            provider: providerName.toLowerCase(), // 'dstv', 'gotv', 'startimes'
+                            plan_id: p.PACKAGE_ID,
+                            name: p.PACKAGE_NAME,
+                            price: parseFloat(p.PACKAGE_AMOUNT)
+                        });
+                    });
+                }
+            }
+        }
+        res.json({ status: "success", plans: allPlans });
+    } catch (error) {
+        console.error("[Cable] Error fetching plans:", error.message);
+        res.status(500).json({ status: "failed", message: "Failed to fetch cable plans" });
+    }
+});
 
 app.get("/api/vtu/data-plans/all", auth, async (req, res) => {
     try {
@@ -2127,25 +2175,30 @@ app.delete("/api/admin/blog/:id", adminAuth, async (req, res) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Root Health Check (must be before SPA wildcard)
-app.get("/health", (req, res) => {
-    const dbState = mongoose.connection.readyState;
-    const states = {
-        0: "disconnected",
-        1: "connected",
-        2: "connecting",
-        3: "disconnecting"
-    };
-    res.json({
-        status: dbState === 1 ? "success" : "error",
-        database: states[dbState] || "unknown",
-        timestamp: new Date().toISOString()
-    });
+// Marketing Website Serve Logic
+app.use('/_next', express.static(path.join(__dirname, "mk-subdata-website", "out", "_next")));
+app.use('/logo.jpg', express.static(path.join(__dirname, "mk-subdata-website", "out", "logo.jpg")));
+
+const marketingPages = ['/', '/about', '/services', '/get-started', '/developer', '/docs', '/privacy', '/terms'];
+
+app.get(marketingPages, (req, res, next) => {
+    const host = req.hostname.toLowerCase();
+    const isMainDomain = host === '9jasub.com' || host === 'www.9jasub.com' || host === 'localhost' || host === '127.0.0.1';
+    
+    if (isMainDomain) {
+        const file = req.path === '/' ? 'index.html' : `${req.path.substring(1)}.html`;
+        const filePath = path.join(__dirname, "mk-subdata-website", "out", file);
+        if (fs.existsSync(filePath)) {
+            return res.sendFile(filePath);
+        }
+    }
+    next();
 });
 
 app.use(express.static(path.join(__dirname, "mk-vtu-frontend", "dist")));
 app.get(/.*/, (req, res) => {
-    if (req.path.startsWith("/api") || req.path.startsWith("/auth") || req.path.startsWith("/user") || req.path.startsWith("/buy-") || req.path.startsWith("/reseller-assets")) return res.status(404).end();
+    const nonSpaRoutes = ["/api", "/auth", "/user", "/buy-", "/reseller-assets", "/assets"];
+    if (nonSpaRoutes.some(route => req.path.startsWith(route))) return res.status(404).end();
     res.sendFile(path.join(__dirname, "mk-vtu-frontend", "dist", "index.html"));
 });
 
