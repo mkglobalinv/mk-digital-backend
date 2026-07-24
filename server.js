@@ -211,7 +211,7 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Root Health Check (must be before SPA wildcard and whiteLabel)
-app.get("/health", (req, res) => {
+const healthHandler = (req, res) => {
     const dbState = mongoose.connection.readyState;
     const states = {
         0: "disconnected",
@@ -224,7 +224,9 @@ app.get("/health", (req, res) => {
         database: states[dbState] || "unknown",
         timestamp: new Date().toISOString()
     });
-});
+};
+app.get("/health", healthHandler);
+app.get("/api/health", healthHandler);
 app.use(whiteLabelMiddleware);
 app.use(maintenanceMiddleware);
 
