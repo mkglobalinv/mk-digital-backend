@@ -137,13 +137,15 @@ function App() {
 
   // Tenant Security Guard
   const [checkingTenant, setCheckingTenant] = useState(() => {
-    const host = window.location.host;
+    const host = window.location.hostname.toLowerCase();
     const mainDomains = [
-        'localhost:5173', 'localhost:5000', 
-        '127.0.0.1:5173', '127.0.0.1:5000',
-        '9jasub.com', 'www.9jasub.com', 'app.9jasub.com',
-        'mk-subdata.com', 'www.mk-subdata.com',
-        '9jasub.com', 'www.9jasub.com', 'app.9jasub.com'
+        'localhost', 
+        '127.0.0.1',
+        '9jasub.com', 
+        'www.9jasub.com', 
+        'app.9jasub.com',
+        'mk-subdata.com', 
+        'www.mk-subdata.com'
     ];
     return !mainDomains.includes(host);
   });

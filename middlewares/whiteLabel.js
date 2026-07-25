@@ -11,24 +11,18 @@ export const clearResellerCache = () => {
 };
 
 export const whiteLabelMiddleware = async (req, res, next) => {
-    const host = req.headers['x-forwarded-host'] || req.headers.host || '';
+    const rawHost = req.headers['x-forwarded-host'] || req.headers.host || '';
+    const host = rawHost.split(':')[0].toLowerCase();
     
     // 1. Identify System Main Domains
     const mainDomains = [
-        'localhost:5173', 
-        'localhost:5000', 
-        'localhost:8800',
-        '127.0.0.1:5173',
-        '127.0.0.1:5000',
-        '127.0.0.1:8800',
+        'localhost', 
+        '127.0.0.1',
         '9jasub.com', 
         'www.9jasub.com', 
         'app.9jasub.com',
         'mk-subdata.com',
-        'www.mk-subdata.com',
-        '9jasub.com',
-        'www.9jasub.com',
-        'app.9jasub.com'
+        'www.mk-subdata.com'
     ];
     const isMainDomain = mainDomains.includes(host);
 

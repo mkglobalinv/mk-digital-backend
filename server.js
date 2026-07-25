@@ -2189,23 +2189,66 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Marketing Website Serve Logic
-app.use('/_next', express.static(path.join(__dirname, "mk-subdata-website", "out", "_next")));
-app.use('/logo.jpg', express.static(path.join(__dirname, "mk-subdata-website", "out", "logo.jpg")));
+const marketingStatic = express.static(path.join(__dirname, "mk-subdata-website", "out"));
+app.use((req, res, next) => {
+    const rawHost = req.headers['x-forwarded-host'] || req.headers.host || '';
+    const host = rawHost.split(':')[0].toLowerCase();
+    const isMarketingDomain = host === '9jasub.com' || host === 'www.9jasub.com';
 
-const marketingPages = ['/', '/about', '/services', '/get-started', '/developer', '/docs', '/privacy', '/terms'];
 
-app.get(marketingPages, (req, res, next) => {
-    const host = req.hostname.toLowerCase();
-    const isMainDomain = host === '9jasub.com' || host === 'www.9jasub.com' || host === 'localhost' || host === '127.0.0.1';
-    
-    if (isMainDomain) {
-        const file = req.path === '/' ? 'index.html' : `${req.path.substring(1)}.html`;
-        const filePath = path.join(__dirname, "mk-subdata-website", "out", file);
-        if (fs.existsSync(filePath)) {
-            return res.sendFile(filePath);
+    if (isMarketingDomain) {
+        const nonMarketingRoutes = ["/api", "/auth", "/user", "/buy-", "/reseller-assets"];
+        if (nonMarketingRoutes.some(route => req.path.startsWith(route))) {
+            return next();
         }
+
+        // 1. Use static for assets
+        const isAsset = req.path.startsWith('/_next') || req.path.match(/\.(png|svg|jpg|ico|txt)$/);
+        if (isAsset) {
+            return marketingStatic(req, res, next);
+        }
+
+        // 2. Explicitly handle HTML paths
+        const marketingPages = ['/about', '/services', '/get-started', '/developer', '/docs', '/privacy', '/terms'];
+        const cleanPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
+
+        if (marketingPages.includes(cleanPath)) {
+            const htmlPath = path.join(__dirname, "mk-subdata-website", "out", `${cleanPath.substring(1)}.html`);
+            if (fs.existsSync(htmlPath)) {
+                return res.sendFile(htmlPath, (err) => {
+                    if (err) {
+                        console.error(`[MarketingRouter] sendFile error:`, err);
+                        next(err);
+                    }
+                });
+            }
+        }
+        
+        if (cleanPath === '/') {
+            const index = path.join(__dirname, "mk-subdata-website", "out", "index.html");
+            if (fs.existsSync(index)) {
+                return res.sendFile(index, (err) => {
+                    if (err) {
+                        console.error(`[MarketingRouter] sendFile error:`, err);
+                        next(err);
+                    }
+                });
+            }
+        }
+        
+        const notFoundPath = path.join(__dirname, "mk-subdata-website", "out", "404.html");
+        if (fs.existsSync(notFoundPath)) {
+            return res.status(404).sendFile(notFoundPath, (err) => {
+                if (err) {
+                    console.error(`[MarketingRouter] sendFile error:`, err);
+                    next(err);
+                }
+            });
+        }
+        return next();
+    } else {
+        next();
     }
-    next();
 });
 
 app.use(express.static(path.join(__dirname, "mk-vtu-frontend", "dist")));
