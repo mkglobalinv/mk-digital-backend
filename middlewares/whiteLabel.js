@@ -87,7 +87,7 @@ export const whiteLabelMiddleware = async (req, res, next) => {
             } else {
                 console.log(`[WhiteLabel] Critical: Tenant not found for host ${host}. Rejecting request.`);
                 
-                if (req.path.startsWith('/api')) {
+                if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
                     return res.status(404).json({ message: "Website not found." });
                 }
 

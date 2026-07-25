@@ -367,19 +367,16 @@ const auth = async (req, res, next) => {
   try {
     let token = req.headers.authorization;
     if (!token) {
-        console.log(`[Auth] No token for ${req.path}`);
         return res.status(401).json({ message: "No token" });
     }
     if (token.startsWith("Bearer ") || token.startsWith("Token ")) token = token.split(" ")[1];
     
     const secret = process.env.JWT_SECRET || "mk_sub_data_secret_2024_premium";
     const verified = jwt.verify(token, secret);
-    req.user = verified;
     req.session_type = verified.session_type || 'retail';
     
     const session = await Session.findOne({ token, userId: verified.id, isValid: true });
     if (!session) {
-        console.log(`[Auth] Session invalid or expired for user ${verified.id}`);
         return res.status(401).json({ message: "Session expired." });
     }
 
@@ -387,21 +384,21 @@ const auth = async (req, res, next) => {
     const user = await User.findByIdAndTenant(verified.id, resellerId);
 
     if (!user) {
-        console.log(`[Auth] User ${verified.id} not authorized for tenant ${resellerId || 'Main'}`);
         return res.status(401).json({ message: "Session invalid for this platform." });
     }
 
     if (user.isSuspended) {
-        console.log(`[Auth] User suspended: ${user.email}`);
         return res.status(403).json({ message: "Account suspended." });
     }
     
+    req.user = user;
     next();
   } catch (err) { 
     console.error(`[Auth] Verification failed for ${req.path}:`, err.message);
     res.status(401).json({ message: "Invalid token" }); 
   }
 };
+
 
 const restrictToRetailSession = (req, res, next) => {
   if (req.user && req.user.role !== 'admin' && req.session_type !== 'retail') {

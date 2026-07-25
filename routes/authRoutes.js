@@ -29,17 +29,7 @@ router.post("/verify-security-questions", verifySecurityQuestions);
 router.post("/reset-pin", resetTransactionPin);
 
 // Protected routes
-import jwt from "jsonwebtoken";
-const auth = (req, res, next) => {
-    let token = req.headers.authorization;
-    if (!token) return res.status(401).json({ message: "Unauthorized" });
-    if (token.startsWith("Bearer ")) token = token.split(" ")[1];
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || "mk_sub_data_secret_2024_premium");
-        req.user = decoded;
-        next();
-    } catch (err) { res.status(401).json({ message: "Invalid token" }); }
-};
+import { auth } from "../middlewares/auth.js";
 
 router.post("/change-pin", auth, changeTransactionPin);
 router.post("/request-pin-otp", auth, otpLimiter, requestPinOTP);

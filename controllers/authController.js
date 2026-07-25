@@ -290,8 +290,7 @@ export const login = async (req, res) => {
         }
     }
 
-    console.log(`[Login Debug] Searching for: ${email} in tenant ${resellerId || 'Main'} | Found: ${user ? 'YES' : 'NO'}`);
-    
+
     if (!user) {
         console.log(`[Login] Failure: User not found (${email}) in tenant ${resellerId || 'Main'}`);
         return res.status(400).json({ message: "User not found" });
