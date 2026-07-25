@@ -1401,6 +1401,8 @@ app.post("/buy-airtime", auth, verifyTransactionPin, transactionIdempotency, asy
             resellerId: reseller ? reseller._id : null,
             cost_price: resellerCost,
             selling_price: finalAmount,
+            main_wallet_deducted: deducted.mainDeducted,
+            cashback_wallet_deducted: deducted.cashbackDeducted,
             api_response: { inputAmount, operatorId }
         });
 
@@ -1666,6 +1668,8 @@ app.post("/buy-cable", auth, verifyTransactionPin, transactionIdempotency, async
             description: `Cable TV: ${cableId} (${smartcard})`, reference: `CBL-PND-${Date.now()}`,
             balance_deducted: true,
             isApiRequest: true,
+            main_wallet_deducted: deducted.mainDeducted,
+            cashback_wallet_deducted: deducted.cashbackDeducted,
             api_response: { cableId, packageId, smartcard }
         });
 
@@ -1724,6 +1728,8 @@ app.post("/buy-electricity", auth, verifyTransactionPin, transactionIdempotency,
             description: `Electricity: ${discoId} (${meterNumber})`, reference: `ELE-PND-${Date.now()}`,
             balance_deducted: true,
             isApiRequest: true,
+            main_wallet_deducted: deducted.mainDeducted,
+            cashback_wallet_deducted: deducted.cashbackDeducted,
             api_response: { discoId, meterType, meterNumber }
         });
 

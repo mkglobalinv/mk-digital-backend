@@ -15,6 +15,7 @@ import { insertLedgerEntry } from '../services/supabaseLedger.js';
 import PriceOverride from '../models/PriceOverride.js';
 import AdminPricingOverride from '../models/AdminPricingOverride.js';
 import SystemSetting from '../models/SystemSetting.js';
+import { deductBalance, refundBalance } from '../services/walletService.js';
 
 const router = express.Router();
 
@@ -156,7 +157,14 @@ router.post('/data', transactionIdempotency, async (req, res) => {
             api_response: { planCode: plan_id, networkId: null, operatorId: null, provider: plan.provider, payload: req.body }
         });
 
-        await User.findByIdAndUpdate(req.user._id, { $inc: { [balanceField]: -price } });
+        if (!req.isSandbox) {
+            const deducted = await deductBalance(req.user._id, price, internalRef, transaction.description, true);
+            if (!deducted) return res.status(402).json({ status: 'error', message: 'Insufficient balance or wallet locked' });
+            transaction.main_wallet_deducted = deducted.mainDeducted;
+            transaction.cashback_wallet_deducted = deducted.cashbackDeducted;
+        } else {
+            await User.findByIdAndUpdate(req.user._id, { $inc: { [balanceField]: -price } });
+        }
         transaction.balance_deducted = true;
         await transaction.save();
 
@@ -183,7 +191,11 @@ router.post('/data', transactionIdempotency, async (req, res) => {
             if (result.status === 'success') triggerWebhook(req.user, transaction);
             return res.json({ status: 'success', message: 'Transaction processing', reference: internalRef, client_reference: clientRef, network, amount: price });
         } else {
-            await User.findByIdAndUpdate(req.user._id, { $inc: { [balanceField]: price } });
+            if (!req.isSandbox) {
+                await refundBalance(req.user._id, price, transaction);
+            } else {
+                await User.findByIdAndUpdate(req.user._id, { $inc: { [balanceField]: price } });
+            }
             transaction.status = 'failed';
             transaction.balance_deducted = false;
             transaction.api_response = { ...(transaction.api_response || {}), provider_response: result.data || { error: result.message } };
@@ -233,7 +245,14 @@ router.post('/airtime', transactionIdempotency, async (req, res) => {
             api_response: { inputAmount: price, networkId: null, operatorId: null, provider: 'smart', payload: req.body }
         });
 
-        await User.findByIdAndUpdate(req.user._id, { $inc: { [balanceField]: -price } });
+        if (!req.isSandbox) {
+            const deducted = await deductBalance(req.user._id, price, internalRef, transaction.description, true);
+            if (!deducted) return res.status(402).json({ status: 'error', message: 'Insufficient balance or wallet locked' });
+            transaction.main_wallet_deducted = deducted.mainDeducted;
+            transaction.cashback_wallet_deducted = deducted.cashbackDeducted;
+        } else {
+            await User.findByIdAndUpdate(req.user._id, { $inc: { [balanceField]: -price } });
+        }
         transaction.balance_deducted = true;
         await transaction.save();
 
@@ -257,7 +276,11 @@ router.post('/airtime', transactionIdempotency, async (req, res) => {
                 triggerWebhook(req.user, transaction);
                 return res.json({ status: 'success', message: 'Transaction processing', reference: internalRef, amount: price });
             } else {
-                await User.findByIdAndUpdate(req.user._id, { $inc: { [balanceField]: price } });
+                if (!req.isSandbox) {
+                    await refundBalance(req.user._id, price, transaction);
+                } else {
+                    await User.findByIdAndUpdate(req.user._id, { $inc: { [balanceField]: price } });
+                }
                 transaction.status = 'failed'; transaction.balance_deducted = false;
                 transaction.api_response = { ...(transaction.api_response || {}), provider_response: result.data || { error: result.message } };
                 await transaction.save();

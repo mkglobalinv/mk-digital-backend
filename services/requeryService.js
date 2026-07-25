@@ -89,6 +89,23 @@ export const resolvePendingTransaction = async (transaction) => {
             if (lockedTx) {
                 await refundBalance(lockedTx.userId, lockedTx.amount, lockedTx);
             }
+
+            // Refund Reseller atomically (if applicable)
+            if (transaction.resellerId) {
+                const lockedResellerTx = await Transaction.findOneAndUpdate({
+                    parentTransactionId: transaction._id, 
+                    userId: transaction.resellerId, 
+                    isInternal: true,
+                    ledger_type: { $ne: 'REFUND' },
+                    balance_deducted: true
+                }, { $set: { balance_deducted: false } }, { new: true });
+                if (lockedResellerTx) {
+                    await refundBalance(transaction.resellerId, lockedResellerTx.amount, lockedResellerTx);
+                    lockedResellerTx.status = 'failed';
+                    lockedResellerTx.description += " (Refunded)";
+                    await lockedResellerTx.save();
+                }
+            }
             transaction.description = transaction.description.replace(/\(Processing\)|\(Pending\)|\(Failed\)|\(Manual Verification Required\)/g, '').trim();
 
             transaction.status = 'failed';

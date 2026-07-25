@@ -171,21 +171,22 @@ class QueueService {
             await refundBalance(user._id, lockedTx.amount, lockedTx);
         }
 
-        // Refund Reseller (if applicable)
-            if (tx.resellerId) {
-                const resellerTx = await Transaction.findOne({ 
-                    parentTransactionId: tx._id, 
-                    userId: tx.resellerId, 
-                    isInternal: true,
-                    ledger_type: { $ne: 'REFUND' }
-                });
-                if (resellerTx) {
-                    await refundBalance(tx.resellerId, resellerTx.amount, resellerTx);
-                    resellerTx.status = 'failed';
-                    resellerTx.description += " (Refunded)";
-                    await resellerTx.save();
-                }
+        // Refund Reseller atomically (if applicable)
+        if (tx.resellerId) {
+            const lockedResellerTx = await Transaction.findOneAndUpdate({
+                parentTransactionId: tx._id, 
+                userId: tx.resellerId, 
+                isInternal: true,
+                ledger_type: { $ne: 'REFUND' },
+                balance_deducted: true
+            }, { $set: { balance_deducted: false } }, { new: true });
+            if (lockedResellerTx) {
+                await refundBalance(tx.resellerId, lockedResellerTx.amount, lockedResellerTx);
+                lockedResellerTx.status = 'failed';
+                lockedResellerTx.description += " (Refunded)";
+                await lockedResellerTx.save();
             }
+        }
         await tx.save();
         
         sendTransactionNotification(tx);
