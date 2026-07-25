@@ -9,26 +9,33 @@ import mongoose from "mongoose";
 /**
  * Single source of truth helper to log audit and create transaction log safely.
  */
-const logAuditAndTx = async ({ userId, amount, type, reference, description, walletType, balanceBefore, balanceAfter, ledgerType, parentId }) => {
+const logAuditAndTx = async ({ userId, amount, type, reference, description, walletType, balanceBefore, balanceAfter, ledgerType, parentId }, session) => {
     try {
-        // Create Transaction record in MongoDB
-        await Transaction.create({
-            userId,
-            amount,
-            type,
-            status: 'success',
-            reference,
-            description,
-            provider: 'System Accounting',
-            isInternal: true,
-            ledger_type: ledgerType,
-            wallet_type: walletType,
-            balance_before: balanceBefore,
-            balance_after: balanceAfter,
-            parentTransactionId: parentId
-        });
+        await Transaction.findOneAndUpdate(
+            { reference },
+            {
+                $set: {
+                    status: 'success',
+                    balance_before: balanceBefore,
+                    balance_after: balanceAfter,
+                    wallet_type: walletType,
+                    ledger_type: ledgerType
+                },
+                $setOnInsert: {
+                    userId,
+                    amount,
+                    type,
+                    description,
+                    provider: 'System Accounting',
+                    isInternal: true,
+                    parentTransactionId: parentId
+                }
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true, session }
+        );
     } catch (err) {
         console.error("[Accounting Audit Log Failed]:", err.message);
+        throw err;
     }
 };
 
@@ -38,6 +45,12 @@ const logAuditAndTx = async ({ userId, amount, type, reference, description, wal
 export const creditBalance = async (userId, amount, reference = `SYS-CRED-${Date.now()}`, description = 'System Wallet Credit') => {
     const numericAmount = Number(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) return null;
+
+    const existingTx = await Transaction.findOne({ reference });
+    if (existingTx && existingTx.status === 'success') {
+        console.log(`[Wallet] Credit REJECTED: Duplicate reference ${reference} already processed.`);
+        return null;
+    }
 
     let session = null;
     try {
@@ -52,13 +65,17 @@ export const creditBalance = async (userId, amount, reference = `SYS-CRED-${Date
         const user = await User.findById(userId).session(session);
         if (!user) throw new Error("User not found");
 
-        const balanceBefore = user.balance1 || 0;
-        const balanceAfter = balanceBefore + numericAmount;
+        // 1. Update MongoDB Wallet Atomically
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { balance1: numericAmount } },
+            { new: true, session }
+        );
+        
+        if (!updatedUser) throw new Error("User update failed");
 
-        // 1. Update MongoDB Wallet
-        user.balance1 = balanceAfter;
-        user.balance2 = 0; // Reset/consolidate cashback logic
-        await user.save({ session });
+        const balanceAfter = (updatedUser.balance1 || 0) + (updatedUser.balance2 || 0);
+        const balanceBefore = balanceAfter - numericAmount;
 
         // 2. Write to Supabase Ledger
         const supabase = getSupabaseClient();
@@ -85,7 +102,7 @@ export const creditBalance = async (userId, amount, reference = `SYS-CRED-${Date
             balanceBefore,
             balanceAfter,
             ledgerType: 'WALLET_FUNDING'
-        });
+        }, session);
 
         if (session) {
             await session.commitTransaction();
@@ -93,7 +110,7 @@ export const creditBalance = async (userId, amount, reference = `SYS-CRED-${Date
         }
 
         socketService.emitWalletSync(userId, balanceAfter);
-        return user;
+        return updatedUser;
     } catch (err) {
         if (session) {
             await session.abortTransaction();
@@ -110,6 +127,12 @@ export const creditBalance = async (userId, amount, reference = `SYS-CRED-${Date
 export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.now()}`, description = 'System Wallet Deduction', skipTxLog = false) => {
     const numericAmount = Number(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) return null;
+
+    const existingTx = await Transaction.findOne({ reference });
+    if (existingTx && existingTx.status === 'success') {
+        console.log(`[Wallet] Deduction REJECTED: Duplicate reference ${reference} already processed.`);
+        return null;
+    }
 
     let session = null;
     try {
@@ -150,9 +173,13 @@ export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.
         const balanceAfter = totalAvailable - numericAmount;
 
         // Update MongoDB atomically
-        user.balance1 = balance1 - mainDeducted;
-        user.balance2 = balance2 - cashbackDeducted;
-        await user.save({ session });
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { balance1: -mainDeducted, balance2: -cashbackDeducted } },
+            { new: true, session }
+        );
+        
+        if (!updatedUser) throw new Error("User update failed");
 
         // Supabase Normal Wallet Ledger write (only for normal wallet deduction)
         if (mainDeducted > 0) {
@@ -171,8 +198,8 @@ export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.
         }
 
         // Attach breakdown to return object
-        user.mainDeducted = mainDeducted;
-        user.cashbackDeducted = cashbackDeducted;
+        updatedUser.mainDeducted = mainDeducted;
+        updatedUser.cashbackDeducted = cashbackDeducted;
 
         // Write Audit/Tx log
         if (!skipTxLog) {
@@ -186,7 +213,7 @@ export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.
                 balanceBefore,
                 balanceAfter,
                 ledgerType: 'PURCHASE'
-            });
+            }, session);
         }
 
         if (session) {
@@ -195,7 +222,7 @@ export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.
         }
 
         socketService.emitWalletSync(userId, balanceAfter);
-        return user;
+        return updatedUser;
     } catch (err) {
         if (session) {
             await session.abortTransaction();
@@ -237,13 +264,17 @@ export const refundBalance = async (userId, amount, transactionOrObject = null) 
             }
         }
 
-        const balanceBefore = (user.balance1 || 0) + (user.balance2 || 0);
-        const balanceAfter = balanceBefore + mainRefund + cashbackRefund;
-
-        // 1. Update MongoDB
-        user.balance1 = (user.balance1 || 0) + mainRefund;
-        user.balance2 = (user.balance2 || 0) + cashbackRefund;
-        await user.save({ session });
+        // 1. Update MongoDB Atomically
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { balance1: mainRefund, balance2: cashbackRefund } },
+            { new: true, session }
+        );
+        
+        if (!updatedUser) throw new Error("User update failed");
+        
+        const balanceAfter = (updatedUser.balance1 || 0) + (updatedUser.balance2 || 0);
+        const balanceBefore = balanceAfter - mainRefund - cashbackRefund;
 
         // 2. Write to Supabase Ledger
         if (mainRefund > 0) {
@@ -281,7 +312,7 @@ export const refundBalance = async (userId, amount, transactionOrObject = null) 
         }
 
         socketService.emitWalletSync(userId, balanceAfter);
-        return user;
+        return updatedUser;
     } catch (err) {
         if (session) {
             await session.abortTransaction();
