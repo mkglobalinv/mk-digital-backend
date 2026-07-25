@@ -2,6 +2,68 @@ import axios from "axios";
 
 const BASE_URL = "https://www.nellobytesystems.com";
 
+
+/**
+ * Robust HTTP GET Wrapper with Retries and JSON Validation for ClubKonnect
+ */
+const getWithRetry = async (endpoint, params, maxRetries = 2) => {
+    let attempt = 0;
+    while (attempt <= maxRetries) {
+        try {
+            console.log(`\n======================================================`);
+            console.log(`[BACKEND -> CLUBKONNECT] OUTBOUND REQUEST LOGGING`);
+            console.log(`Endpoint: ${endpoint} (Attempt ${attempt + 1})`);
+            console.log(`Params:`, JSON.stringify(params, null, 2));
+            console.log(`======================================================\n`);
+
+            const response = await axios.get(endpoint, { params, timeout: 30000 });
+            
+            console.log(`\n======================================================`);
+            console.log(`[CLUBKONNECT -> BACKEND] INBOUND RESPONSE SUCCESS`);
+            console.log(`Status: ${response.status}`);
+            console.log(`Body:`, JSON.stringify(response.data, null, 2));
+            console.log(`======================================================\n`);
+            
+            return { success: true, status: response.status, data: response.data, response };
+        } catch (error) {
+            const isTimeout = error.code === 'ECONNABORTED';
+            const status = error.response ? error.response.status : null;
+            const errorData = error.response ? error.response.data : null;
+            
+            console.log(`\n======================================================`);
+            console.log(`[CLUBKONNECT -> BACKEND] INBOUND RESPONSE ERROR`);
+            console.log(`Status: ${status}`);
+            console.log(`Body:`, JSON.stringify(errorData, null, 2));
+            console.log(`======================================================\n`);
+
+            console.error(`[ClubKonnect] Error on ${endpoint}:`, error.message, status || '');
+
+            // Retry on Timeout or 5xx server errors
+            if (attempt < maxRetries && (isTimeout || (status >= 500 && status < 600))) {
+                console.log(`[ClubKonnect] Retrying in 2 seconds...`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                attempt++;
+                continue;
+            }
+            
+            // Treat 4xx as definitive failure, others as unknown
+            let finalStatus = "failed";
+            if (isTimeout || (status >= 500 && status < 600) || !status) {
+                finalStatus = "unknown";
+            }
+
+            return {
+                success: false,
+                status: finalStatus,
+                message: (errorData && errorData.remark) || error.message,
+                data: errorData,
+                httpStatus: status,
+                response: error.response
+            };
+        }
+    }
+};
+
 const generateRequestId = () => {
     return 'CK' + Date.now() + Math.floor(Math.random() * 10000);
 };
@@ -86,8 +148,10 @@ export const buyAirtimeWithClubkonnect = async (network, amount, phone) => {
     console.log(`[ClubKonnect] AIRTIME REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params, timeout: 30000 });
-        const data = response.data;
+        const result = await getWithRetry(endpoint, params);
+        if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        const response = result.response;
+        const data = result.data;
         console.log(`[ClubKonnect] AIRTIME RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
         const statusStr = String(data?.status || "").toUpperCase();
@@ -176,8 +240,10 @@ export const buyDataWithClubkonnect = async (network, planId, phone) => {
     console.log(`[ClubKonnect] DATA REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params, timeout: 30000 });
-        const data = response.data;
+        const result = await getWithRetry(endpoint, params);
+        if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        const response = result.response;
+        const data = result.data;
         console.log(`[ClubKonnect] DATA RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
         const statusStr = String(data?.status || "").toUpperCase();
@@ -327,8 +393,10 @@ export const buyElectricityWithClubkonnect = async (discoId, meterType, meterNum
     console.log(`[ClubKonnect] ELECTRICITY REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params, timeout: 30000 });
-        const data = response.data;
+        const result = await getWithRetry(endpoint, params);
+        if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        const response = result.response;
+        const data = result.data;
         console.log(`[ClubKonnect] ELECTRICITY RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
         const statusStr = String(data?.status || "").toUpperCase();
@@ -369,8 +437,10 @@ export const buyCableTVWithClubkonnect = async (cableId, packageId, smartcard, p
     console.log(`[ClubKonnect] CABLE REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params, timeout: 30000 });
-        const data = response.data;
+        const result = await getWithRetry(endpoint, params);
+        if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        const response = result.response;
+        const data = result.data;
         console.log(`[ClubKonnect] CABLE RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
         const statusStr = String(data?.status || "").toUpperCase();
@@ -404,8 +474,10 @@ export const buyEPINWithClubkonnect = async (networkCode, value, quantity) => {
     console.log(`[ClubKonnect] EPIN REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params, timeout: 30000 });
-        const data = response.data;
+        const result = await getWithRetry(endpoint, params);
+        if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        const response = result.response;
+        const data = result.data;
         console.log(`[ClubKonnect] EPIN RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
         const statusStr = String(data?.status || "").toUpperCase();
@@ -455,8 +527,10 @@ export const buyEducationWithClubkonnect = async (examType, phone) => {
     console.log(`[ClubKonnect] EDUCATION REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params, timeout: 30000 });
-        const data = response.data;
+        const result = await getWithRetry(endpoint, params);
+        if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        const response = result.response;
+        const data = result.data;
         console.log(`[ClubKonnect] EDUCATION RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
         const statusStr = String(data?.status || "").toUpperCase();

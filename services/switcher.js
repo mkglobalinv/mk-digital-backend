@@ -9,55 +9,70 @@ import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js"; // Keep usin
 const dataPlanCache = { smart: {}, value: {} };
 const CACHE_TTL = 5 * 60 * 1000;
 
+
 export const smartBuyAirtime = async (network, amount, phone, countryCode = 'NG', operatorId = null, option = 'smart') => {
-    console.log(`[Switcher] Attempting Airtime via ${option.toUpperCase()} for ${phone}...`);
+    const startTime = Date.now();
+    const transactionId = 'TXN-' + Date.now();
+    console.log(`[Switcher] [${transactionId}] Attempting Airtime via ${option.toUpperCase()} for ${phone}...`);
     const pName = option === 'value' ? 'clubkonnect' : 'peyflex';
     
     try {
         const pStatus = await ProviderStatus.findOne({ providerName: pName });
         if (pStatus && (!pStatus.isAvailable || pStatus.apiStatus === 'disconnected' || pStatus.isUnderMaintenance)) {
             const msg = `Provider ${pName} is currently offline.`;
-            console.warn(`[Switcher] ${msg}`);
+            console.warn(`[Switcher] [${transactionId}] ${msg}`);
             return { status: "failed", message: msg };
         }
 
         let result;
         let finalProvider = pName;
+        console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
+        
         if (pName === 'clubkonnect') {
             result = await buyAirtimeWithClubkonnect(network, amount, phone);
             if (result && result.status === "failed") {
-                console.log(`[Switcher] ${pName} failed. Failing over to peyflex...`);
+                const reason = result.message || "Unknown Provider Error";
+                console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: peyflex...`);
                 result = await buyAirtimeWithPeyflex(network, amount, phone);
                 finalProvider = 'peyflex';
             }
         } else {
             result = await buyAirtimeWithPeyflex(network, amount, phone);
             if (result && result.status === "failed") {
-                console.log(`[Switcher] ${pName} failed. Failing over to clubkonnect...`);
+                const reason = result.message || "Unknown Provider Error";
+                console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: clubkonnect...`);
                 result = await buyAirtimeWithClubkonnect(network, amount, phone);
                 finalProvider = 'clubkonnect';
             }
         }
 
+        const duration = Date.now() - startTime;
+        console.log(`[Switcher] [${transactionId}] Final provider selected: ${finalProvider} | Request duration: ${duration}ms`);
+
         if (result && result.status === "success") {
             await handleProviderTransactionSuccess(pName);
-            return { status: "success", provider_used: pName, reference: result.reference, data: result.data };
+            return { status: "success", provider_used: finalProvider, reference: result.reference, data: result.data };
         }
         if (result && result.status === "unknown") {
-            return { status: "unknown", provider_used: pName, reference: result.reference, message: result.message };
+            return { status: "unknown", provider_used: finalProvider, reference: result.reference, message: result.message };
         }
         
         const errMessage = result ? result.message : 'Unknown error';
         await handleProviderTransactionFailure(finalProvider, errMessage);
         return { status: "failed", message: errMessage };
     } catch (err) {
+        const duration = Date.now() - startTime;
+        console.log(`[Switcher] [${transactionId}] Unhandled Error | Request duration: ${duration}ms`);
         await handleProviderTransactionFailure(pName, err.message);
         return { status: "failed", message: err.message };
     }
 };
 
+
 export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, countryCode = 'NG', operatorId = null, networkId = null, option = 'smart', category = null) => {
-    console.log(`[Switcher] Purchasing Data | Plan: ${dataPlan} | Category: ${category}`);
+    const startTime = Date.now();
+    const transactionId = 'TXN-' + Date.now();
+    console.log(`[Switcher] [${transactionId}] Purchasing Data | Plan: ${dataPlan} | Category: ${category}`);
     
     try {
         const planRecord = await DataPlan.findOne({ api_plan_id: String(dataPlan) });
@@ -71,32 +86,41 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
 
         let result;
         let finalProvider = pName;
+        console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
+        
         if (pName === 'clubkonnect') {
             result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
             if (result && result.status === "failed") {
-                console.log(`[Switcher] ${pName} failed. Failing over to peyflex...`);
+                const reason = result.message || "Unknown Provider Error";
+                console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: peyflex...`);
                 result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
                 finalProvider = 'peyflex';
             }
         } else {
             result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
             if (result && result.status === "failed") {
-                console.log(`[Switcher] ${pName} failed. Failing over to clubkonnect...`);
+                const reason = result.message || "Unknown Provider Error";
+                console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: clubkonnect...`);
                 result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
                 finalProvider = 'clubkonnect';
             }
         }
 
+        const duration = Date.now() - startTime;
+        console.log(`[Switcher] [${transactionId}] Final provider selected: ${finalProvider} | Request duration: ${duration}ms`);
+
         if (result && (result.success || result.status === "success")) {
             await handleProviderTransactionSuccess(pName);
-            return { status: "success", provider_used: pName, reference: result.reference, data: result.data };
+            return { status: "success", provider_used: finalProvider, reference: result.reference, data: result.data };
         }
-        if (result && result.status === "unknown") return { status: "unknown", provider_used: pName, reference: result.reference };
+        if (result && result.status === "unknown") return { status: "unknown", provider_used: finalProvider, reference: result.reference };
         
         const errMessage = result ? result.message : 'No result returned';
         await handleProviderTransactionFailure(finalProvider, errMessage);
         return { status: "failed", message: errMessage };
     } catch (err) {
+        const duration = Date.now() - startTime;
+        console.log(`[Switcher] [${transactionId}] Unhandled Error | Request duration: ${duration}ms`);
         return { status: "failed", message: err.message };
     }
 };

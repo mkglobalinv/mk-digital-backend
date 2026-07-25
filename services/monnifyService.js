@@ -16,6 +16,7 @@ export const getMonnifyToken = async () => {
     const response = await axios.post(
       `${MONNIFY_BASE_URL}/api/v1/auth/login`,
       {},
+      {
         headers: {
           Authorization: `Basic ${authString}`,
         },

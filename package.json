@@ -31,5 +31,8 @@
     "pg": "^8.21.0",
     "socket.io": "^4.8.3",
     "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "nock": "^14.0.16"
   }
 }
