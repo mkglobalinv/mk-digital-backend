@@ -2248,10 +2248,12 @@ app.use((req, res, next) => {
     }
 });
 
+app.use(['/api', '/auth', '/user', '/buy-', '/reseller-assets', '/assets'], (req, res) => {
+    res.status(404).json({ status: "error", message: "API endpoint not found" });
+});
+
 app.use(express.static(path.join(__dirname, "mk-vtu-frontend", "dist")));
 app.get(/.*/, (req, res) => {
-    const nonSpaRoutes = ["/api", "/auth", "/user", "/buy-", "/reseller-assets", "/assets"];
-    if (nonSpaRoutes.some(route => req.path.startsWith(route))) return res.status(404).end();
     res.sendFile(path.join(__dirname, "mk-vtu-frontend", "dist", "index.html"));
 });
 
