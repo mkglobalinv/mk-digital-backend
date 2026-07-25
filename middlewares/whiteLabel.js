@@ -145,7 +145,8 @@ export const whiteLabelMiddleware = async (req, res, next) => {
         next();
     } catch (err) {
         console.error("WhiteLabel Middleware Error:", err);
-        next();
+        // CRITICAL FIX: Do not call next() on DB error, this leaks requests to the main platform!
+        return res.status(500).json({ message: "Internal server error during routing. Please try again later." });
     }
 };
 

@@ -44,6 +44,7 @@ import axios from "axios";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { fileURLToPath } from "url";
+import os from "os";
 import { startRequeryJob, triggerImmediateVerification } from "./services/requeryService.js";
 import Transaction from "./models/Transaction.js";
 import User from "./models/User.js";
@@ -219,8 +220,9 @@ const healthHandler = (req, res) => {
         2: "connecting",
         3: "disconnecting"
     };
-    res.json({
-        status: dbState === 1 ? "success" : "error",
+    const isHealthy = dbState === 1;
+    res.status(isHealthy ? 200 : 503).json({
+        status: isHealthy ? "success" : "error",
         database: states[dbState] || "unknown",
         timestamp: new Date().toISOString()
     });
@@ -323,30 +325,39 @@ app.use((req, res, next) => {
 });
 
 const connectDB = async () => {
-    try {
-        const connString = process.env.MONGO_URI || "mongodb://localhost:27017/vtuapp";
-        // Enable buffering to handle temporary connection drops gracefully
-        mongoose.set('bufferCommands', true);
-        await mongoose.connect(connString, {
-            serverSelectionTimeoutMS: 15000, // 15 seconds fast-fail
-            socketTimeoutMS: 45000, // 45 seconds
-            maxPoolSize: 100,
-            minPoolSize: 10,
-            retryWrites: true
-        });
-        
-        console.log(`MongoDB Connected ✅ (${mongoose.connection.host})`);
-        
-        // Clear any stuck transaction locks on startup
+    let retries = 5;
+    while (retries) {
         try {
-            await User.updateMany({}, { isProcessingTx: false });
-            console.log("Cleared all transaction locks 🔓");
-        } catch (e) {
+            const connString = process.env.MONGO_URI || "mongodb://localhost:27017/vtuapp";
+            mongoose.set('bufferCommands', true);
+            await mongoose.connect(connString, {
+                serverSelectionTimeoutMS: 15000, // 15 seconds fast-fail
+                socketTimeoutMS: 45000, // 45 seconds
+                maxPoolSize: 100,
+                minPoolSize: 10,
+                retryWrites: true
+            });
+            
+            console.log(`MongoDB Connected ✅ (${mongoose.connection.host})`);
+            
+            // Clear any stuck transaction locks on startup
+            try {
+                await User.updateMany({}, { isProcessingTx: false });
+                console.log("Cleared all transaction locks 🔓");
+            } catch (e) {
+                console.warn("Could not clear transaction locks on startup:", e.message);
+            }
+            break;
+        } catch (err) {
+            console.error("MongoDB Connection Error ❌:", err.message);
+            retries -= 1;
+            console.log(`Retrying connection in 5 seconds... (${retries} retries left)`);
+            if (retries === 0) {
+                console.error("Could not connect to MongoDB after multiple retries. Exiting...");
+                process.exit(1);
+            }
+            await new Promise(res => setTimeout(res, 5000));
         }
-    } catch (err) {
-        console.error("MongoDB Connection Error ❌:", err.message);
-        console.log("Retrying connection in 5 seconds...");
-        setTimeout(connectDB, 5000);
     }
 };
 
@@ -2212,7 +2223,11 @@ app.use((err, req, res, next) => {
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
         return res.status(400).json({ message: "Invalid JSON format" });
     }
-    res.status(500).json({ message: "Internal server error", error: err.message });
+    const isProd = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === undefined;
+    res.status(500).json({ 
+        message: "Internal server error", 
+        error: isProd ? "An unexpected error occurred" : err.message 
+    });
 });
 
 const startServer = async () => {
