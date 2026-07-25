@@ -17,6 +17,7 @@ export const verifyFlutterwaveTransaction = async (transactionId) => {
         headers: {
           Authorization: `Bearer ${FLW_SECRET_KEY}`,
         },
+        timeout: 15000
       }
     );
     return response.data;
@@ -49,7 +50,8 @@ export const createVirtualAccount = async (userData) => {
         headers: {
           Authorization: `Bearer ${FLW_SECRET_KEY}`,
           "Content-Type": "application/json"
-        }
+        },
+        timeout: 15000
       }
     );
     return response.data;

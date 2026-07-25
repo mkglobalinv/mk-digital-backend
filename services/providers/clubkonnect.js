@@ -327,7 +327,7 @@ export const buyElectricityWithClubkonnect = async (discoId, meterType, meterNum
     console.log(`[ClubKonnect] ELECTRICITY REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params });
+        const response = await axios.get(endpoint, { params, timeout: 30000 });
         const data = response.data;
         console.log(`[ClubKonnect] ELECTRICITY RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
@@ -369,7 +369,7 @@ export const buyCableTVWithClubkonnect = async (cableId, packageId, smartcard, p
     console.log(`[ClubKonnect] CABLE REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params });
+        const response = await axios.get(endpoint, { params, timeout: 30000 });
         const data = response.data;
         console.log(`[ClubKonnect] CABLE RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
@@ -404,7 +404,7 @@ export const buyEPINWithClubkonnect = async (networkCode, value, quantity) => {
     console.log(`[ClubKonnect] EPIN REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params });
+        const response = await axios.get(endpoint, { params, timeout: 30000 });
         const data = response.data;
         console.log(`[ClubKonnect] EPIN RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 
@@ -455,7 +455,7 @@ export const buyEducationWithClubkonnect = async (examType, phone) => {
     console.log(`[ClubKonnect] EDUCATION REQ | Endpoint: ${endpoint} | Payload:`, JSON.stringify(params));
 
     try {
-        const response = await axios.get(endpoint, { params });
+        const response = await axios.get(endpoint, { params, timeout: 30000 });
         const data = response.data;
         console.log(`[ClubKonnect] EDUCATION RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
 

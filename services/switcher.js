@@ -22,8 +22,22 @@ export const smartBuyAirtime = async (network, amount, phone, countryCode = 'NG'
         }
 
         let result;
-        if (pName === 'clubkonnect') result = await buyAirtimeWithClubkonnect(network, amount, phone);
-        else result = await buyAirtimeWithPeyflex(network, amount, phone);
+        let finalProvider = pName;
+        if (pName === 'clubkonnect') {
+            result = await buyAirtimeWithClubkonnect(network, amount, phone);
+            if (result && result.status === "failed") {
+                console.log(`[Switcher] ${pName} failed. Failing over to peyflex...`);
+                result = await buyAirtimeWithPeyflex(network, amount, phone);
+                finalProvider = 'peyflex';
+            }
+        } else {
+            result = await buyAirtimeWithPeyflex(network, amount, phone);
+            if (result && result.status === "failed") {
+                console.log(`[Switcher] ${pName} failed. Failing over to clubkonnect...`);
+                result = await buyAirtimeWithClubkonnect(network, amount, phone);
+                finalProvider = 'clubkonnect';
+            }
+        }
 
         if (result && result.status === "success") {
             await handleProviderTransactionSuccess(pName);
@@ -34,7 +48,7 @@ export const smartBuyAirtime = async (network, amount, phone, countryCode = 'NG'
         }
         
         const errMessage = result ? result.message : 'Unknown error';
-        await handleProviderTransactionFailure(pName, errMessage);
+        await handleProviderTransactionFailure(finalProvider, errMessage);
         return { status: "failed", message: errMessage };
     } catch (err) {
         await handleProviderTransactionFailure(pName, err.message);
@@ -56,8 +70,22 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
         }
 
         let result;
-        if (pName === 'clubkonnect') result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
-        else result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
+        let finalProvider = pName;
+        if (pName === 'clubkonnect') {
+            result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
+            if (result && result.status === "failed") {
+                console.log(`[Switcher] ${pName} failed. Failing over to peyflex...`);
+                result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
+                finalProvider = 'peyflex';
+            }
+        } else {
+            result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
+            if (result && result.status === "failed") {
+                console.log(`[Switcher] ${pName} failed. Failing over to clubkonnect...`);
+                result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
+                finalProvider = 'clubkonnect';
+            }
+        }
 
         if (result && (result.success || result.status === "success")) {
             await handleProviderTransactionSuccess(pName);
@@ -66,7 +94,7 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
         if (result && result.status === "unknown") return { status: "unknown", provider_used: pName, reference: result.reference };
         
         const errMessage = result ? result.message : 'No result returned';
-        await handleProviderTransactionFailure(pName, errMessage);
+        await handleProviderTransactionFailure(finalProvider, errMessage);
         return { status: "failed", message: errMessage };
     } catch (err) {
         return { status: "failed", message: err.message };
@@ -77,8 +105,19 @@ export const smartBuyElectricity = async (discoId, meterType, meterNumber, amoun
     const pName = option === 'value' ? 'clubkonnect' : 'peyflex';
     try {
         let result;
-        if (pName === 'clubkonnect') result = await buyElectricityWithClubkonnect(discoId, meterType, meterNumber, amount, phone);
-        else result = await buyElectricityWithPeyflex(discoId, meterType, meterNumber, amount, phone);
+        if (pName === 'clubkonnect') {
+            result = await buyElectricityWithClubkonnect(discoId, meterType, meterNumber, amount, phone);
+            if (result && result.status === "failed") {
+                console.log(`[Switcher] ${pName} failed. Failing over to peyflex...`);
+                result = await buyElectricityWithPeyflex(discoId, meterType, meterNumber, amount, phone);
+            }
+        } else {
+            result = await buyElectricityWithPeyflex(discoId, meterType, meterNumber, amount, phone);
+            if (result && result.status === "failed") {
+                console.log(`[Switcher] ${pName} failed. Failing over to clubkonnect...`);
+                result = await buyElectricityWithClubkonnect(discoId, meterType, meterNumber, amount, phone);
+            }
+        }
         return result;
     } catch (err) { return { status: "failed", message: err.message }; }
 };
@@ -87,8 +126,19 @@ export const smartBuyCableTV = async (cableId, packageId, smartcard, phone, opti
     const pName = option === 'value' ? 'clubkonnect' : 'peyflex';
     try {
         let result;
-        if (pName === 'clubkonnect') result = await buyCableTVWithClubkonnect(cableId, packageId, smartcard, phone);
-        else result = await buyCableTVWithPeyflex(cableId, packageId, smartcard, phone);
+        if (pName === 'clubkonnect') {
+            result = await buyCableTVWithClubkonnect(cableId, packageId, smartcard, phone);
+            if (result && result.status === "failed") {
+                console.log(`[Switcher] ${pName} failed. Failing over to peyflex...`);
+                result = await buyCableTVWithPeyflex(cableId, packageId, smartcard, phone);
+            }
+        } else {
+            result = await buyCableTVWithPeyflex(cableId, packageId, smartcard, phone);
+            if (result && result.status === "failed") {
+                console.log(`[Switcher] ${pName} failed. Failing over to clubkonnect...`);
+                result = await buyCableTVWithClubkonnect(cableId, packageId, smartcard, phone);
+            }
+        }
         return result;
     } catch (err) { return { status: "failed", message: err.message }; }
 };

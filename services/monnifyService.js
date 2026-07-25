@@ -16,10 +16,10 @@ export const getMonnifyToken = async () => {
     const response = await axios.post(
       `${MONNIFY_BASE_URL}/api/v1/auth/login`,
       {},
-      {
         headers: {
           Authorization: `Basic ${authString}`,
         },
+        timeout: 15000
       }
     );
     return response.data.responseBody.accessToken;
@@ -52,6 +52,7 @@ export const initializeTransaction = async (data) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        timeout: 15000
       }
     );
     return response.data;
@@ -73,6 +74,7 @@ export const verifyMonnifyTransaction = async (transactionReference) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        timeout: 15000
       }
     );
     return response.data.responseBody;

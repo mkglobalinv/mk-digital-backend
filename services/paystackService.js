@@ -16,7 +16,8 @@ class PaystackService {
                 headers: {
                     Authorization: `Bearer ${this.secretKey}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 15000
             });
             return response.data;
         } catch (err) {
@@ -29,7 +30,8 @@ class PaystackService {
             const response = await axios.get(`${this.baseUrl}/transaction/verify/${reference}`, {
                 headers: {
                     Authorization: `Bearer ${this.secretKey}`
-                }
+                },
+                timeout: 15000
             });
             return response.data;
         } catch (err) {
