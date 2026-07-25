@@ -90,11 +90,11 @@ export const settleTransaction = async (transactionId, txRef, authUserId = null,
             return { success: false, alreadyProcessed: false, message: 'VTU transactions cannot be processed as wallet funding' };
         }
 
-        // Atomically transition the transaction to successful to prevent race conditions
+        // Atomically transition the transaction to processing to prevent race conditions
         const updatedTx = await Transaction.findOneAndUpdate(
-            { _id: transaction._id, status: { $ne: "success" } },
+            { _id: transaction._id, status: { $nin: ["success", "processing"] } },
             {
-                status: "success",
+                status: "processing",
                 gateway_id: String(transactionId),
                 amount: amount,
                 provider_used: "flutterwave",
@@ -104,7 +104,7 @@ export const settleTransaction = async (transactionId, txRef, authUserId = null,
         );
 
         if (!updatedTx) {
-            console.log(`[Settlement] Transaction was concurrently marked successful: ${finalTxRef}`);
+            console.log(`[Settlement] Transaction was concurrently processed: ${finalTxRef}`);
             const recheckTx = await Transaction.findById(transaction._id);
             return { success: true, alreadyProcessed: true, transaction: recheckTx };
         }
@@ -116,7 +116,7 @@ export const settleTransaction = async (transactionId, txRef, authUserId = null,
                 userId: user._id,
                 amount: amount,
                 type: "credit",
-                status: "success",
+                status: "processing",
                 reference: finalTxRef.startsWith("VA-") ? `${finalTxRef}-${transactionId}` : finalTxRef,
                 gateway_id: String(transactionId),
                 description: "Wallet Funding",
@@ -267,6 +267,19 @@ export const flutterwaveWebhook = async (req, res) => {
             console.error("[Webhook] Internal Error:", err.message);
             return res.status(500).send(`Internal Error: ${err.message}`);
         }
+    } else if (payload.event === "charge.failed") {
+        const { tx_ref } = payload.data;
+        if (tx_ref) {
+            try {
+                await Transaction.findOneAndUpdate(
+                    { reference: tx_ref, status: "pending" },
+                    { $set: { status: "failed", verificationStatus: "failed" } }
+                );
+            } catch (err) {
+                console.error("[Webhook Failed Transaction Update Error]", err.message);
+            }
+        }
+        return res.status(200).send("Webhook Processed (Failed Charge)");
     }
 
     res.status(200).send("Webhook Received");

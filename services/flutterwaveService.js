@@ -60,3 +60,40 @@ export const createVirtualAccount = async (userData) => {
     return { status: "error", message: error.response?.data?.message || error.message };
   }
 };
+
+/**
+ * Initialize Flutterwave Transaction (Standard Checkout)
+ */
+export const initializeFlutterwaveTransaction = async (data) => {
+  try {
+    const response = await axios.post(
+      "https://api.flutterwave.com/v3/payments",
+      {
+        tx_ref: data.tx_ref,
+        amount: data.amount,
+        currency: "NGN",
+        redirect_url: data.redirect_url,
+        customer: {
+          email: data.email,
+          name: data.name,
+          phonenumber: data.phone
+        },
+        customizations: {
+          title: "Wallet Funding",
+          description: "Fund your wallet"
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${FLW_SECRET_KEY}`,
+          "Content-Type": "application/json"
+        },
+        timeout: 15000
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Flutterwave Init Error:", error.response?.data || error.message);
+    throw new Error("Failed to initialize Flutterwave transaction");
+  }
+};

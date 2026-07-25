@@ -2,6 +2,7 @@ import crypto from "crypto";
 import Transaction from "../models/Transaction.js";
 import User from "../models/User.js";
 import { initializeTransaction as initMonnify, verifyMonnifyTransaction } from "../services/monnifyService.js";
+import { initializeFlutterwaveTransaction } from "../services/flutterwaveService.js";
 import PaystackService from "../services/paystackService.js";
 import { sendTransactionNotification } from "../services/emailService.js";
 import socketService from "../services/socketService.js";
@@ -27,6 +28,22 @@ export const initPayment = async (req, res) => {
                 reference: response.data.reference, description: "Wallet Funding via Paystack", provider: "Paystack"
             });
             return res.json({ checkoutUrl: response.data.authorization_url, paymentReference: response.data.reference });
+        }
+    } else if (provider === 'flutterwave') {
+        response = await initializeFlutterwaveTransaction({
+            amount,
+            email: user.email,
+            name: user.name,
+            phone: user.phone || '00000000000',
+            tx_ref: paymentReference,
+            redirect_url: process.env.FRONTEND_URL + "/wallet-confirm"
+        });
+        if (response.status === 'success') {
+            await Transaction.create({
+                userId: user._id, amount, type: "credit", status: "pending",
+                reference: paymentReference, description: "Wallet Funding via Flutterwave", provider: "flutterwave"
+            });
+            return res.json({ checkoutUrl: response.data.link, paymentReference });
         }
     } else {
         response = await initMonnify({
