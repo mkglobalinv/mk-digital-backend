@@ -195,9 +195,7 @@ function App() {
     window.addEventListener('slow-network', handleSlow);
 
     // Initialize real-time Socket engine for premium instant push notifications
-    const envSocketUrl = import.meta.env.VITE_API_URL || 'http://localhost:8800';
-    const isLocalDevelopment = import.meta.env.DEV && envSocketUrl.includes('localhost');
-    const socketUrl = isLocalDevelopment ? "" : envSocketUrl;
+    const socketUrl = import.meta.env.VITE_API_URL || '';
     const socket = io(socketUrl, {
       transports: ["websocket", "polling"],
       withCredentials: true

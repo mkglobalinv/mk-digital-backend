@@ -198,9 +198,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
 
   // WebSocket Live Service Status Updates
   useEffect(() => {
-    const envSocketUrl = import.meta.env.VITE_API_URL || 'http://localhost:8800';
-    const isLocalDevelopment = import.meta.env.DEV && envSocketUrl.includes('localhost');
-    const socketUrl = isLocalDevelopment ? "" : envSocketUrl;
+    const socketUrl = import.meta.env.VITE_API_URL || '';
 
     const socket = io(socketUrl, {
       transports: ['websocket', 'polling'],

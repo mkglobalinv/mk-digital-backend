@@ -7,9 +7,8 @@ import './index.css';
 
 window.onerror = function (message, source, lineno, colno, error) {
     console.error("GLOBAL REACT CRASH:", message, error);
-    const envApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8800';
-    const isLocalDevelopment = import.meta.env.DEV && envApiUrl.includes('localhost');
-    const apiUrl = isLocalDevelopment ? '/api/auth/login' : `${envApiUrl}/api/auth/login`;
+    const envApiUrl = import.meta.env.VITE_API_URL || '';
+    const apiUrl = envApiUrl ? `${envApiUrl}/api/auth/login` : '/api/auth/login';
 
     fetch(apiUrl, { 
         method: 'POST', 
@@ -20,9 +19,8 @@ window.onerror = function (message, source, lineno, colno, error) {
 
 window.onunhandledrejection = function (event) {
     console.error("GLOBAL PROMISE CRASH:", event.reason);
-    const envApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8800';
-    const isLocalDevelopment = import.meta.env.DEV && envApiUrl.includes('localhost');
-    const apiUrl = isLocalDevelopment ? '/api/auth/login' : `${envApiUrl}/api/auth/login`;
+    const envApiUrl = import.meta.env.VITE_API_URL || '';
+    const apiUrl = envApiUrl ? `${envApiUrl}/api/auth/login` : '/api/auth/login';
 
     fetch(apiUrl, { 
         method: 'POST', 

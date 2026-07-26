@@ -16,7 +16,7 @@ export const isWhiteLabelSite = (siteInfo) => {
         const mainDomains = [
             'localhost:5173', 'localhost:5000', 
             '127.0.0.1:5173', '127.0.0.1:5000',
-            'localhost:8800', '127.0.0.1:8800',
+            'localhost:3000', '127.0.0.1:3000',
             '9jasub.com', 'www.9jasub.com', 'app.9jasub.com',
             'mk-subdata.com', 'www.mk-subdata.com'
         ];
