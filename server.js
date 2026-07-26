@@ -2254,11 +2254,12 @@ app.use((req, res, next) => {
     }
 });
 
+app.use(express.static(path.join(__dirname, "mk-vtu-frontend", "dist")));
+
 app.use(['/api', '/auth', '/user', '/buy-', '/reseller-assets', '/assets'], (req, res) => {
-    res.status(404).json({ status: "error", message: "API endpoint not found" });
+    res.status(404).json({ status: "error", message: "Endpoint or asset not found" });
 });
 
-app.use(express.static(path.join(__dirname, "mk-vtu-frontend", "dist")));
 app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, "mk-vtu-frontend", "dist", "index.html"));
 });
