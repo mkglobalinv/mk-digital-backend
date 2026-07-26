@@ -75,7 +75,7 @@ const Login = ({ setToken, siteInfo }) => {
     setErrorMsg('');
     
     try {
-      const res = await API.post('/login', { email: email.toLowerCase(), password, session_type: 'retail' });
+      const res = await API.post('/api/login', { email: email.toLowerCase(), password, session_type: 'retail' });
       if (res.data.token) {
         // STRICT SESSION ISOLATION: Destroy any existing state before applying new session
         const biometricEnabled = localStorage.getItem('biometricEnabled');

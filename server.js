@@ -762,7 +762,7 @@ app.post("/api/international/track", auth, async (req, res) => {
 
 
 
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
   try {
     const { name, password, transactionPin, referralCode } = req.body;
     const email = req.body.email?.toLowerCase();
@@ -848,7 +848,7 @@ app.post("/register", async (req, res) => {
 });
 
 // LOGIN
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
   try {
     const { password } = req.body;
     const email = req.body.email?.toLowerCase();
@@ -2210,7 +2210,11 @@ app.use((req, res, next) => {
 
 
     if (isMarketingDomain) {
-        const nonMarketingRoutes = ["/api", "/auth", "/user", "/buy-", "/reseller-assets", "/assets", "/socket.io"];
+        const nonMarketingRoutes = [
+            "/api", "/auth", "/user", "/buy-", "/reseller-assets", "/assets", "/socket.io", 
+            "/login", "/register", "/continue-signup", "/transactions", "/fund", "/withdraw", 
+            "/verify-otp", "/resend-otp", "/manifest.json"
+        ];
         if (nonMarketingRoutes.some(route => req.path.startsWith(route))) {
             return next();
         }

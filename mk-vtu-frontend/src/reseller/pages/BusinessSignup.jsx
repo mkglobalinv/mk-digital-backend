@@ -114,7 +114,7 @@ const BusinessSignup = ({ setToken }) => {
 
       if (regRes.data.userId) {
         // Automatically login the user after successful payment and registration
-        const loginRes = await API.post('/login', {
+        const loginRes = await API.post('/api/login', {
             email: formData.email,
             password: formData.password,
             session_type: 'business'

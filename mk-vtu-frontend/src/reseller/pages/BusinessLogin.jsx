@@ -49,7 +49,7 @@ const BusinessLogin = ({ setToken }) => {
     const toastId = await showToast('Authenticating...', 'loading');
 
     try {
-      const res = await API.post('/login', { email: email.toLowerCase(), password, session_type: 'business' });
+      const res = await API.post('/api/login', { email: email.toLowerCase(), password, session_type: 'business' });
 
       if (!res.data.token) {
         const msg = res.data.message || 'Login failed. Please check your credentials.';

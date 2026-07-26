@@ -68,11 +68,11 @@ const Signup = ({ setToken, siteInfo }) => {
       if (referralCodeInput) {
           payload.referralCode = referralCodeInput;
       }
-      const regRes = await API.post("/register", payload);
+      const regRes = await API.post("/api/register", payload);
       
       if (regRes.data.message) {
          try {
-           const loginRes = await API.post('/login', { email: email.toLowerCase(), password, session_type: 'retail' });
+           const loginRes = await API.post('/api/login', { email: email.toLowerCase(), password, session_type: 'retail' });
            if (loginRes.data.token) {
              const biometricEnabled = localStorage.getItem('biometricEnabled');
              const lastEmail = localStorage.getItem('lastEmail');
