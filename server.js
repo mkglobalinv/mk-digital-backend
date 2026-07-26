@@ -137,6 +137,15 @@ import reconciliationService from './services/reconciliationService.js';
 
 const app = express();
 app.set('trust proxy', 1);
+
+// DEBUG LOGGING MIDDLEWARE
+app.use((req, res, next) => {
+    if (req.url.includes('EIO=')) {
+        console.log('[SOCKET DEBUG] HTTP Request received in Express:', req.method, req.url, req.headers);
+    }
+    next();
+});
+
 // queueService.startWorker(); // Moved to startServer
 
 app.use(cors({
@@ -2311,6 +2320,18 @@ const startServer = async () => {
         registerCleanup('Telemetry', clearTelemetryCache);
         
         const server = http.createServer(app);
+        
+        // Nginx proxy_pass path stripping workaround for Socket.IO
+        server.prependListener('request', (req, res) => {
+            if (req.url.includes('EIO=') && !req.url.startsWith('/socket.io')) {
+                req.url = '/socket.io/' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '');
+            }
+        });
+        server.prependListener('upgrade', (req, socket, head) => {
+            if (req.url.includes('EIO=') && !req.url.startsWith('/socket.io')) {
+                req.url = '/socket.io/' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '');
+            }
+        });
 
         // 4. Initialize Real-time Engine
         socketService.init(server);
