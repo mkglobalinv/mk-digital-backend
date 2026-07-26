@@ -1,5 +1,6 @@
 // RESTART: 2026-05-01T13:42:00Z
 import dotenv from "dotenv";
+import http from "http";
 import systemLogger from "./services/logger.js";
 
 process.on("uncaughtException", (err) => {
@@ -2200,7 +2201,7 @@ app.use((req, res, next) => {
 
 
     if (isMarketingDomain) {
-        const nonMarketingRoutes = ["/api", "/auth", "/user", "/buy-", "/reseller-assets", "/assets"];
+        const nonMarketingRoutes = ["/api", "/auth", "/user", "/buy-", "/reseller-assets", "/assets", "/socket.io"];
         if (nonMarketingRoutes.some(route => req.path.startsWith(route))) {
             return next();
         }
@@ -2308,13 +2309,16 @@ const startServer = async () => {
         startMemoryMonitor();
         registerCleanup('ResellerSubdomains', clearResellerCache);
         registerCleanup('Telemetry', clearTelemetryCache);
-        const server = app.listen(process.env.PORT || 3000, () => {
-            logger.info(`Server initialized in ${stage} mode on port ${process.env.PORT || 3000}`);
-            console.log(`Server is running on port ${process.env.PORT || 3000}`);
-});
+        
+        const server = http.createServer(app);
 
         // 4. Initialize Real-time Engine
         socketService.init(server);
+
+        server.listen(process.env.PORT || 3000, () => {
+            logger.info(`Server initialized in ${stage} mode on port ${process.env.PORT || 3000}`);
+            console.log(`Server is running on port ${process.env.PORT || 3000}`);
+        });
 
         // 5. Periodic Telemetry Broadcast
         setInterval(async () => {
