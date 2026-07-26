@@ -2200,7 +2200,7 @@ app.use((req, res, next) => {
 
 
     if (isMarketingDomain) {
-        const nonMarketingRoutes = ["/api", "/auth", "/user", "/buy-", "/reseller-assets"];
+        const nonMarketingRoutes = ["/api", "/auth", "/user", "/buy-", "/reseller-assets", "/assets"];
         if (nonMarketingRoutes.some(route => req.path.startsWith(route))) {
             return next();
         }
@@ -2239,15 +2239,7 @@ app.use((req, res, next) => {
             }
         }
         
-        const notFoundPath = path.join(__dirname, "mk-subdata-website", "out", "404.html");
-        if (fs.existsSync(notFoundPath)) {
-            return res.status(404).sendFile(notFoundPath, (err) => {
-                if (err) {
-                    console.error(`[MarketingRouter] sendFile error:`, err);
-                    next(err);
-                }
-            });
-        }
+        // Let everything else fall through to the SPA (including /login, /dashboard, etc)
         return next();
     } else {
         next();
