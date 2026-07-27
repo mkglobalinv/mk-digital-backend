@@ -12,7 +12,7 @@ const Transactions = ({ token }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    API.get('/transactions', { headers: { Authorization: token } })
+    API.get('/user/transactions', { headers: { Authorization: token } })
       .then(res => {
         setTransactions(res.data);
       })

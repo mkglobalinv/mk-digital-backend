@@ -120,18 +120,23 @@ const Login = ({ setToken, siteInfo }) => {
         setErrorMsg(res.data.message || 'Login failed. Invalid credentials.');
       }
     } catch (err) {
-      if (err.response?.data?.unverified) {
+      let errorData = err.response?.data;
+      if (typeof errorData === 'string') {
+        try { errorData = JSON.parse(errorData); } catch (e) {}
+      }
+
+      if (errorData?.unverified) {
          navigate('/verify-email', { state: { email } });
-      } else if (err.response?.data?.redirect) {
-         setRedirectInfo(err.response.data);
+      } else if (errorData?.redirect) {
+         setRedirectInfo(errorData);
          setTimeout(() => {
-             window.location.href = err.response.data.targetUrl;
+             window.location.href = errorData.targetUrl;
          }, 2500); // Wait a bit so the user reads the message
-      } else if (err.response?.data?.isBusiness) {
-         setBizInfo(err.response?.data);
+      } else if (errorData?.isBusiness) {
+         setBizInfo(errorData);
          setShowBizDetectedPopup(true);
       } else {
-         setErrorMsg(err.response?.data?.message || 'Something went wrong, please try again');
+         setErrorMsg(errorData?.message || 'Something went wrong, please try again');
       }
     } finally {
       setLoading(false);

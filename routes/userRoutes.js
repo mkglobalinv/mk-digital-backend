@@ -1,6 +1,6 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import { getReferralLink, getReferrals, getReferralAnalytics } from "../controllers/userController.js";
+import { getReferralLink, getReferrals, getReferralAnalytics, getUserTransactions } from "../controllers/userController.js";
 
 const router = express.Router();
 
@@ -20,5 +20,6 @@ router.use(auth);
 router.get("/referral-link", getReferralLink);
 router.get("/referrals", getReferrals);
 router.get("/referral-analytics", getReferralAnalytics);
+router.get("/transactions", getUserTransactions);
 
 export default router;

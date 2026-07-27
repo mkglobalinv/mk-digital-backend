@@ -2,6 +2,16 @@ import User from '../models/User.js';
 import Transaction from '../models/Transaction.js';
 import crypto from 'crypto';
 
+export const getUserTransactions = async (req, res) => {
+    try {
+        const transactions = await Transaction.find({ userId: req.user.id || req.user._id }).sort({ createdAt: -1 });
+        res.json(transactions);
+    } catch (error) {
+        console.error("Error fetching user transactions:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
 export const getReferralLink = async (req, res) => {
     try {
         let user = await User.findById(req.user.id);
