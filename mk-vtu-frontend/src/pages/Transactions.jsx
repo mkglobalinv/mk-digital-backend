@@ -12,9 +12,14 @@ const Transactions = ({ token }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    API.get('/user/transactions', { headers: { Authorization: token } })
+    API.get('/api/transactions', { headers: { Authorization: token } })
       .then(res => {
-        setTransactions(res.data);
+        if (res.data && Array.isArray(res.data)) {
+            setTransactions(res.data);
+        } else {
+            console.warn('Expected an array from /api/transactions but received:', res.data);
+            setTransactions([]);
+        }
       })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));

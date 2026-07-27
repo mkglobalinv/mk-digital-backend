@@ -164,9 +164,14 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
 
     if (token) {
        setIsLoadingTx(true);
-       API.get('/user/transactions', { headers: { Authorization: token } })
+       API.get('/api/transactions', { headers: { Authorization: token } })
          .then(res => {
-            if (res.data) setTransactions(res.data);
+            if (res.data && Array.isArray(res.data)) {
+                setTransactions(res.data);
+            } else {
+                console.warn('Expected an array from /user/transactions but received:', res.data);
+                setTransactions([]);
+            }
             setIsLoadingTx(false);
          }).catch(err => {
             console.error(err);
@@ -234,7 +239,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
   // DATA FETCHING LOGIC
   const fetchDashboardData = () => {
     if (token) {
-      API.get('/user/transactions', { headers: { Authorization: token } })
+      API.get('/api/transactions', { headers: { Authorization: token } })
         .then(res => {
           if (res.data && Array.isArray(res.data)) setTransactions(res.data);
         }).catch(() => {});
