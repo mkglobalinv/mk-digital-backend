@@ -1900,7 +1900,7 @@ app.get("/api/analytics/realtime", auth, async (req, res) => {
     }
 });
 
-app.get("/api/transactions", auth, async (req, res) => {
+const getTransactionsHandler = async (req, res) => {
     const rawTransactions = await Transaction.find({ userId: req.user.id }).sort({ createdAt: -1 });
     const seenCashbacks = new Set();
     const filteredTransactions = rawTransactions.filter(tx => {
