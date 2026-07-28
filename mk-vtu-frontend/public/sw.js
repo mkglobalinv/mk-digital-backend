@@ -22,10 +22,11 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request).catch(() => {
+        return fetch(event.request).catch((error) => {
           if (event.request.mode === 'navigate') {
             return caches.match('/offline.html');
           }
+          return Response.error();
         });
       })
   );
