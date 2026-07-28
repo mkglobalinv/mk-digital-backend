@@ -22,7 +22,7 @@ const KYC = ({ user }) => {
     setErrorMsg('');
     try {
         const token = localStorage.getItem('token');
-        const res = await API.post('/user/kyc', { fullName, phone, address, idNumber }, { headers: { Authorization: token } });
+        const res = await API.post('/api/user/kyc', { fullName, phone, address, idNumber }, { headers: { Authorization: token } });
         if (res.data.success) {
             setSuccessMsg(res.data.message);
             setTimeout(() => {

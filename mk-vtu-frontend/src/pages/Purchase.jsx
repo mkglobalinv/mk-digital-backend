@@ -307,7 +307,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
         if (!isInternational && (!network || !amount || !phone)) throw new Error("Missing airtime details");
         if (isInternational && (!countryCode || !operatorId || !amount || !phone)) throw new Error("Missing international airtime details");
         
-        res = await API.post('/buy-airtime', { 
+        res = await API.post('/api/retail/purchase/buy-airtime', { 
             ...commonPayload,
             network, 
             phone, 
@@ -346,13 +346,13 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
       }
       else if (activeTab === 'cable') {
         if (!cableId || !packageId || !smartcard || !phone || !amount) throw new Error("Missing cable details");
-        res = await API.post('/buy-cable', { ...commonPayload, cableId, packageId, smartcard, phone, amount: Number(amount) }, { headers: { Authorization: token } }); 
+        res = await API.post('/api/retail/purchase/buy-cable', { ...commonPayload, cableId, packageId, smartcard, phone, amount: Number(amount) }, { headers: { Authorization: token } }); 
         rData.desc = `Cable TV ${cableId} (${smartcard})`;
         rData.amount = amount;
       }
       else if (activeTab === 'electricity') {
         if (!discoId || !meterNumber || !amount || !phone) throw new Error("Missing electricity details");
-        res = await API.post('/buy-electricity', { ...commonPayload, discoId, meterType, meterNumber, phone, amount: Number(amount) }, { headers: { Authorization: token } });
+        res = await API.post('/api/retail/purchase/buy-electricity', { ...commonPayload, discoId, meterType, meterNumber, phone, amount: Number(amount) }, { headers: { Authorization: token } });
         rData.desc = `Electricity ${discoId} (${meterNumber})`;
         rData.amount = amount;
         if (res.data.token) {
@@ -363,7 +363,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
       else if (activeTab === 'epin') {
         if (!network || !epinValue || !quantity) throw new Error("Missing EPIN details");
         const totalAmount = Number(epinValue) * Number(quantity);
-        res = await API.post('/buy-epin', { ...commonPayload, network, amount: totalAmount, quantity: Number(quantity) }, { headers: { Authorization: token } });
+        res = await API.post('/api/retail/purchase/buy-epin', { ...commonPayload, network, amount: totalAmount, quantity: Number(quantity) }, { headers: { Authorization: token } });
         rData.desc = `${network} EPIN (Qty: ${quantity})`;
         rData.amount = totalAmount;
         if (res.data.token) {
@@ -373,7 +373,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
       }
       else if (activeTab === 'education') {
         if (!examType || !phone) throw new Error("Missing education details");
-        res = await API.post('/buy-education', { ...commonPayload, examType, phone, amount: 2000 }, { headers: { Authorization: token } }); 
+        res = await API.post('/api/retail/purchase/buy-education', { ...commonPayload, examType, phone, amount: 2000 }, { headers: { Authorization: token } }); 
         rData.desc = `Education PIN ${examType}`;
         rData.amount = 2000;
         if (res.data.token) {

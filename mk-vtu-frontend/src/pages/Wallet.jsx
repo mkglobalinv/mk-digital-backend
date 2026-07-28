@@ -95,7 +95,7 @@ const Wallet = ({ token, user }) => {
 
   const fetchWithdrawals = async () => {
     try {
-      const res = await API.get('/user/withdrawals', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await API.get('/api/user/withdrawals', { headers: { Authorization: `Bearer ${token}` } });
       setWithdrawalHistory(res.data);
     } catch (err) {
       console.error("Fetch withdrawals error:", err);
@@ -104,7 +104,7 @@ const Wallet = ({ token, user }) => {
 
   const fetchCashbackHistory = async () => {
     try {
-      const res = await API.get('/user/cashback-history', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await API.get('/api/user/cashback-history', { headers: { Authorization: `Bearer ${token}` } });
       setCashbackHistory(res.data);
     } catch (err) {
       console.error("Fetch cashback history error:", err);
@@ -152,7 +152,7 @@ const Wallet = ({ token, user }) => {
     setIsGeneratingTemp(true);
     showToast("Generating secure payment account...", "info");
     try {
-      const res = await API.post('/user/generate-temp-va', { amount: fundAmount }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await API.post('/api/user/generate-temp-va', { amount: fundAmount }, { headers: { Authorization: `Bearer ${token}` } });
       showToast("Virtual account generated successfully.", "success");
       setShowFundModal(false);
       setFundAmount('');
@@ -182,7 +182,7 @@ const Wallet = ({ token, user }) => {
     setIsGeneratingPerm(true);
     showToast("Verifying KYC and generating permanent account...", "info");
     try {
-      const res = await API.post('/user/generate-permanent-va', { identifier: identifierValue, type: identifierType }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await API.post('/api/user/generate-permanent-va', { identifier: identifierValue, type: identifierType }, { headers: { Authorization: `Bearer ${token}` } });
       showToast("Virtual account generated successfully.", "success");
       setShowUpgradeModal(false);
       if (res.data?.account) {

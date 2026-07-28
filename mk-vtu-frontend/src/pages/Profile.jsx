@@ -100,7 +100,7 @@ const Profile = ({ logout, user, token, siteInfo }) => {
   React.useEffect(() => {
     if (showReferralModal && !refStats) {
       setRefLoading(true);
-      API.get('/user/referral-analytics')
+      API.get('/api/user/referral-analytics')
         .then(res => setRefStats(res.data))
         .catch(err => console.error("Failed to fetch referral stats", err))
         .finally(() => setRefLoading(false));

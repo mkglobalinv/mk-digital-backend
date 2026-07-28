@@ -55,6 +55,7 @@ const BusinessLogin = ({ setToken }) => {
         const msg = res.data.message || 'Login failed. Please check your credentials.';
         setError(msg);
         updateToast(toastId, { message: msg, type: 'error' });
+        setLoading(false);
         return;
       }
 
@@ -71,6 +72,7 @@ const BusinessLogin = ({ setToken }) => {
         const msg = 'This portal is for Website Admin accounts only. Personal accounts should use the main login page.';
         setError(msg);
         updateToast(toastId, { message: msg, type: 'error' });
+        setLoading(false);
         return;
       }
 
@@ -101,14 +103,14 @@ const BusinessLogin = ({ setToken }) => {
     } catch (err) {
       if (err.response?.data?.unverified) {
         updateToast(toastId, { message: 'Please verify your email.', type: 'warning' });
+        setLoading(false);
         navigate('/verify-email', { state: { email } });
       } else {
         const msg = err.response?.data?.message || 'Something went wrong. Please try again.';
         setError(msg);
         updateToast(toastId, { message: msg, type: 'error' });
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
     }
   };
 

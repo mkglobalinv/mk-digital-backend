@@ -502,7 +502,7 @@ const verifyTransactionPin = async (req, res, next) => {
 };
 
 app.use("/auth", authRoutes);
-app.use("/user", userRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 
@@ -1323,7 +1323,7 @@ app.get("/api/vtu/data-plans/:network", auth, async (req, res) => {
     }
 });
 
-app.post("/buy-airtime", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
+app.post("/api/retail/purchase/buy-airtime", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
     let { amount, phone, network, countryCode, operatorId, option } = req.body;
     
     // TEMPORARY: Disable International Airtime & Track Interest
@@ -1638,13 +1638,13 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
 });
 
 // Alias for data purchase to fix 404s
-app.post("/buy-data", auth, verifyTransactionPin, async (req, res) => {
+app.post("/api/retail/purchase/buy-data", auth, verifyTransactionPin, async (req, res) => {
     // Redirect to the unified data purchase handler
     req.url = "/api/vtu/data/purchase";
     return app._router.handle(req, res);
 });
 
-app.post("/buy-cable", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
+app.post("/api/retail/purchase/buy-cable", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
     const { cableId, packageId, smartcard, phone, amount } = req.body;
     const rawAmount = Number(amount) || 0;
 
@@ -1704,7 +1704,7 @@ app.post("/buy-cable", auth, verifyTransactionPin, transactionIdempotency, async
 });
 
 
-app.post("/buy-electricity", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
+app.post("/api/retail/purchase/buy-electricity", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
     const { discoId, meterType, meterNumber, amount, phone } = req.body;
     const rawAmount = Number(amount);
 
@@ -1764,7 +1764,7 @@ app.post("/buy-electricity", auth, verifyTransactionPin, transactionIdempotency,
 });
 
 
-app.post("/buy-epin", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
+app.post("/api/retail/purchase/buy-epin", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
     const { network, amount, quantity } = req.body;
     const finalAmount = Number(amount);
 
@@ -1818,7 +1818,7 @@ app.post("/buy-epin", auth, verifyTransactionPin, transactionIdempotency, async 
     }
 });
 
-app.post("/buy-education", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
+app.post("/api/retail/purchase/buy-education", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
     const { examType, phone, amount } = req.body;
     const finalAmount = Number(amount) || 2000;
 
@@ -1903,7 +1903,7 @@ app.get("/api/analytics/realtime", auth, async (req, res) => {
     }
 });
 
-app.get("/transactions", auth, async (req, res) => {
+app.get("/api/transactions", auth, async (req, res) => {
     const rawTransactions = await Transaction.find({ userId: req.user.id }).sort({ createdAt: -1 });
     const seenCashbacks = new Set();
     const filteredTransactions = rawTransactions.filter(tx => {
@@ -1932,21 +1932,21 @@ app.get("/transactions", auth, async (req, res) => {
     res.json(filteredTransactions);
 });
 
-app.get("/notifications", auth, async (req, res) => {
+app.get("/api/notifications", auth, async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(50);
     res.json(notifications);
   } catch (err) { res.status(500).json({ message: "Error fetching notifications" }); }
 });
 
-app.get("/notifications/unread-count", auth, async (req, res) => {
+app.get("/api/notifications/unread-count", auth, async (req, res) => {
   try {
     const count = await Notification.countDocuments({ userId: req.user.id, isRead: false });
     res.json({ count });
   } catch (err) { res.status(500).json({ message: "Error" }); }
 });
 
-app.post("/notifications/mark-all-read", auth, async (req, res) => {
+app.post("/api/notifications/mark-all-read", auth, async (req, res) => {
   try {
     await Notification.updateMany({ userId: req.user.id, isRead: false }, { isRead: true });
     res.json({ success: true });
@@ -1967,7 +1967,7 @@ app.post("/logout", auth, async (req, res) => {
 });
 
 // USER WALLET ROUTES
-app.get("/user/withdrawals", auth, async (req, res) => {
+app.get("/api/user/withdrawals", auth, async (req, res) => {
   try {
     const history = await Withdrawal.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.json(history);
@@ -1976,7 +1976,7 @@ app.get("/user/withdrawals", auth, async (req, res) => {
   }
 });
 
-app.get("/user/cashback-history", auth, async (req, res) => {
+app.get("/api/user/cashback-history", auth, async (req, res) => {
   try {
     const history = await Transaction.find({ 
         userId: req.user.id, 
@@ -2001,7 +2001,7 @@ app.get("/user/cashback-history", auth, async (req, res) => {
   }
 });
 
-app.get("/user/referral-analytics", auth, async (req, res) => {
+app.get("/api/user/referral-analytics", auth, async (req, res) => {
   try {
     const referredUsers = await User.find({ referredBy: req.user.id }).select('name email resellerTier createdAt');
     const totalReferrals = referredUsers.length;

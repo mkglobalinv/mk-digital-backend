@@ -113,28 +113,32 @@ const Login = ({ setToken, siteInfo }) => {
           // Business user tried retail login — show popup instead of redirecting silently
           setBizInfo({ siteName: loggedUser.onboardingData?.siteName || "your Website", subdomain: loggedUser.subdomain || loggedUser.admin_subdomain });
           setShowBizDetectedPopup(true);
+          setLoading(false);
         } else {
           navigate('/home');
         }
       } else {
         setErrorMsg(res.data.message || 'Login failed. Invalid credentials.');
+        setLoading(false);
       }
     } catch (err) {
       if (err.response?.data?.unverified) {
+         setLoading(false);
          navigate('/verify-email', { state: { email } });
       } else if (err.response?.data?.redirect) {
          setRedirectInfo(err.response.data);
+         setLoading(false);
          setTimeout(() => {
              window.location.href = err.response.data.targetUrl;
          }, 2500); // Wait a bit so the user reads the message
       } else if (err.response?.data?.isBusiness) {
          setBizInfo(err.response?.data);
          setShowBizDetectedPopup(true);
+         setLoading(false);
       } else {
          setErrorMsg(err.response?.data?.message || 'Something went wrong, please try again');
+         setLoading(false);
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -167,11 +171,11 @@ const Login = ({ setToken, siteInfo }) => {
         navigate('/home');
       } else {
         setErrorMsg('Biometric authentication failed.');
+        setLoading(false);
       }
     } catch (err) {
       console.error('Biometric Error:', err);
       setErrorMsg(err.response?.data?.message || err.message || 'Biometric login failed.');
-    } finally {
       setLoading(false);
     }
   };

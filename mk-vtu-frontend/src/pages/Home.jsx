@@ -164,7 +164,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
 
     if (token) {
        setIsLoadingTx(true);
-       API.get('/transactions', { headers: { Authorization: token } })
+       API.get('/api/transactions', { headers: { Authorization: token } })
          .then(res => {
             if (res.data) setTransactions(res.data);
             setIsLoadingTx(false);
@@ -180,12 +180,12 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
            }).catch(() => {});
        }
 
-       API.get('/notifications/unread-count', { headers: { Authorization: token } })
+       API.get('/api/notifications/unread-count', { headers: { Authorization: token } })
          .then(res => {
             if (res.data) setUnreadCount(res.data.count);
          }).catch(() => {});
 
-       API.get('/user/referral-analytics', { headers: { Authorization: token } })
+       API.get('/api/user/referral-analytics', { headers: { Authorization: token } })
          .then(res => {
             if (res.data && res.data.status === 'success') {
                 setReferralAnalytics(res.data.data);
@@ -234,7 +234,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
   // DATA FETCHING LOGIC
   const fetchDashboardData = () => {
     if (token) {
-      API.get('/transactions', { headers: { Authorization: token } })
+      API.get('/api/transactions', { headers: { Authorization: token } })
         .then(res => {
           if (res.data && Array.isArray(res.data)) setTransactions(res.data);
         }).catch(() => {});
@@ -246,12 +246,12 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
           }).catch(() => {});
       }
 
-      API.get('/notifications/unread-count', { headers: { Authorization: token } })
+      API.get('/api/notifications/unread-count', { headers: { Authorization: token } })
         .then(res => {
           if (res.data) setUnreadCount(res.data.count);
         }).catch(() => {});
 
-      API.get('/user/referral-analytics', { headers: { Authorization: token } })
+      API.get('/api/user/referral-analytics', { headers: { Authorization: token } })
         .then(res => {
           if (res.data && res.data.status === 'success') {
               setReferralAnalytics(res.data.data);

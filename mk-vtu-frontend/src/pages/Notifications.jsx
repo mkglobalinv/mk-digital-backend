@@ -18,13 +18,13 @@ const Notifications = ({ token }) => {
 
   const fetchNotifications = () => {
     setError(null);
-    API.get('/notifications', { headers: { Authorization: `Bearer ${token}` } })
+    API.get('/api/notifications', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         setNotifications(res.data);
         setLoading(false);
         // Automatically mark all as read when opening the page
         if (res.data.some(n => !n.isRead)) {
-            API.post('/notifications/mark-all-read', {}, { headers: { Authorization: `Bearer ${token}` } })
+            API.post('/api/notifications/mark-all-read', {}, { headers: { Authorization: `Bearer ${token}` } })
                .catch(err => console.error("Failed to mark all read", err));
         }
       })

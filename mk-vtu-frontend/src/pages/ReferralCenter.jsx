@@ -20,7 +20,7 @@ const ReferralCenter = ({ user, siteInfo }) => {
             try {
                 const [linkRes, analyticsRes, historyRes] = await Promise.all([
                     API.get('/user/referral-link'),
-                    API.get('/user/referral-analytics'),
+                    API.get('/api/user/referral-analytics'),
                     API.get('/user/referrals')
                 ]);
 
