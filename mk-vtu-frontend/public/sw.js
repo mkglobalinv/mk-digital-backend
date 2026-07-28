@@ -24,9 +24,9 @@ self.addEventListener('fetch', event => {
         }
         return fetch(event.request).catch((error) => {
           if (event.request.mode === 'navigate') {
-            return caches.match('/offline.html').then(offlineRes => offlineRes || Response.error());
+            return caches.match('/offline.html');
           }
-          return Response.error();
+          throw error;
         });
       })
   );
