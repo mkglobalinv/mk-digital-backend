@@ -19,7 +19,7 @@ const ResellerLogin = ({ setToken }) => {
             const res = await API.post('/auth/login', { email, password });
             
             // Check if user is a reseller
-            const userRes = await API.get('/user/me', {
+            const userRes = await API.get('/api/user/me', {
                 headers: { Authorization: `Bearer ${res.data.token}` }
             });
 

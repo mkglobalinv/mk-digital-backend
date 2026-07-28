@@ -413,7 +413,7 @@ function App() {
 
   const fetchUserInfo = () => {
     if (token) {
-      API.get('/user/me')
+      API.get('/api/user/me')
         .then(res => { 
             setUser(res.data); 
             if (res.data && res.data.emergencyId) {

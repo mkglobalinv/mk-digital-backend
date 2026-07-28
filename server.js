@@ -1029,7 +1029,7 @@ app.post("/user/generate-permanent-va", auth, async (req, res) => {
 
 // (Keep internal helper import logic handled at top)
 
-app.get("/user/me", auth, async (req, res) => {
+app.get("/api/user/me", auth, async (req, res) => {
   const userDoc = await User.findById(req.user.id).select("-password");
   if (userDoc && req.reseller) {
       const isOwner = req.reseller._id.toString() === userDoc._id.toString();
