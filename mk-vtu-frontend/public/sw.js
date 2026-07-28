@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mksubdata-v1';
+const CACHE_NAME = 'mksubdata-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -24,7 +24,7 @@ self.addEventListener('fetch', event => {
         }
         return fetch(event.request).catch((error) => {
           if (event.request.mode === 'navigate') {
-            return caches.match('/offline.html');
+            return caches.match('/offline.html').then(offlineRes => offlineRes || Response.error());
           }
           return Response.error();
         });
