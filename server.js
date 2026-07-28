@@ -1032,10 +1032,13 @@ app.post("/user/generate-permanent-va", auth, async (req, res) => {
 app.get("/user/me", auth, async (req, res) => {
   const userDoc = await User.findById(req.user.id).select("-password");
   if (userDoc && req.reseller) {
-      userDoc.role = 'user';
-      userDoc.resellerActivationStatus = 'none';
-      userDoc.whiteLabelStatus = 'none';
-      userDoc.apiLevel = 'normal';
+      const isOwner = req.reseller._id.toString() === userDoc._id.toString();
+      if (!isOwner) {
+          userDoc.role = 'user';
+          userDoc.resellerActivationStatus = 'none';
+          userDoc.whiteLabelStatus = 'none';
+          userDoc.apiLevel = 'normal';
+      }
   }
   res.json(userDoc);
 });
