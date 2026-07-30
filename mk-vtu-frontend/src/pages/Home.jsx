@@ -384,10 +384,10 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
   const { successfulTodayCount, recentlyFundedStatus } = getMiniSummaryMetrics();
 
   return (
-    <div className={`fintech-app-wrapper ${isLightMode ? 'fintech-light-mode' : ''}`} style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingBottom: '60px', boxSizing: 'border-box' }}>
+    <div className={`fintech-app-wrapper ${isLightMode ? 'fintech-light-mode' : ''}`} style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden', paddingBottom: '60px', boxSizing: 'border-box' }}>
       <MarketingPopup user={user} />
       <BiometricSetupPrompt user={user} />
-      <div className="fintech-app-container" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+      <div className="fintech-app-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', padding: 0 }}>
         
         {/* --- FIXED TOP BANNER ZONE --- */}
         <div className="fintech-fixed-dashboard-zone" style={{ flexShrink: 0, padding: '0 16px', zIndex: 10 }}>
@@ -651,57 +651,57 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
         </div>
 
         {/* Core Dashboard Responsive Content Structure (Remaining scrollable workspace) */}
-        <div className="fintech-dashboard-grid" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 8px', display: 'flex', flexDirection: 'column' }}>
+        <div className="fintech-dashboard-grid" style={{ padding: '4px 12px 8px', display: 'flex', flexDirection: 'column' }}>
           
           {/* LEFT / PRIMARY DESKTOP COLUMN */}
-          <div className="fintech-main-grid-col" style={{ minHeight: 0 }}>
+          <div className="fintech-main-grid-col">
 
             {/* 4. Quick Services Grid */}
             <div className="fintech-section-header">
               <span>Quick Services</span>
             </div>
-            <div className="fintech-services-grid">
+            <div className="fintech-services-grid animate-fade-in">
               
               {/* Buy Data */}
               <div className="fintech-service-card srv-yellow" onClick={() => handleServiceClick('data')}>
                 <Wifi size={18} />
-                <span className="service-label">Buy Data</span>
+                <font>Buy Data</font>
               </div>
 
               {/* Airtime */}
               <div className="fintech-service-card srv-green" onClick={() => handleServiceClick('airtime')}>
                 <Smartphone size={18} />
-                <span className="service-label">Airtime</span>
+                <font>Airtime</font>
               </div>
 
               {/* Cable TV */}
               <div className="fintech-service-card srv-red" onClick={() => handleServiceClick('cable')}>
                 <PlaySquare size={18} />
-                <span className="service-label">Cable TV</span>
+                <font>Cable TV</font>
               </div>
 
               {/* Electricity */}
               <div className="fintech-service-card srv-orange" onClick={() => handleServiceClick('electricity')}>
                 <Zap size={18} />
-                <span className="service-label">Electricity</span>
+                <font>Electricity</font>
               </div>
 
               {/* Airtime PIN */}
               <div className="fintech-service-card srv-pink" onClick={() => handleServiceClick('epin')}>
                 <Hash size={18} />
-                <span className="service-label">Airtime PIN</span>
+                <font>Airtime PIN</font>
               </div>
 
               {/* Education */}
               <div className="fintech-service-card srv-blue" onClick={() => handleServiceClick('education')}>
                 <GraduationCap size={18} />
-                <span className="service-label">Education</span>
+                <font>Education</font>
               </div>
 
               {/* Transactions */}
               <div className="fintech-service-card srv-purple" onClick={() => navigate('/transactions')}>
                 <History size={18} />
-                <span className="service-label">History</span>
+                <font>History</font>
               </div>
 
               {/* Website */}
@@ -710,7 +710,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
                 window.open(url, '_blank');
               }}>
                 <Globe size={18} />
-                <span className="service-label">Website</span>
+                <font>Website</font>
               </div>
             </div>
 
