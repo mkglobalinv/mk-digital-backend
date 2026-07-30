@@ -1,6 +1,5 @@
-const CACHE_NAME = 'mksubdata-v2';
+const CACHE_NAME = 'mksubdata-v3';
 const urlsToCache = [
-  '/',
   '/index.html',
   '/offline.html',
   '/manifest.json'

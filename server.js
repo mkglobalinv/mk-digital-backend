@@ -2207,13 +2207,11 @@ const __dirname = path.dirname(__filename);
 // Marketing Website Serve Logic
 const marketingStatic = express.static(path.join(__dirname, "mk-subdata-website", "out"));
 app.use((req, res, next) => {
-    const rawHost = req.headers['x-forwarded-host'] || req.headers.host || '';
-    // Handle comma-separated list from proxies (e.g. Railway)
-    const host = rawHost.split(',')[0].split(':')[0].trim().toLowerCase();
+    const host = req.hostname.toLowerCase();
     
     const envMarketingDomains = process.env.MARKETING_DOMAINS 
         ? process.env.MARKETING_DOMAINS.split(',').map(d => d.trim().toLowerCase()) 
-        : ['9jasub.com', 'www.9jasub.com', 'app.9jasub.com'];
+        : ['9jasub.com', 'www.9jasub.com', 'app.9jasub.com', 'localhost', '127.0.0.1'];
         
     const previewSuffix = process.env.PREVIEW_DOMAIN_SUFFIX || '.up.railway.app';
     const isPreview = host.endsWith(previewSuffix);
@@ -2243,25 +2241,20 @@ app.use((req, res, next) => {
         if (marketingPages.includes(cleanPath)) {
             const htmlPath = path.join(__dirname, "mk-subdata-website", "out", `${cleanPath.substring(1)}.html`);
             if (fs.existsSync(htmlPath)) {
-                return res.sendFile(htmlPath, (err) => {
-                    if (err) {
-                        console.error(`[MarketingRouter] sendFile error:`, err);
-                        next(err);
-                    }
-                });
+                return res.sendFile(htmlPath);
             }
         }
         
         if (cleanPath === '/') {
             const index = path.join(__dirname, "mk-subdata-website", "out", "index.html");
             if (fs.existsSync(index)) {
-                return res.sendFile(index, (err) => {
-                    if (err) {
-                        console.error(`[MarketingRouter] sendFile error:`, err);
-                        next(err);
-                    }
-                });
+                return res.sendFile(index);
             }
+        }
+        
+        const notFoundPath = path.join(__dirname, "mk-subdata-website", "out", "404.html");
+        if (fs.existsSync(notFoundPath)) {
+            return res.status(404).sendFile(notFoundPath);
         }
         
         // Let everything else fall through to the SPA (including /login, /dashboard, etc)
