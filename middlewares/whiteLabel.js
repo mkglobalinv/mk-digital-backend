@@ -14,17 +14,23 @@ export const whiteLabelMiddleware = async (req, res, next) => {
     const rawHost = req.headers['x-forwarded-host'] || req.headers.host || '';
     const host = rawHost.split(':')[0].toLowerCase();
     
-    // 1. Identify System Main Domains
+    // 1. Identify System Main Domains and Preview Domains
+    const envMarketingDomains = process.env.MARKETING_DOMAINS 
+        ? process.env.MARKETING_DOMAINS.split(',').map(d => d.trim().toLowerCase()) 
+        : ['9jasub.com', 'www.9jasub.com', 'app.9jasub.com'];
+        
     const mainDomains = [
         'localhost', 
         '127.0.0.1',
-        '9jasub.com', 
-        'www.9jasub.com', 
-        'app.9jasub.com',
         'mk-subdata.com',
-        'www.mk-subdata.com'
+        'www.mk-subdata.com',
+        ...envMarketingDomains
     ];
-    const isMainDomain = mainDomains.includes(host);
+
+    const previewSuffix = process.env.PREVIEW_DOMAIN_SUFFIX || '.up.railway.app';
+    const isPreview = host.endsWith(previewSuffix);
+
+    const isMainDomain = mainDomains.includes(host) || isPreview;
 
     try {
         let reseller = null;

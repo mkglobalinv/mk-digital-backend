@@ -9,6 +9,7 @@ import EmergencyActions from './pages/EmergencyActions';
 import GatewaySettings from './pages/GatewaySettings';
 import FuturePlatforms from './pages/FuturePlatforms';
 import EmergencyData from './pages/EmergencyData';
+import Monitoring from './pages/Monitoring';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('adminToken');

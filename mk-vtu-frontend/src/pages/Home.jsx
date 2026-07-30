@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bell, Wifi, Smartphone, Zap, PlaySquare, ArrowRight, 
   ArrowDownLeft, ArrowUpRight, Clock, XCircle, CheckCircle, 
@@ -166,7 +166,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
        setIsLoadingTx(true);
        API.get('/api/transactions', { headers: { Authorization: token } })
          .then(res => {
-            if (res.data) setTransactions(res.data);
+            if (res.data && Array.isArray(res.data)) setTransactions(res.data);
             setIsLoadingTx(false);
          }).catch(err => {
             console.error(err);

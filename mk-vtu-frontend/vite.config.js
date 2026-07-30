@@ -34,41 +34,41 @@ export default defineConfig({
     ],
     proxy: {
       '/socket.io': { 
-        target: 'http://localhost:3000', 
+        target: 'http://localhost:8800', 
         ws: true, 
         timeout: 120000, 
         proxyTimeout: 120000 
       },
-      '/api': { target: 'http://localhost:3000', timeout: 120000, proxyTimeout: 120000 },
-      '/auth': { target: 'http://localhost:3000', timeout: 120000, proxyTimeout: 120000 },
+      '/api': { target: 'http://localhost:8800', timeout: 120000, proxyTimeout: 120000 },
+      '/auth': { target: 'http://localhost:8800', timeout: 120000, proxyTimeout: 120000 },
       '/login': { 
-        target: 'http://localhost:3000',
+        target: 'http://localhost:8800',
         bypass: (req) => (req.method === 'GET' && req.headers.accept?.includes('text/html')) ? '/index.html' : null
       },
       '/register': { 
-        target: 'http://localhost:3000',
+        target: 'http://localhost:8800',
         bypass: (req) => (req.method === 'GET' && req.headers.accept?.includes('text/html')) ? '/index.html' : null
       },
       '/continue-signup': { 
-        target: 'http://localhost:3000',
+        target: 'http://localhost:8800',
         bypass: (req) => (req.method === 'GET' && req.headers.accept?.includes('text/html')) ? '/index.html' : null
       },
       '/user': { 
-        target: 'http://localhost:3000',
+        target: 'http://localhost:8800',
         bypass: (req) => (req.method === 'GET' && req.headers.accept?.includes('text/html')) ? '/index.html' : null
       },
       '/transactions': { 
-        target: 'http://localhost:3000',
+        target: 'http://localhost:8800',
         bypass: (req) => (req.method === 'GET' && req.headers.accept?.includes('text/html')) ? '/index.html' : null
       },
-      '/fund': { target: 'http://localhost:3000' },
-      '/withdraw': { target: 'http://localhost:3000' },
-      '/buy-airtime': { target: 'http://localhost:3000' },
-      '/buy-data': { target: 'http://localhost:3000' },
-      '/verify-otp': { target: 'http://localhost:3000' },
-      '/resend-otp': { target: 'http://localhost:3000' },
-      '/reseller-assets': { target: 'http://localhost:3000' },
-      '/manifest.json': { target: 'http://localhost:3000' },
+      '/fund': { target: 'http://localhost:8800' },
+      '/withdraw': { target: 'http://localhost:8800' },
+      '/buy-airtime': { target: 'http://localhost:8800' },
+      '/buy-data': { target: 'http://localhost:8800' },
+      '/verify-otp': { target: 'http://localhost:8800' },
+      '/resend-otp': { target: 'http://localhost:8800' },
+      '/reseller-assets': { target: 'http://localhost:8800' },
+      '/manifest.json': { target: 'http://localhost:8800' },
     }
   }
 })

@@ -11,10 +11,6 @@ const EmergencyData = () => {
   const [requestDetails, setRequestDetails] = useState(null);
   const [history, setHistory] = useState([]);
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
-
   const fetchHistory = async () => {
     try {
       const res = await API.get('/api/admin/emergency-data/history');
@@ -25,6 +21,10 @@ const EmergencyData = () => {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   const handleScan = async (e) => {
     e.preventDefault();
