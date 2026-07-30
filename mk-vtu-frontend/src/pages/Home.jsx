@@ -651,7 +651,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
         </div>
 
         {/* Core Dashboard Responsive Content Structure (Remaining scrollable workspace) */}
-        <div className="fintech-dashboard-grid" style={{ flex: 1, overflowY: 'auto', padding: '4px 12px 8px', display: 'flex', flexDirection: 'column' }}>
+        <div className="fintech-dashboard-grid" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 8px', display: 'flex', flexDirection: 'column' }}>
           
           {/* LEFT / PRIMARY DESKTOP COLUMN */}
           <div className="fintech-main-grid-col">
