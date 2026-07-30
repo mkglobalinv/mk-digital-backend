@@ -2208,7 +2208,8 @@ const __dirname = path.dirname(__filename);
 const marketingStatic = express.static(path.join(__dirname, "mk-subdata-website", "out"));
 app.use((req, res, next) => {
     const rawHost = req.headers['x-forwarded-host'] || req.headers.host || '';
-    const host = rawHost.split(':')[0].toLowerCase();
+    // Handle comma-separated list from proxies (e.g. Railway)
+    const host = rawHost.split(',')[0].split(':')[0].trim().toLowerCase();
     
     const envMarketingDomains = process.env.MARKETING_DOMAINS 
         ? process.env.MARKETING_DOMAINS.split(',').map(d => d.trim().toLowerCase()) 
