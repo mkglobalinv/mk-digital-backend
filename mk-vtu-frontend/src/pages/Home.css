@@ -514,7 +514,7 @@
 .srv-mint { background: linear-gradient(135deg, rgba(20, 184, 166, 0.05), rgba(20, 184, 166, 0.1)); border-color: rgba(20, 184, 166, 0.15); }
 .srv-mint svg { color: #14b8a6; opacity: 0.9; }
 
-.fintech-service-card font {
+.fintech-service-card .service-label {
   font-size: 10px;
   font-weight: 500;
   color: var(--app-text-main);
@@ -960,7 +960,7 @@
 
 .fintech-light-mode .fintech-greeting h3,
 .fintech-light-mode .fintech-section-header span:first-child,
-.fintech-light-mode .fintech-service-card font,
+.fintech-light-mode .fintech-service-card .service-label,
 .fintech-light-mode .fintech-tx-details h5,
 .fintech-light-mode .fintech-user-meta h4,
 .fintech-light-mode .fintech-balance-label span:first-child,

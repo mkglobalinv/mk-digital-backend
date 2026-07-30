@@ -654,54 +654,54 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
         <div className="fintech-dashboard-grid" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 8px', display: 'flex', flexDirection: 'column' }}>
           
           {/* LEFT / PRIMARY DESKTOP COLUMN */}
-          <div className="fintech-main-grid-col">
+          <div className="fintech-main-grid-col" style={{ minHeight: 0 }}>
 
             {/* 4. Quick Services Grid */}
             <div className="fintech-section-header">
               <span>Quick Services</span>
             </div>
-            <div className="fintech-services-grid animate-fade-in">
+            <div className="fintech-services-grid">
               
               {/* Buy Data */}
               <div className="fintech-service-card srv-yellow" onClick={() => handleServiceClick('data')}>
                 <Wifi size={18} />
-                <font>Buy Data</font>
+                <span className="service-label">Buy Data</span>
               </div>
 
               {/* Airtime */}
               <div className="fintech-service-card srv-green" onClick={() => handleServiceClick('airtime')}>
                 <Smartphone size={18} />
-                <font>Airtime</font>
+                <span className="service-label">Airtime</span>
               </div>
 
               {/* Cable TV */}
               <div className="fintech-service-card srv-red" onClick={() => handleServiceClick('cable')}>
                 <PlaySquare size={18} />
-                <font>Cable TV</font>
+                <span className="service-label">Cable TV</span>
               </div>
 
               {/* Electricity */}
               <div className="fintech-service-card srv-orange" onClick={() => handleServiceClick('electricity')}>
                 <Zap size={18} />
-                <font>Electricity</font>
+                <span className="service-label">Electricity</span>
               </div>
 
               {/* Airtime PIN */}
               <div className="fintech-service-card srv-pink" onClick={() => handleServiceClick('epin')}>
                 <Hash size={18} />
-                <font>Airtime PIN</font>
+                <span className="service-label">Airtime PIN</span>
               </div>
 
               {/* Education */}
               <div className="fintech-service-card srv-blue" onClick={() => handleServiceClick('education')}>
                 <GraduationCap size={18} />
-                <font>Education</font>
+                <span className="service-label">Education</span>
               </div>
 
               {/* Transactions */}
               <div className="fintech-service-card srv-purple" onClick={() => navigate('/transactions')}>
                 <History size={18} />
-                <font>History</font>
+                <span className="service-label">History</span>
               </div>
 
               {/* Website */}
@@ -710,7 +710,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
                 window.open(url, '_blank');
               }}>
                 <Globe size={18} />
-                <font>Website</font>
+                <span className="service-label">Website</span>
               </div>
             </div>
 
