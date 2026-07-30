@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon --verbose server.js",
     "start": "node server.js",
-    "postinstall": "npm install --prefix mk-vtu-frontend && npm run build --prefix mk-vtu-frontend"
+    "postinstall": "npm install --prefix mk-vtu-frontend && npm run build --prefix mk-vtu-frontend && npm install --prefix mk-subdata-website && npm run build --prefix mk-subdata-website"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
