@@ -5,6 +5,7 @@ import API from '../api';
 import PremiumLoader from '../components/PremiumLoader';
 import './Auth.css';
 import BrandLogo from '../components/BrandLogo';
+import { isWhiteLabelSite } from '../utils/whiteLabelHelper';
 
 const Signup = ({ setToken, siteInfo }) => {
   const [name, setName] = useState('');
@@ -117,7 +118,7 @@ const Signup = ({ setToken, siteInfo }) => {
             <BrandLogo siteInfo={siteInfo} className="auth-logo-img" />
           </div>
           <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join {siteInfo?.branding?.siteName || siteInfo?.name || '9JASUB'} for premium VTU services</p>
+          <p className="auth-subtitle">Join {siteInfo?.branding?.siteName || siteInfo?.name || (isWhiteLabelSite(siteInfo) ? 'our platform' : '9JASUB')} for premium VTU services</p>
         </div>
 
         {errorMsg && <div className="auth-message">{errorMsg}</div>}

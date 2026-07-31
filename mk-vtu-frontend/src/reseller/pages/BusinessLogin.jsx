@@ -6,7 +6,7 @@ import {
   Wallet, Building2, ArrowRight, AlertCircle
 } from 'lucide-react';
 import API from '../../api';
-import { isWhiteLabelSite } from '../../utils/whiteLabelHelper';
+import { isWhiteLabelSite, getSiteName } from '../../utils/whiteLabelHelper';
 import { useToast } from '../../context/ToastContext';
 import './BusinessConsole.css';
 
@@ -124,7 +124,7 @@ const BusinessLogin = ({ setToken }) => {
             <Building2 size={22} />
           </div>
           <div>
-            <div className="bc-brand-name">9JASUB</div>
+            <div className="bc-brand-name">{getSiteName(siteInfo)}</div>
             <div className="bc-brand-tag">Website Admin</div>
           </div>
         </div>

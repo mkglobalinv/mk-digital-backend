@@ -19,10 +19,13 @@ import {
 } from 'lucide-react';
 import './Sidebar.css';
 import BrandLogo from './BrandLogo';
+import { getSiteName, isWhiteLabelSite } from '../utils/whiteLabelHelper';
 
 const Sidebar = ({ user, logout, siteInfo }) => {
     const location = useLocation();
     const navigate = useNavigate();
+
+    const isWhiteLabel = isWhiteLabelSite(siteInfo);
 
     const menuItems = [
         { name: 'Dashboard', path: '/home', icon: <Home size={20} /> },
@@ -36,7 +39,7 @@ const Sidebar = ({ user, logout, siteInfo }) => {
             ? [{ name: 'Developer API', path: '/developer', icon: <Terminal size={20} /> }] 
             : []),
         { name: 'Offline Data', path: '/offline-data', icon: <Wifi size={20} /> },
-        { name: 'Referral Center', path: '/referrals', icon: <Users size={20} /> },
+        ...(!isWhiteLabel ? [{ name: 'Referral Center', path: '/referrals', icon: <Users size={20} /> }] : []),
         { name: 'Profile', path: '/profile', icon: <User size={20} /> },
     ];
 
@@ -49,7 +52,7 @@ const Sidebar = ({ user, logout, siteInfo }) => {
             <div className="sidebar-header" style={{ gap: '10px' }}>
                 <BrandLogo siteInfo={siteInfo} />
                 <span style={{ fontSize: '16.5px', fontWeight: 900, color: 'var(--text-dark)', textTransform: 'uppercase', letterSpacing: '-0.3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {siteInfo?.branding?.siteName || "9JASUB"}
+                    {getSiteName(siteInfo)}
                 </span>
             </div>
 
@@ -95,7 +98,7 @@ const Sidebar = ({ user, logout, siteInfo }) => {
                 )}
 
                 {/* Reseller Upgrade (Only for Main App Customers - Isolated) */}
-                {!isAdmin && !isReseller && !siteInfo && (
+                {!isAdmin && !isReseller && !isWhiteLabel && (
                     <div className="nav-group">
                         <span className="group-label">Opportunities</span>
                         <NavLink to="/reseller/onboarding" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>

@@ -1,5 +1,6 @@
 import React from 'react';
 import logoDefault from '../assets/9jasub.jpg';
+import { isWhiteLabelSite } from '../utils/whiteLabelHelper';
 
 const BrandLogo = ({ siteInfo, className = "header-logo-img", style = {} }) => {
   const logo = siteInfo?.branding?.logo || siteInfo?.logo;
@@ -17,9 +18,9 @@ const BrandLogo = ({ siteInfo, className = "header-logo-img", style = {} }) => {
     );
   }
 
-  // If no logo but we are in a white-label site, show a 3D Initial Icon
-  if (siteInfo) {
-    const initial = siteName.charAt(0).toUpperCase();
+  // If no logo but we are in a white-label site (or it's still loading on a white-label domain)
+  if (siteInfo || isWhiteLabelSite(siteInfo)) {
+    const initial = siteInfo ? siteName.charAt(0).toUpperCase() : 'V';
     return (
       <div 
         className={`${className} generic-3d-logo`} 
@@ -28,12 +29,12 @@ const BrandLogo = ({ siteInfo, className = "header-logo-img", style = {} }) => {
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+          background: 'linear-gradient(135deg, var(--primary, #3b82f6) 0%, var(--secondary, #10b981) 100%)',
           color: 'white',
           fontWeight: '800',
           fontSize: '22.0px',
           textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-          boxShadow: '0 10px 20px -5px var(--primary-light), inset 0 2px 4px rgba(255,255,255,0.3)',
+          boxShadow: '0 10px 20px -5px rgba(59, 130, 246, 0.5), inset 0 2px 4px rgba(255,255,255,0.3)',
           transform: 'perspective(500px) rotateY(-10deg) rotateX(10deg)',
           borderRadius: '12px',
           width: style.width || '38px',
@@ -45,7 +46,7 @@ const BrandLogo = ({ siteInfo, className = "header-logo-img", style = {} }) => {
     );
   }
 
-  // Default Fallback for main site
+  // Fallback to 9JASUB if it's explicitly the main platform
   return (
     <img 
       src={logoDefault} 

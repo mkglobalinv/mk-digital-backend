@@ -1,11 +1,14 @@
 import React from 'react';
-import { Headphones, Mail, MessageCircle, Phone, Globe, ExternalLink } from 'lucide-react';
+import { Mail, Phone, ExternalLink, MessageCircle, ArrowLeft, Headphones, Globe } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { getSiteName, isWhiteLabelSite } from '../utils/whiteLabelHelper';
 import './Support.css';
 
 const Support = ({ siteInfo }) => {
   const branding = siteInfo?.branding || {};
   const supportWhatsapp = branding.whatsappNumber || "2349041050812";
-  const supportEmail = branding.contactEmail || "support@9jasub.com";
+  const fallbackEmail = isWhiteLabelSite(siteInfo) ? "support@vtuportal.com" : "support@9jasub.com";
+  const supportEmail = branding.contactEmail || fallbackEmail;
   const supportPhone = branding.whatsappNumber ? `+${branding.whatsappNumber}` : "+234 904 105 0812";
 
   const contactMethods = [
@@ -66,7 +69,7 @@ const Support = ({ siteInfo }) => {
 
         <div className="support-footer-info">
            <p>Our dedicated team is ready to assist you with any transaction issues or service inquiries.</p>
-           <p className="branding-text">© {branding.siteName || "9JASUB"} Powered by MK GLOBAL INVESTMENT LTD.</p>
+           <p className="branding-text">© {getSiteName({ branding })} Powered by MK GLOBAL INVESTMENT LTD.</p>
         </div>
       </div>
     </div>

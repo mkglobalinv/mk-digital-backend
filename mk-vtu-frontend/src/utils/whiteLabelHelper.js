@@ -12,7 +12,9 @@ export const isWhiteLabelSite = (siteInfo) => {
     
     // Synchronous fallback to prevent UI flashes during initial load
     if (typeof window !== 'undefined') {
-        const host = window.location.host;
+        const host = window.location.host.toLowerCase();
+        
+        // Explicit main domains
         const mainDomains = [
             'localhost:5173', 'localhost:5000', 
             '127.0.0.1:5173', '127.0.0.1:5000',
@@ -20,7 +22,16 @@ export const isWhiteLabelSite = (siteInfo) => {
             '9jasub.com', 'www.9jasub.com', 'app.9jasub.com',
             'mk-subdata.com', 'www.mk-subdata.com'
         ];
-        return !mainDomains.includes(host);
+        
+        if (mainDomains.includes(host)) return false;
+        
+        // Suffix matching for Railway domains
+        if (host.endsWith('.up.railway.app') || host.endsWith('.railway.app')) {
+            return false;
+        }
+
+        // It is not a main domain and not a railway preview domain -> it's a white label site
+        return true;
     }
     return false;
 };
@@ -38,7 +49,8 @@ export const isPlatformSite = (siteInfo) => {
  * Useful for replacing hardcoded "9JASUB" strings.
  */
 export const getSiteName = (siteInfo) => {
-    return siteInfo?.branding?.siteName || siteInfo?.name || '9JASUB';
+    const fallback = isWhiteLabelSite(siteInfo) ? 'VTU Portal' : '9JASUB';
+    return siteInfo?.branding?.siteName || siteInfo?.businessName || siteInfo?.name || fallback;
 };
 
 /**

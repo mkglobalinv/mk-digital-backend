@@ -7,6 +7,7 @@ import '../reseller/pages/BusinessConsole.css'; // Account selector + popup styl
 import BrandLogo from '../components/BrandLogo';
 import logoDefault from '../assets/9jasub.jpg';
 import { isBiometricAvailable, authenticateBiometric } from '../services/biometricService';
+import { isWhiteLabelSite } from '../utils/whiteLabelHelper';
 
 const Login = ({ setToken, siteInfo }) => {
   const [email, setEmail] = useState('');
@@ -245,9 +246,9 @@ const Login = ({ setToken, siteInfo }) => {
         <div className="auth-header compact-header">
           <h1 className="auth-title compact-title" style={accountView === 'selector' ? { textTransform: 'uppercase', letterSpacing: '1px', fontSize: '20px' } : {}}>
             {siteInfo 
-              ? (hasLoggedInBefore ? 'Welcome Back' : (siteInfo?.branding?.siteName || siteInfo?.name || '9JASUB'))
+              ? (hasLoggedInBefore ? 'Welcome Back' : (siteInfo?.branding?.siteName || siteInfo?.name || (isWhiteLabelSite(siteInfo) ? 'VTU Portal' : '9JASUB')))
               : accountView === 'selector'
-                ? 'WELCOME TO 9JASUB'
+                ? (isWhiteLabelSite(siteInfo) ? 'WELCOME' : 'WELCOME TO 9JASUB')
                 : 'Welcome Back'}
           </h1>
           <p className="auth-subtitle">
@@ -256,8 +257,8 @@ const Login = ({ setToken, siteInfo }) => {
               : accountView === 'selector'
                 ? null
                 : hasLoggedInBefore
-                  ? `Welcome back to ${siteInfo?.branding?.siteName || siteInfo?.name || '9JASUB'}.`
-                  : `Sign in to your ${siteInfo?.branding?.siteName || siteInfo?.name || '9JASUB'} dashboard`}
+                ? `Welcome back to ${siteInfo?.branding?.siteName || siteInfo?.name || (isWhiteLabelSite(siteInfo) ? 'VTU Portal' : '9JASUB')}.`
+                : `Sign in to your ${siteInfo?.branding?.siteName || siteInfo?.name || (isWhiteLabelSite(siteInfo) ? 'VTU Portal' : '9JASUB')} dashboard`}
           </p>
         </div>
 

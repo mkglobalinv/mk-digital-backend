@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import API from '../../api';
 import './BusinessConsole.css';
+import { getSiteName } from '../../utils/whiteLabelHelper';
 
 const getPasswordStrength = (pwd) => {
   if (!pwd) return -1;
@@ -170,7 +171,7 @@ const BusinessSignup = ({ setToken }) => {
             <Building2 size={22} />
           </div>
           <div>
-            <div className="bc-brand-name">9JASUB</div>
+            <div className="bc-brand-name">{getSiteName(siteInfo)}</div>
             <div className="bc-brand-tag">Website Admin</div>
           </div>
         </div>

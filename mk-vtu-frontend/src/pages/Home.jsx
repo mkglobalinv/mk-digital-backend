@@ -12,6 +12,7 @@ import './Home.css';
 import { getCleanStatus, getCleanStatusText } from '../utils/statusMapper';
 import BrandLogo from '../components/BrandLogo';
 import { useTheme } from '../context/ThemeContext';
+import { getSiteName, isWhiteLabelSite } from '../utils/whiteLabelHelper';
 import { isActiveReseller, isPremiumReseller, checkBannerVisibility } from '../utils/bannerHelper';
 import { io } from 'socket.io-client';
 import MarketingPopup from '../components/marketing/MarketingPopup';
@@ -502,7 +503,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
                 <BrandLogo siteInfo={siteInfo} />
               </div>
               <span className="fintech-brand-name">
-                {siteInfo?.branding?.siteName || "9JASUB"}
+                {getSiteName(siteInfo)}
               </span>
             </div>
             <div className="fintech-header-actions">
@@ -882,7 +883,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
               </div>
             )}
 
-            {showResellerPromo && (
+            {!isWhiteLabelSite(siteInfo) && showResellerPromo && (
               <div className="fintech-promo-card vip-reseller-banner animate-fade-in" onClick={() => navigate('/reseller/onboarding')}>
                 <div className="vip-banner-overlay"></div>
                 <div 

@@ -1,8 +1,9 @@
 const http = require('http');
 
+const randomStr = Math.random().toString(36).substring(7);
 const data = JSON.stringify({
   name: "Test User",
-  email: "test@duplicate.com",
+  email: `test_new_${randomStr}@duplicate.com`,
   phone: "08000000000",
   password: "Test1234!",
   transactionPin: "1234"
