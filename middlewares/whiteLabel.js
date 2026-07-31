@@ -12,8 +12,10 @@ export const clearResellerCache = () => {
 
 export const whiteLabelMiddleware = async (req, res, next) => {
     const xForwardedHost = req.headers['x-forwarded-host'];
+    const xForwardedProto = req.headers['x-forwarded-proto'];
     const rawHost = xForwardedHost ? xForwardedHost.split(',')[0].trim() : (req.headers.host || '');
     const host = rawHost.split(':')[0].toLowerCase();
+    const cleanHost = host.replace(/^www\./, '');
     
     // 1. Identify System Main Domains and Preview Domains
     const envMarketingDomains = process.env.MARKETING_DOMAINS 
@@ -29,31 +31,36 @@ export const whiteLabelMiddleware = async (req, res, next) => {
     ];
 
     const previewSuffix = process.env.PREVIEW_DOMAIN_SUFFIX || '.up.railway.app';
-    const isPreview = host.endsWith(previewSuffix);
+    const isPreview = host.endsWith(previewSuffix) || cleanHost.endsWith(previewSuffix);
 
-    const isMainDomain = mainDomains.includes(host) || isPreview;
+    const isMainDomain = mainDomains.includes(host) || mainDomains.includes(cleanHost) || isPreview;
+
+    console.log(`[WhiteLabel Diagnostic] req.headers.host: "${req.headers.host}" | x-forwarded-host: "${xForwardedHost}" | x-forwarded-proto: "${xForwardedProto}" | rawHost: "${rawHost}" | host: "${host}" | cleanHost: "${cleanHost}" | isMainDomain: ${isMainDomain}`);
 
     try {
         let reseller = null;
 
         if (!isMainDomain) {
-            const cacheKey = host;
+            const cacheKey = cleanHost;
             const cached = resellerCache.get(cacheKey);
             
             if (cached && (Date.now() - cached.cachedAt < cached.ttl)) {
                 reseller = cached.reseller;
-                console.log(`[WhiteLabel] Domain ${host} resolved from cache.`);
+                console.log(`[WhiteLabel] Domain ${host} (cleanHost: ${cleanHost}) resolved from cache. Reseller: ${reseller ? reseller.subdomain : 'NONE'}`);
             } else {
-                console.log(`[WhiteLabel] Domain ${host} is not a main domain. Checking for reseller...`);
-                const sub = host.split('.')[0];
+                console.log(`[WhiteLabel] Domain ${host} (cleanHost: ${cleanHost}) is not a main domain. Checking for reseller...`);
+                const sub = cleanHost.split('.')[0];
                 reseller = await User.findOne({
                     $or: [
-                        { subdomain: sub },
+                        { customDomain: cleanHost },
                         { customDomain: host },
+                        { subdomain: sub },
                         { admin_subdomain: sub }
                     ]
                 });
                 
+                console.log(`[WhiteLabel Diagnostic] Reseller Lookup Result for ${host} / ${cleanHost}: ${reseller ? `FOUND (id: ${reseller._id}, subdomain: ${reseller.subdomain}, customDomain: ${reseller.customDomain}, status: ${reseller.whiteLabelStatus})` : 'NOT FOUND'}`);
+
                 // Cache the result
                 resellerCache.set(cacheKey, {
                     reseller,
@@ -78,7 +85,11 @@ export const whiteLabelMiddleware = async (req, res, next) => {
                 }
 
                 // Feature Restriction: Custom Domain
-                if (reseller.customDomain === host && !reseller.features?.custom_domain) {
+                const isCustomDomainMatch = reseller.customDomain === cleanHost || reseller.customDomain === host;
+                const hasCustomDomainPermission = reseller.features?.custom_domain || isCustomDomainMatch || reseller.resellerTier === 'premium' || reseller.resellerTier === 'vip' || reseller.role === 'admin' || reseller.role === 'superadmin';
+
+                if (isCustomDomainMatch && !hasCustomDomainPermission) {
+                    console.log(`[WhiteLabel] Domain ${host} blocked by Custom Domain feature restriction.`);
                     return res.status(403).send(`
                         <div style="font-family: sans-serif; text-align: center; padding: 50px; background: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
                             <div style="max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 24px; shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
@@ -90,9 +101,9 @@ export const whiteLabelMiddleware = async (req, res, next) => {
                     `);
                 }
                 req.isResellerDomain = true;
-                console.log(`[WhiteLabel] Found active reseller: ${reseller.subdomain} for host ${host}`);
+                console.log(`[WhiteLabel] Found active reseller: ${reseller.subdomain} for host ${host} (cleanHost: ${cleanHost})`);
             } else {
-                console.log(`[WhiteLabel] Critical: Tenant not found for host ${host}. Rejecting request.`);
+                console.log(`[WhiteLabel] Critical: Tenant not found for host ${host} (cleanHost: ${cleanHost}). Rejecting request.`);
                 
                 const apiRoutes = ['/api', '/auth', '/user', '/buy-', '/webhook', '/reseller-assets', '/socket.io'];
                 if (apiRoutes.some(route => req.path.startsWith(route)) || req.xhr || req.headers.accept?.includes('application/json')) {
