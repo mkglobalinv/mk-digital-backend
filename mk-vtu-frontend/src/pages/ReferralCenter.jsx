@@ -19,9 +19,9 @@ const ReferralCenter = ({ user, siteInfo }) => {
         const fetchReferralData = async () => {
             try {
                 const [linkRes, analyticsRes, historyRes] = await Promise.all([
-                    API.get('/user/referral-link'),
+                    API.get('/api/user/referral-link'),
                     API.get('/api/user/referral-analytics'),
-                    API.get('/user/referrals')
+                    API.get('/api/user/referrals')
                 ]);
 
                 if (linkRes.data.status === 'success') {
