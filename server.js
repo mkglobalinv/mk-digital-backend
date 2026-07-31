@@ -2219,22 +2219,13 @@ app.use((req, res, next) => {
     const isMarketingDomain = envMarketingDomains.includes(host) || isPreview;
 
     if (isMarketingDomain) {
-        const nonMarketingRoutes = [
-            "/api", "/auth", "/user", "/buy-", "/reseller-assets", "/assets", "/socket.io", 
-            "/login", "/register", "/continue-signup", "/transactions", "/fund", "/withdraw", 
-            "/verify-otp", "/resend-otp", "/manifest.json"
-        ];
-        if (nonMarketingRoutes.some(route => req.path.startsWith(route))) {
-            return next();
-        }
-
         // 1. Use static for assets
         const isAsset = req.path.startsWith('/_next') || req.path.match(/\.(png|svg|jpg|ico|txt)$/);
         if (isAsset) {
             return marketingStatic(req, res, next);
         }
 
-        // 2. Explicitly handle HTML paths
+        // 2. Explicitly handle HTML paths for the marketing site ONLY
         const marketingPages = ['/about', '/services', '/get-started', '/developer', '/docs', '/privacy', '/terms'];
         const cleanPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
 
@@ -2252,12 +2243,10 @@ app.use((req, res, next) => {
             }
         }
         
-        const notFoundPath = path.join(__dirname, "mk-subdata-website", "out", "404.html");
-        if (fs.existsSync(notFoundPath)) {
-            return res.status(404).sendFile(notFoundPath);
-        }
-        
-        // Let everything else fall through to the SPA (including /login, /dashboard, etc)
+        // Let everything else fall through to the SPA automatically.
+        // API routes will work normally.
+        // Valid React application routes will load perfectly.
+        // Unknown routes will be caught by the React Router and display the correct SPA 404 page.
         return next();
     } else {
         next();
