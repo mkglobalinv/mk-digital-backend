@@ -12,8 +12,11 @@ export const getReferralLink = async (req, res) => {
             await user.save();
         }
 
-        // Determine base URL dynamically or from env
-        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        // Determine base URL dynamically from request or env
+        const reqHost = req.headers['x-forwarded-host'] ? req.headers['x-forwarded-host'].split(',')[0].trim() : req.get('host');
+        const reqProtocol = req.headers['x-forwarded-proto'] ? req.headers['x-forwarded-proto'].split(',')[0].trim() : 'https';
+        const dynamicBase = reqHost ? `${reqProtocol}://${reqHost}` : 'https://9jasub.com';
+        const baseUrl = process.env.FRONTEND_URL || dynamicBase;
         const referralUrl = `${baseUrl}/register?ref=${user.referralCode}`;
 
         res.json({
