@@ -244,7 +244,12 @@ const Signup = ({ setToken, siteInfo }) => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? <img src={logoDefault} alt="Loading" className="btn-logo-loader" /> : (
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                <span style={{ marginLeft: '8px' }}>Creating Account...</span>
+              </>
+            ) : (
               <>Create Account <ArrowRight size={18} /></>
             )}
           </button>

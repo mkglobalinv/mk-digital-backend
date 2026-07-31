@@ -436,19 +436,21 @@ const Login = ({ setToken, siteInfo }) => {
               </>
               )}
 
-              <div className="quick-access-item">
-                <div className="quick-access-content">
-                  <h4>🚀 Own Your VTU Website & App</h4>
-                  <p>Free Trial • Ready in 5 Minutes</p>
+              {!siteInfo && (
+                <div className="quick-access-item">
+                  <div className="quick-access-content">
+                    <h4>🚀 Own Your VTU Website & App</h4>
+                    <p>Free Trial • Ready in 5 Minutes</p>
+                  </div>
+                  <button 
+                    type="button"
+                    className="quick-access-btn solid-primary"
+                    onClick={() => navigate('/business/login')}
+                  >
+                    Create
+                  </button>
                 </div>
-                <button 
-                  type="button"
-                  className="quick-access-btn solid-primary"
-                  onClick={() => navigate('/business/login')}
-                >
-                  Create
-                </button>
-              </div>
+              )}
             </div>
           </>
         )}

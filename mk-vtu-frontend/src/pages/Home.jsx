@@ -800,30 +800,32 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
             )}
 
             {/* Referral Dashboard Widget */}
-            <div className="fintech-promo-card animate-fade-in" style={{ position: 'relative', overflow: 'hidden', padding: '16px', background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary, #8B5CF6) 100%)', color: 'white', marginBottom: '24px', cursor: 'pointer', borderRadius: '16px', boxShadow: '0 8px 24px -8px var(--primary-glow)' }} onClick={() => navigate('/referrals')}>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full blur-xl -mr-8 -mt-8 pointer-events-none"></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '15px' }}>
-                  <Users size={18} />
-                  <span>Referral Center</span>
+            {!siteInfo && (
+              <div className="fintech-promo-card animate-fade-in" style={{ position: 'relative', overflow: 'hidden', padding: '16px', background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary, #8B5CF6) 100%)', color: 'white', marginBottom: '24px', cursor: 'pointer', borderRadius: '16px', boxShadow: '0 8px 24px -8px var(--primary-glow)' }} onClick={() => navigate('/referrals')}>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full blur-xl -mr-8 -mt-8 pointer-events-none"></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '15px' }}>
+                    <Users size={18} />
+                    <span>Referral Center</span>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', backdropFilter: 'blur(4px)' }}>
+                    Open &rarr;
+                  </div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', backdropFilter: 'blur(4px)' }}>
-                  Open &rarr;
+                <p style={{ fontSize: '12px', opacity: 0.9, marginBottom: '16px', position: 'relative', zIndex: 1 }}>Invite friends and earn up to ₦2,000 per activation!</p>
+                
+                <div style={{ display: 'flex', gap: '8px', position: 'relative', zIndex: 1 }}>
+                  <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Invited</div>
+                    <div style={{ fontSize: '16px', fontWeight: '900' }}>{referralAnalytics?.totalReferrals || 0}</div>
+                  </div>
+                  <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Total Earned</div>
+                    <div style={{ fontSize: '16px', fontWeight: '900' }}>₦{(referralAnalytics?.totalReferralIncome || 0).toLocaleString()}</div>
+                  </div>
                 </div>
               </div>
-              <p style={{ fontSize: '12px', opacity: 0.9, marginBottom: '16px', position: 'relative', zIndex: 1 }}>Invite friends and earn up to ₦2,000 per activation!</p>
-              
-              <div style={{ display: 'flex', gap: '8px', position: 'relative', zIndex: 1 }}>
-                <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Invited</div>
-                  <div style={{ fontSize: '16px', fontWeight: '900' }}>{referralAnalytics?.totalReferrals || 0}</div>
-                </div>
-                <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Total Earned</div>
-                  <div style={{ fontSize: '16px', fontWeight: '900' }}>₦{(referralAnalytics?.totalReferralIncome || 0).toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* 6. Business Console */}
             {isActiveReseller(user) && (

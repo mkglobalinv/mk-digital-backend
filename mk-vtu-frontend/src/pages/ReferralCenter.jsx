@@ -269,8 +269,8 @@ const ReferralCenter = ({ user, siteInfo }) => {
                         
                         <div className="referral-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div className="info-block intro-block">
-                                <h4 style={{ color: '#E2E8F0', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}><Info size={18} color="#3B82F6" /> HOW TO EARN WITH 9JASUB</h4>
-                                <p>There are two ways to earn through the 9JASUB Referral Program.</p>
+                                <h4 style={{ color: '#E2E8F0', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}><Info size={18} color="#3B82F6" /> HOW TO EARN WITH {siteInfo?.branding?.siteName?.toUpperCase() || '9JASUB'}</h4>
+                                <p>There are two ways to earn through the {siteInfo?.branding?.siteName || '9JASUB'} Referral Program.</p>
                             </div>
                             
                             <div className="info-block premium-block" style={{ borderLeft: '4px solid #FACC15' }}>
@@ -289,7 +289,7 @@ const ReferralCenter = ({ user, siteInfo }) => {
                             
                             <div className="info-block premium-block" style={{ borderLeft: '4px solid #4ADE80' }}>
                                 <h4 style={{ color: '#4ADE80', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><Users size={18} /> REFER RETAIL CUSTOMERS</h4>
-                                <p>Invite friends, family, and customers to use 9JASUB for:</p>
+                                <p>Invite friends, family, and customers to use {siteInfo?.branding?.siteName || '9JASUB'} for:</p>
                                 <ul style={{ marginLeft: '24px', marginBottom: '12px', marginTop: '8px', color: '#E2E8F0', listStyleType: 'disc', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
                                     <li>Data Bundles</li>
                                     <li>Airtime</li>
@@ -300,14 +300,14 @@ const ReferralCenter = ({ user, siteInfo }) => {
                                 </ul>
                                 <p>Whenever your referred retail customers make eligible purchases, you earn:</p>
                                 <div style={{ background: 'rgba(74, 222, 128, 0.1)', padding: '12px', borderRadius: '8px', marginTop: '8px', display: 'inline-block' }}>
-                                    <strong style={{ fontSize: '1.2rem', color: '#4ADE80' }}>15% of 9JASUB Platform Profit</strong>
+                                    <strong style={{ fontSize: '1.2rem', color: '#4ADE80' }}>15% of {siteInfo?.branding?.siteName || '9JASUB'} Platform Profit</strong>
                                 </div>
                                 <p style={{ marginTop: '8px', fontSize: '0.9rem' }}>The more active customers you refer, the more commissions you can earn over time.</p>
                             </div>
                             
                             <div className="info-block intro-block">
                                 <h4 style={{ color: '#C084FC', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}><Infinity size={18} /> LIFETIME COMMISSION</h4>
-                                <p>Your commissions do not stop after registration. As long as your referred retail customers continue using 9JASUB, you continue earning commissions from their eligible transactions. There is no limit to how many customers you can refer.</p>
+                                <p>Your commissions do not stop after registration. As long as your referred retail customers continue using {siteInfo?.branding?.siteName || '9JASUB'}, you continue earning commissions from their eligible transactions. There is no limit to how many customers you can refer.</p>
                             </div>
                             
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="mobile-stack-grid">
@@ -331,8 +331,8 @@ const ReferralCenter = ({ user, siteInfo }) => {
                             <div className="info-block warning-block" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
                                 <h4 style={{ color: '#EF4444', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}><Info size={18} /> IMPORTANT</h4>
                                 <p style={{ color: '#FCA5A5', fontWeight: 'bold', marginBottom: '8px' }}>You do NOT earn 15% of the customer's payment amount.</p>
-                                <p style={{ marginBottom: '8px' }}>You earn 15% of 9JASUB's platform profit on eligible retail transactions.</p>
-                                <p style={{ fontSize: '0.85rem', opacity: 0.9 }}><strong>Example:</strong> If a customer buys ₦10,000 Data, your commission is NOT ₦1,500. Your commission is calculated from 9JASUB's profit on that transaction.</p>
+                                <p style={{ marginBottom: '8px' }}>You earn 15% of {siteInfo?.branding?.siteName || '9JASUB'}'s platform profit on eligible retail transactions.</p>
+                                <p style={{ fontSize: '0.85rem', opacity: 0.9 }}><strong>Example:</strong> If a customer buys ₦10,000 Data, your commission is NOT ₦1,500. Your commission is calculated from {siteInfo?.branding?.siteName || '9JASUB'}'s profit on that transaction.</p>
                             </div>
                             
                             <div className="info-block summary-block" style={{ background: '#0F172A', padding: '16px', borderRadius: '12px', border: '1px dashed #334155' }}>

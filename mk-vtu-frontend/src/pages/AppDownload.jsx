@@ -119,7 +119,7 @@ const AppDownload = () => {
             {/* Footer */}
             <footer style={{ padding: '60px 20px', textAlign: 'center', borderTop: '1px solid #e2e8f0', color: '#64748b' }}>
                 <p style={{ fontWeight: 700, marginBottom: '8px' }}>&copy; {new Date().getFullYear()} {appName}</p>
-                <p style={{ fontSize: '15.4px' }}>Powered by 9JASUB Infrastructure</p>
+                {!siteInfo && <p style={{ fontSize: '15.4px' }}>Powered by 9JASUB Infrastructure</p>}
             </footer>
         </div>
     );
