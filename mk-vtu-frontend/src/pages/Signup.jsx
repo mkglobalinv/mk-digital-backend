@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Users } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Users, Loader2 } from 'lucide-react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import API from '../api';
-import logoDefault from '../assets/9jasub.jpg';
 import PremiumLoader from '../components/PremiumLoader';
 import './Auth.css';
 import BrandLogo from '../components/BrandLogo';
