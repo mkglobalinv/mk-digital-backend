@@ -69,7 +69,11 @@ export const register = async (req, res) => {
       expiresAt
     });
 
-    sendOTPEmail(newUser.email, otp).catch(err => console.error("[Signup] OTP Email Error:", err.message));
+    try {
+      await sendOTPEmail(newUser.email, otp);
+    } catch (err) {
+      console.error("[Signup] OTP Email Error:", err.message);
+    }
 
     res.status(201).json({ 
       success: true, 

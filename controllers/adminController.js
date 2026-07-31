@@ -142,9 +142,11 @@ export const adminLogin = async (req, res) => {
         expiresAt: new Date(Date.now() + 10 * 60000) 
     });
 
-    let emailSent = false;
+    let emailSent = true;
     try {
-        emailSent = await sendAdminOTPEmail(user.email, otpCode);
+        sendAdminOTPEmail(user.email, otpCode).catch(err => {
+            console.error("[Security] Admin OTP async error:", err);
+        });
     } catch (smtpErr) {
         console.error("[SECURITY] Unhandled SMTP exception caught during dispatch:", smtpErr);
         emailSent = false;
