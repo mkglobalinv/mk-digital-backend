@@ -33,7 +33,7 @@ const FEATURES = [
   },
 ];
 
-const BusinessLogin = ({ setToken }) => {
+const BusinessLogin = ({ setToken, siteInfo }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

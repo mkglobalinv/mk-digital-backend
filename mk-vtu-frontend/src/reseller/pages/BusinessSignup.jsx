@@ -29,7 +29,7 @@ const requirements = [
   { label: 'One special character', test: p => /[^A-Za-z0-9]/.test(p) },
 ];
 
-const BusinessSignup = ({ setToken }) => {
+const BusinessSignup = ({ setToken, siteInfo }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',

@@ -836,9 +836,9 @@ function App() {
             ) : (
               <Routes>
                 <Route path="/admin/login" element={adminToken ? <Navigate to="/admin/dashboard" /> : <AdminLogin setAdminToken={setAdminToken} setAdminUser={setAdminUser} />} />
-                <Route path="/reseller/login" element={token ? <Navigate to="/reseller" replace /> : <BusinessLogin setToken={setToken} />} />
-                <Route path="/business/login" element={token ? <Navigate to="/reseller" replace /> : <BusinessLogin setToken={setToken} />} />
-                <Route path="/business/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : (token ? <Navigate to="/reseller" replace /> : <BusinessSignup setToken={setToken} />)} />
+                <Route path="/reseller/login" element={token ? <Navigate to="/reseller" replace /> : <BusinessLogin setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/business/login" element={token ? <Navigate to="/reseller" replace /> : <BusinessLogin setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/business/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : (token ? <Navigate to="/reseller" replace /> : <BusinessSignup setToken={setToken} siteInfo={siteInfo} />)} />
                 
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/login" element={<Login setToken={setToken} siteInfo={siteInfo} />} />
