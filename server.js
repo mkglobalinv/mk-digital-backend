@@ -985,7 +985,7 @@ app.post("/continue-signup", async (req, res) => {
     }
 });
 
-app.post("/user/generate-temp-va", auth, async (req, res) => {
+app.post(["/user/generate-temp-va", "/api/user/generate-temp-va"], auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         const { amount } = req.body;
@@ -1006,7 +1006,7 @@ app.post("/user/generate-temp-va", auth, async (req, res) => {
     }
 });
 
-app.post("/user/generate-permanent-va", auth, async (req, res) => {
+app.post(["/user/generate-permanent-va", "/api/user/generate-permanent-va"], auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         const { identifier, type } = req.body; // type: 'bvn' or 'nin'
