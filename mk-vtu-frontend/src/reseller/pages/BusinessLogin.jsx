@@ -6,6 +6,7 @@ import {
   Wallet, Building2, ArrowRight, AlertCircle
 } from 'lucide-react';
 import API from '../../api';
+import { isWhiteLabelSite } from '../../utils/whiteLabelHelper';
 import { useToast } from '../../context/ToastContext';
 import './BusinessConsole.css';
 
@@ -224,16 +225,20 @@ const BusinessLogin = ({ setToken }) => {
           </button>
         </form>
 
-        <div className="bc-divider-label" style={{ marginTop: '24px' }}>
-          New to Website Admin?
-        </div>
+        {!isWhiteLabelSite(null) && (
+          <>
+            <div className="bc-divider-label" style={{ marginTop: '24px' }}>
+              New to Website Admin?
+            </div>
 
-        <button
-          className="bc-btn-ghost"
-          onClick={() => navigate('/business/signup')}
-        >
-          Start Your VTU Website
-        </button>
+            <button
+              className="bc-btn-ghost"
+              onClick={() => navigate('/business/signup')}
+            >
+              Start Your VTU Website
+            </button>
+          </>
+        )}
 
         <div className="bc-footer-links" style={{ marginTop: '16px' }}>
           Personal account?{' '}

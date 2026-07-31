@@ -37,6 +37,7 @@ import API from "./api";
 import { Loader2, ShieldAlert, Fingerprint, Lock, PlusCircle, Globe, MessageCircle } from "lucide-react";
 import { isBiometricAvailable, authenticateBiometric } from "./services/biometricService";
 import { dataPlanCache } from "./services/dataPlanCache";
+import { isWhiteLabelSite } from './utils/whiteLabelHelper';
 import AdminLogin from "./admin/pages/AdminLogin";
 import AdminLayout from "./admin/components/AdminLayout";
 import BusinessLogin from "./reseller/pages/BusinessLogin";
@@ -837,7 +838,7 @@ function App() {
                 <Route path="/admin/login" element={adminToken ? <Navigate to="/admin/dashboard" /> : <AdminLogin setAdminToken={setAdminToken} setAdminUser={setAdminUser} />} />
                 <Route path="/reseller/login" element={token ? <Navigate to="/reseller" replace /> : <BusinessLogin setToken={setToken} />} />
                 <Route path="/business/login" element={token ? <Navigate to="/reseller" replace /> : <BusinessLogin setToken={setToken} />} />
-                <Route path="/business/signup" element={token ? <Navigate to="/reseller" replace /> : <BusinessSignup setToken={setToken} />} />
+                <Route path="/business/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : (token ? <Navigate to="/reseller" replace /> : <BusinessSignup setToken={setToken} />)} />
                 
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/login" element={<Login setToken={setToken} siteInfo={siteInfo} />} />
@@ -847,7 +848,7 @@ function App() {
                 <Route path="/forgot-pin" element={<ForgotPin siteInfo={siteInfo} />} />
                 <Route path="/verify-email" element={<VerifyEmail setToken={setToken} siteInfo={siteInfo} />} />
                 <Route path="/continue-signup" element={<ContinueSignup siteInfo={siteInfo} />} />
-                <Route path="/reseller/onboarding" element={token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
+                <Route path="/reseller/onboarding" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/home" replace /> : (token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />)} />
                 <Route path="/app" element={<AppDownload />} />
 
                 <Route path="/home" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Home token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
