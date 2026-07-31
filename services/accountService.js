@@ -20,7 +20,7 @@ export const generateTemporaryAccount = async (user, amount, reseller = null) =>
 
         const vaData = {
             email: providerEmail,
-            phone: user.kycData?.phone || "08000000000",
+            phone: user.kycData?.phone || `080${String(parseInt(user._id.toString().slice(-8), 16)).slice(0, 8).padStart(8, '0')}`,
             firstname: firstName,
             lastname: names.length > 1 ? names[1] : "Customer",
             is_permanent: false,
@@ -75,7 +75,7 @@ export const generatePermanentAccount = async (user, identifier, type, reseller 
 
         const vaData = {
             email: providerEmail,
-            phone: user.kycData?.phone || "08000000000",
+            phone: user.kycData?.phone || `080${String(parseInt(user._id.toString().slice(-8), 16)).slice(0, 8).padStart(8, '0')}`,
             firstname: firstName,
             lastname: names.length > 1 ? names[1] : "Customer",
             is_permanent: true,
