@@ -16,9 +16,9 @@ const transporter = nodemailer.createTransport({
     port: emailPort,
     secure: secure, 
     pool: false, // Disable pooling to prevent stale connections causing indefinite hangs on Railway
-    connectionTimeout: 6000, // 6 seconds max to connect
-    greetingTimeout: 6000,   // 6 seconds max for SMTP greeting
-    socketTimeout: 6000,    // 6 seconds max for inactivity
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
     family: 4, // Force IPv4 to prevent ENETUNREACH on IPv6 resolution
     auth: {
         user: process.env.EMAIL_USER, 
@@ -36,9 +36,9 @@ const fallbackTransporter = nodemailer.createTransport({
     port: fallbackPort,
     secure: fallbackPort === 465,
     pool: false,
-    connectionTimeout: 6000,
-    greetingTimeout: 6000,
-    socketTimeout: 6000,
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
     family: 4,
     auth: {
         user: process.env.EMAIL_USER,
@@ -124,7 +124,7 @@ export const sendEmail = async (to, subject, html) => {
             });
 
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("SMTP_TIMEOUT: Primary transport timed out")), 7000)
+                setTimeout(() => reject(new Error("SMTP_TIMEOUT: Primary transport timed out")), 30000)
             );
 
             const info = await Promise.race([sendPromise, timeoutPromise]);
@@ -144,7 +144,7 @@ export const sendEmail = async (to, subject, html) => {
             });
 
             const timeoutPromiseFallback = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("SMTP_TIMEOUT: Fallback transport timed out")), 7000)
+                setTimeout(() => reject(new Error("SMTP_TIMEOUT: Fallback transport timed out")), 30000)
             );
 
             const info = await Promise.race([sendPromiseFallback, timeoutPromiseFallback]);
@@ -181,14 +181,12 @@ export const sendOTPEmail = async (email, otp) => {
             console.log(`Successfully sent OTP email to ${email}`);
             return true;
         } else {
-            console.error(`Failed to send OTP email to ${email}. Fallback: Writing to local file LATEST_OTP.txt for dev/testing.`);
-            fs.writeFileSync('LATEST_OTP.txt', `Email: ${email}\nOTP: ${otp}\nTime: ${new Date().toLocaleString()}`);
-            return true; // Graceful fallback success for dev environment testing
+            console.error(`Failed to send OTP email to ${email}.`);
+            return false;
         }
     } catch (error) {
         console.error(`Exception while sending OTP email to ${email}:`, error);
-        fs.writeFileSync('LATEST_OTP.txt', `Email: ${email}\nOTP: ${otp}\nTime: ${new Date().toLocaleString()}`);
-        return true; // Graceful fallback success for dev environment testing
+        return false;
     }
 };
 
