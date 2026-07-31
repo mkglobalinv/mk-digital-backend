@@ -52,7 +52,7 @@ export default function Home() {
 
           <div className="flex items-center gap-4">
             <a href={`${appUrl}/login`} className="hidden sm:block text-slate-700 hover:text-blue-600 font-bold px-4 transition-colors">Login</a>
-            <Link href="/get-started" className="px-6 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5">
+            <Link href="https://9jasub.com/login" className="px-6 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5">
               Get Started
             </Link>
           </div>
@@ -345,7 +345,7 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <Link href="/get-started" className="block w-full py-4 text-center bg-slate-700 hover:bg-slate-600 rounded-xl font-bold transition-colors">
+              <Link href="https://9jasub.com/login" className="block w-full py-4 text-center bg-slate-700 hover:bg-slate-600 rounded-xl font-bold transition-colors">
                 Get Started
               </Link>
             </div>
