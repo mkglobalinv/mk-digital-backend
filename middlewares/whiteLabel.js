@@ -11,7 +11,8 @@ export const clearResellerCache = () => {
 };
 
 export const whiteLabelMiddleware = async (req, res, next) => {
-    const rawHost = req.headers['x-forwarded-host'] || req.headers.host || '';
+    const xForwardedHost = req.headers['x-forwarded-host'];
+    const rawHost = xForwardedHost ? xForwardedHost.split(',')[0].trim() : (req.headers.host || '');
     const host = rawHost.split(':')[0].toLowerCase();
     
     // 1. Identify System Main Domains and Preview Domains
@@ -93,18 +94,46 @@ export const whiteLabelMiddleware = async (req, res, next) => {
             } else {
                 console.log(`[WhiteLabel] Critical: Tenant not found for host ${host}. Rejecting request.`);
                 
-                if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
-                    return res.status(404).json({ message: "Website not found." });
+                const apiRoutes = ['/api', '/auth', '/user', '/buy-', '/webhook', '/reseller-assets', '/socket.io'];
+                if (apiRoutes.some(route => req.path.startsWith(route)) || req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(404).json({ status: "error", message: "Tenant website not found or inactive." });
                 }
 
                 return res.status(404).send(`
-                    <div style="font-family: sans-serif; text-align: center; padding: 50px; background: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
-                        <div style="max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                            <h1 style="color: #ef4444; font-size: 32px; font-weight: 800; margin-bottom: 16px;">Website Not Found</h1>
-                            <p style="color: #64748b; font-size: 18px; line-height: 1.6;">This reseller website does not exist.</p>
-                            <p style="color: #64748b; font-size: 16px; line-height: 1.6;">Please check the website address or contact the website owner.</p>
-                        </div>
-                    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Not Found | 9JASUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; }
+        .container { max-width: 500px; width: 90%; background: white; padding: 48px 40px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); text-align: center; border-top: 6px solid #3b82f6; }
+        .icon { width: 80px; height: 80px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+        .icon svg { width: 40px; height: 40px; color: #3b82f6; }
+        h1 { color: #0f172a; font-size: 28px; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.025em; }
+        p { color: #64748b; font-size: 16px; line-height: 1.6; margin: 0 0 24px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 15px; transition: background 0.2s; }
+        .btn:hover { background: #2563eb; }
+        .footer { margin-top: 32px; font-size: 13px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 10h.01M15 10h.01M9.5 15h5" />
+            </svg>
+        </div>
+        <h1>Website Not Found</h1>
+        <p>The requested tenant portal could not be found. Please verify the web address or contact the platform administrator.</p>
+        <a href="https://9jasub.com" class="btn">Go to 9JASUB Home</a>
+        <div class="footer">&copy; ${new Date().getFullYear()} 9JASUB Infrastructure</div>
+    </div>
+</body>
+</html>
                 `);
             }
         } else {
