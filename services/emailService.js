@@ -1,12 +1,13 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import axios from 'axios';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 
 dotenv.config();
 
-// Create transporter using environment variables
+// Create primary transporter using environment variables
 const emailPort = Number(process.env.EMAIL_PORT) || 465;
 const secure = emailPort === 465;
 
@@ -14,51 +15,146 @@ const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
     port: emailPort,
     secure: secure, 
-    pool: false, // Disable pooling to prevent stale connections causing indefinite hangs on some hosts like Railway
-    connectionTimeout: 5000, // 5 seconds max to connect
-    greetingTimeout: 5000,   // 5 seconds max for SMTP greeting
-    socketTimeout: 5000,    // 5 seconds max for inactivity
+    pool: false, // Disable pooling to prevent stale connections causing indefinite hangs on Railway
+    connectionTimeout: 6000, // 6 seconds max to connect
+    greetingTimeout: 6000,   // 6 seconds max for SMTP greeting
+    socketTimeout: 6000,    // 6 seconds max for inactivity
     family: 4, // Force IPv4 to prevent ENETUNREACH on IPv6 resolution
     auth: {
         user: process.env.EMAIL_USER, 
         pass: process.env.EMAIL_PASS,
     },
     tls: {
-        rejectUnauthorized: false // Helps with some local network issues
+        rejectUnauthorized: false
     }
 });
 
-// Verify connection early to log any SMTP issues without crashing
+// Fallback transporter (Port 587 STARTTLS) for Railway network resilience
+const fallbackPort = emailPort === 465 ? 587 : 465;
+const fallbackTransporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: fallbackPort,
+    secure: fallbackPort === 465,
+    pool: false,
+    connectionTimeout: 6000,
+    greetingTimeout: 6000,
+    socketTimeout: 6000,
+    family: 4,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+// Verify primary connection early to log any SMTP issues without crashing
 if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     transporter.verify().then(() => {
-        console.log('[SMTP] Transporter verified and ready to send emails.');
+        console.log('[SMTP] Primary transporter verified and ready to send emails.');
     }).catch(err => {
-        console.error('[SMTP] Verification failed (Emails may fallback):', err.message);
+        console.warn('[SMTP] Primary verification warning (fallback ready):', err.message);
     });
 }
 
 export const sendEmail = async (to, subject, html) => {
     try {
+        // --- 1. HTTP REST EMAIL PROVIDER OPTION (Resend, Brevo, SendGrid) ---
+        if (process.env.RESEND_API_KEY) {
+            try {
+                console.log(`[Email] Sending via Resend HTTP API to ${to}...`);
+                const res = await axios.post('https://api.resend.com/emails', {
+                    from: process.env.EMAIL_FROM || `9JASUB <onboarding@resend.dev>`,
+                    to: [to],
+                    subject,
+                    html
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 8000
+                });
+                if (res.status === 200 || res.status === 201) {
+                    console.log(`[Email] Resend HTTP SUCCESS to ${to}`);
+                    return true;
+                }
+            } catch (httpErr) {
+                console.error("[Email] Resend HTTP failed, trying SMTP...", httpErr.message);
+            }
+        }
+
+        if (process.env.BREVO_API_KEY) {
+            try {
+                console.log(`[Email] Sending via Brevo HTTP API to ${to}...`);
+                const res = await axios.post('https://api.brevo.com/v3/smtp/email', {
+                    sender: { name: "9JASUB", email: process.env.EMAIL_USER || "no-reply@9jasub.com" },
+                    to: [{ email: to }],
+                    subject,
+                    htmlContent: html
+                }, {
+                    headers: {
+                        'api-key': process.env.BREVO_API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 8000
+                });
+                if (res.status === 201 || res.status === 200) {
+                    console.log(`[Email] Brevo HTTP SUCCESS to ${to}`);
+                    return true;
+                }
+            } catch (httpErr) {
+                console.error("[Email] Brevo HTTP failed, trying SMTP...", httpErr.message);
+            }
+        }
+
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
             console.log(`[MOCK EMAIL to ${to}] Subject: ${subject}`);
             return true; // Mock success if no credentials
         }
 
-        const sendPromise = transporter.sendMail({
-            from: `"9JASUB" <${process.env.EMAIL_USER}>`,
-            to,
-            subject,
-            html,
-        });
+        // --- 2. PRIMARY SMTP TRANSPORTER (Port 465 / EMAIL_PORT) ---
+        try {
+            const sendPromise = transporter.sendMail({
+                from: `"9JASUB" <${process.env.EMAIL_USER}>`,
+                to,
+                subject,
+                html,
+            });
 
-        // Fail fast: strict 8 second timeout to prevent blocking requests
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("SMTP_TIMEOUT: Email sending timed out")), 8000)
-        );
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("SMTP_TIMEOUT: Primary transport timed out")), 7000)
+            );
 
-        const info = await Promise.race([sendPromise, timeoutPromise]);
-        console.log("Message sent: %s", info.messageId);
-        return true;
+            const info = await Promise.race([sendPromise, timeoutPromise]);
+            console.log("[Email] Primary SMTP sent: %s", info.messageId);
+            return true;
+        } catch (primaryErr) {
+            console.warn("[Email] Primary SMTP failed:", primaryErr.message, "-> Trying Fallback SMTP (Port " + fallbackPort + ")...");
+        }
+
+        // --- 3. FALLBACK SMTP TRANSPORTER (Alternative Port 587/465) ---
+        try {
+            const sendPromiseFallback = fallbackTransporter.sendMail({
+                from: `"9JASUB" <${process.env.EMAIL_USER}>`,
+                to,
+                subject,
+                html,
+            });
+
+            const timeoutPromiseFallback = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("SMTP_TIMEOUT: Fallback transport timed out")), 7000)
+            );
+
+            const info = await Promise.race([sendPromiseFallback, timeoutPromiseFallback]);
+            console.log("[Email] Fallback SMTP sent: %s", info.messageId);
+            return true;
+        } catch (fallbackErr) {
+            console.error("[Email] All SMTP transport attempts failed:", fallbackErr.message);
+            return false;
+        }
+
     } catch (error) {
         console.error("Email send error: ", error.message || error);
         return false;
@@ -85,14 +181,12 @@ export const sendOTPEmail = async (email, otp) => {
             console.log(`Successfully sent OTP email to ${email}`);
             return true;
         } else {
-            console.error(`Failed to send OTP email to ${email}. Fallback: Writing to local file LATEST_OTP.txt for dev/testing.`);
-            fs.writeFileSync('LATEST_OTP.txt', `Email: ${email}\nOTP: ${otp}\nTime: ${new Date().toLocaleString()}`);
-            return true; // Graceful fallback success for dev environment testing
+            console.error(`Failed to send OTP email to ${email}.`);
+            return false;
         }
     } catch (error) {
         console.error(`Exception while sending OTP email to ${email}:`, error);
-        fs.writeFileSync('LATEST_OTP.txt', `Email: ${email}\nOTP: ${otp}\nTime: ${new Date().toLocaleString()}`);
-        return true; // Graceful fallback success for dev environment testing
+        return false;
     }
 };
 
