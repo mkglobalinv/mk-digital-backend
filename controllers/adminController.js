@@ -1271,7 +1271,11 @@ export const initiateWalletAction = async (req, res) => {
             expiresAt: new Date(Date.now() + 10 * 60000) 
         });
 
-        const emailSent = await sendAdminOTPEmail(admin.email, otpCode);
+        // Fire-and-forget Admin OTP to prevent login hanging on SMTP timeouts
+        sendAdminOTPEmail(admin.email, otpCode).catch(err => {
+            console.error('[AdminSecurity] Background OTP failed:', err.message);
+        });
+        const emailSent = true;
         console.log(`[SECURITY] Admin Funding OTP generated for ${admin.email}: ${otpCode}`);
         if (!emailSent) {
             console.warn("[SECURITY] Failed to dispatch security OTP via email. Proceeding for fallback access. Check console for OTP.");
@@ -2966,7 +2970,11 @@ export const initiateResellerWalletAction = async (req, res) => {
             expiresAt: new Date(Date.now() + 10 * 60000) 
         });
 
-        const emailSent = await sendAdminOTPEmail(admin.email, otpCode);
+        // Fire-and-forget Admin OTP to prevent login hanging on SMTP timeouts
+        sendAdminOTPEmail(admin.email, otpCode).catch(err => {
+            console.error('[AdminSecurity] Background OTP failed:', err.message);
+        });
+        const emailSent = true;
         console.log(`[SECURITY] Admin Funding OTP generated for ${admin.email}: ${otpCode}`);
         if (!emailSent) {
             console.warn("[SECURITY] Failed to dispatch security OTP via email. Proceeding for fallback access. Check console for OTP.");
