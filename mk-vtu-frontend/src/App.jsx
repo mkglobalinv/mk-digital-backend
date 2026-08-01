@@ -41,6 +41,7 @@ import { isWhiteLabelSite } from './utils/whiteLabelHelper';
 import AdminLogin from "./admin/pages/AdminLogin";
 import AdminLayout from "./admin/components/AdminLayout";
 import BusinessLogin from "./reseller/pages/BusinessLogin";
+import ResellerMarketingHome from "./pages/ResellerMarketingHome";
 import BusinessSignup from "./reseller/pages/BusinessSignup";
 import ResellerLayout from "./reseller/components/ResellerLayout";
 import { io } from "socket.io-client";
@@ -965,7 +966,14 @@ function App() {
                   ) : <Navigate to="/admin/login" />
                 } />
 
-                <Route path="/" element={token ? <Navigate to="/home" /> : (localStorage.getItem("seenOnboarding") === "true" ? <Navigate to="/login" /> : <Navigate to="/onboarding" />)} />
+                <Route path="/" element={
+                  token 
+                    ? <Navigate to="/home" /> 
+                    : (isWhiteLabelSite(siteInfo) 
+                        ? <ResellerMarketingHome siteInfo={siteInfo} /> 
+                        : (localStorage.getItem("seenOnboarding") === "true" ? <Navigate to="/login" /> : <Navigate to="/onboarding" />)
+                      )
+                } />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             )}
