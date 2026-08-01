@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import axios from 'axios';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import User from '../models/User.js';
@@ -6,83 +6,84 @@ import Notification from '../models/Notification.js';
 
 dotenv.config();
 
-// --- 3. Startup Diagnostics ---
+// --- 1. Startup Diagnostics ---
 console.log("=== EMAIL SERVICE STARTUP DIAGNOSTICS ===");
-console.log(`SMTP Host: ${process.env.EMAIL_HOST || 'MISSING'}`);
-console.log(`SMTP Port: ${process.env.EMAIL_PORT || 'MISSING'}`);
-console.log(`SMTP User: ${process.env.EMAIL_USER || 'MISSING'}`);
-console.log("==========================================");
+console.log(`Transport: Brevo REST API (HTTPS)`);
 
-// --- 2. Nodemailer Configuration (Brevo Only) ---
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
-    secure: false,
-    requireTLS: true,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM || process.env.EMAIL_USER;
 
-// --- 4. Verify SMTP ---
-if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    transporter.verify()
-        .then(() => {
-            console.log('[SMTP] Transporter verified successfully with Brevo.');
-        })
-        .catch(err => {
-            console.error('[SMTP] Transporter verification failed. FULL ERROR OBJECT:');
-            console.error({
-                code: err.code,
-                message: err.message,
-                response: err.response,
-                responseCode: err.responseCode,
-                stack: err.stack
-            });
-        });
+if (!BREVO_API_KEY) {
+    console.error(`[CRITICAL] BREVO_API_KEY is missing from environment variables.`);
+} else {
+    console.log(`BREVO_API_KEY: EXISTS (Length: ${BREVO_API_KEY.length})`);
 }
 
-// --- 5. Email Flow Logging ---
+if (!EMAIL_FROM) {
+    console.error(`[CRITICAL] EMAIL_FROM is missing from environment variables.`);
+} else {
+    console.log(`EMAIL_FROM: ${EMAIL_FROM}`);
+}
+console.log("==========================================");
+
+
+// --- 2. Email Flow Logging & HTTPS Transport ---
 export const sendEmail = async (to, subject, html) => {
     try {
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        if (!BREVO_API_KEY) {
             console.log(`[MOCK EMAIL to ${to}] Subject: ${subject}`);
             return true;
         }
 
-        console.log(`[Email to ${to}] Connecting...`);
-        console.log(`[Email to ${to}] Connected`);
-        console.log(`[Email to ${to}] Authenticated`);
-        console.log(`[Email to ${to}] Sending...`);
+        console.log(`[Email to ${to}] Preparing request via Brevo REST API...`);
 
-        // --- 8. Sender Identity ---
-        // Using EMAIL_USER as the verified sender for Brevo
-        const senderEmail = process.env.EMAIL_USER;
+        const payload = {
+            sender: { name: "9JASUB", email: EMAIL_FROM },
+            to: [{ email: to }],
+            subject: subject,
+            htmlContent: html
+        };
 
-        const info = await transporter.sendMail({
-            from: `"9JASUB" <${senderEmail}>`,
-            to,
-            subject,
-            html,
+        const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
+            headers: {
+                'api-key': BREVO_API_KEY,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            timeout: 10000 // 10 seconds timeout
         });
 
-        console.log(`[Email to ${to}] Sent: ${info.messageId}`);
-        return true;
+        // Brevo returns HTTP 201 Created on success
+        if (response.status === 201 || response.status === 200) {
+            console.log(`[Email to ${to}] Sent Successfully. MessageId: ${response.data.messageId}`);
+            return true;
+        } else {
+            console.warn(`[Email to ${to}] Unexpected success status: ${response.status}`);
+            return true;
+        }
+
     } catch (error) {
-        console.error(`[Email to ${to}] FAILED exactly here:`);
-        console.error({
-            code: error.code,
-            message: error.message,
-            response: error.response,
-            responseCode: error.responseCode,
-            stack: error.stack
-        });
+        console.error(`[Email to ${to}] FAILED at Brevo REST API.`);
+        
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.error("[BREVO API ERROR BODY]:", JSON.stringify(error.response.data, null, 2));
+            console.error(`Status: ${error.response.status}`);
+        } else if (error.request) {
+            // The request was made but no response was received
+            console.error("[NETWORK ERROR]: No response received from Brevo API.");
+            console.error(error.message);
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            console.error("[INTERNAL ERROR]:", error.message);
+        }
+        
         return false;
     }
 };
 
-// --- 7. Transport Usage (All use sendEmail) ---
+// --- 3. Transport Usage (Unchanged Business Logic) ---
 
 export const sendOTPEmail = async (email, otp) => {
     console.log(`Preparing to send OTP email to ${email} (OTP: ${otp})`);
