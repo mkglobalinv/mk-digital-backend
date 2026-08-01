@@ -31,6 +31,10 @@ const transporter = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false
+    },
+    lookup: (hostname, options, callback) => {
+        // Explicitly force IPv4 to bypass Railway IPv6 ENETUNREACH errors
+        dns.lookup(hostname, { family: 4 }, callback);
     }
 });
 
@@ -51,6 +55,9 @@ const fallbackTransporter = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false
+    },
+    lookup: (hostname, options, callback) => {
+        dns.lookup(hostname, { family: 4 }, callback);
     }
 });
 
