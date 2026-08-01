@@ -1,7 +1,7 @@
-require('dotenv').config();
-const dns = require('dns').promises;
-const net = require('net');
-const tls = require('tls');
+import 'dotenv/config';
+import dns from 'dns/promises';
+import net from 'net';
+import tls from 'tls';
 
 async function runBrevoDiagnostics() {
     console.log("======================================================");
@@ -104,7 +104,7 @@ async function runBrevoDiagnostics() {
                     resolved = true;
                     const cert = socket.getPeerCertificate();
                     console.log(`[SUCCESS] TLS Handshake complete to ${host}:${targetPort} in ${Date.now() - start}ms.`);
-                    console.log(`Certificate Subject: ${cert.subject?.CN}`);
+                    console.log(`Certificate Subject: ${cert?.subject?.CN}`);
                     socket.destroy();
                     resolve(true);
                 });
