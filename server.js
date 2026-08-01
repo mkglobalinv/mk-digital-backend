@@ -829,11 +829,13 @@ app.post("/api/register", async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
     await OTP.create({ userId: user._id, hashedOtp, expiresAt: new Date(Date.now() + 5*60*1000) });
-    try {
-        await sendOTPEmail(user.email, otp);
-    } catch (err) {
-        console.error("[Signup] OTP Email Error:", err.message);
-    }
+    setImmediate(async () => {
+        try {
+            await sendOTPEmail(user.email, otp);
+        } catch (err) {
+            console.error("[Signup] Background OTP Email Error:", err.message);
+        }
+    });
     res.json({ message: "Registered. Verify email.", email: user.email });
   } catch (err) { 
     console.error("[Register] CRITICAL ERROR:", err);

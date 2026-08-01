@@ -9,8 +9,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 // import { handleVACreation } from "../services/accountService.js";
 import auditLogService from "../services/auditLogService.js";
+import { performance } from "perf_hooks";
 
 export const register = async (req, res) => {
+  const reqStart = performance.now();
   try {
     const { name, email, phone, password, referralCode } = req.body;
     
@@ -41,8 +43,11 @@ export const register = async (req, res) => {
     // This is ENTIRELY INDEPENDENT from referredBy/referralCode.
     const tenantOwnerId = resellerId;
 
+    const hashStart = performance.now();
     const hashedPassword = await bcrypt.hash(password, 10);
+    const hashTime = performance.now() - hashStart;
     
+    const dbStart = performance.now();
     const newUser = await User.create({
       name,
       email: email.toLowerCase(),
@@ -55,10 +60,12 @@ export const register = async (req, res) => {
       isEmailVerified: false,
       isSignupComplete: false
     });
+    const dbTime = performance.now() - dbStart;
 
     console.log(`[Register] New user ${newUser.email} | tenantOwnerId: ${tenantOwnerId || 'Main Platform'} | referredBy: ${referredBy || 'None'}`);
 
     // Generate OTP for email verification
+    const otpStart = performance.now();
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
@@ -68,12 +75,20 @@ export const register = async (req, res) => {
       hashedOtp,
       expiresAt
     });
+    const otpTime = performance.now() - otpStart;
 
-    try {
-      await sendOTPEmail(newUser.email, otp);
-    } catch (err) {
-      console.error("[Signup] OTP Email Error:", err.message);
-    }
+    const emailQueueStart = performance.now();
+    setImmediate(async () => {
+      try {
+        await sendOTPEmail(newUser.email, otp);
+      } catch (err) {
+        console.error("[Signup] OTP Email Error:", err.message);
+      }
+    });
+    const emailQueueTime = performance.now() - emailQueueStart;
+
+    const reqTime = performance.now() - reqStart;
+    console.log(`[Perf] Registration: Hash=${hashTime.toFixed(2)}ms, DBUser=${dbTime.toFixed(2)}ms, OTP=${otpTime.toFixed(2)}ms, QueueEmail=${emailQueueTime.toFixed(2)}ms, Total=${reqTime.toFixed(2)}ms`);
 
     res.status(201).json({ 
       success: true, 
@@ -87,6 +102,7 @@ export const register = async (req, res) => {
 };
 
 export const requestOTP = async (req, res) => {
+  const reqStart = performance.now();
   try {
     const { email, isResend } = req.body;
     const resellerId = req.reseller?._id || null;
@@ -105,6 +121,7 @@ export const requestOTP = async (req, res) => {
     }
 
     // Generate 6-digit OTP
+    const otpStart = performance.now();
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -118,27 +135,31 @@ export const requestOTP = async (req, res) => {
       hashedOtp,
       expiresAt
     });
+    const otpTime = performance.now() - otpStart;
 
-    // Send actual email and check success status
+    // Send actual email asynchronously
+    const emailQueueStart = performance.now();
     console.log(`Generating OTP for password reset for: ${user.email}`);
-    const emailSent = await sendOTPEmail(user.email, otp);
-
-    // Create Audit Log
-    const attemptsCount = await OTPAuditLog.countDocuments({ email, action: isResend ? "resend" : "request" });
-    await OTPAuditLog.create({
-      email,
-      action: isResend ? "resend" : "request",
-      deliveryStatus: emailSent ? "sent" : "failed",
-      attempts: attemptsCount + 1,
-      details: emailSent ? "OTP sent successfully" : "SMTP transport failure"
+    
+    setImmediate(async () => {
+      try {
+        const emailSent = await sendOTPEmail(user.email, otp);
+        const attemptsCount = await OTPAuditLog.countDocuments({ email, action: isResend ? "resend" : "request" });
+        await OTPAuditLog.create({
+          email,
+          action: isResend ? "resend" : "request",
+          deliveryStatus: emailSent ? "sent" : "failed",
+          attempts: attemptsCount + 1,
+          details: emailSent ? "OTP sent successfully" : "SMTP transport failure"
+        });
+      } catch (err) {
+        console.error("[RequestOTP] Background error:", err.message);
+      }
     });
+    const emailQueueTime = performance.now() - emailQueueStart;
 
-    if (!emailSent) {
-      return res.status(500).json({ 
-        success: false, 
-        message: "Unable to send OTP. Please try again later." 
-      });
-    }
+    const reqTime = performance.now() - reqStart;
+    console.log(`[Perf] requestOTP: OTPGeneration=${otpTime.toFixed(2)}ms, QueueEmail=${emailQueueTime.toFixed(2)}ms, Total=${reqTime.toFixed(2)}ms`);
 
     res.json({ 
       success: true, 
@@ -275,6 +296,7 @@ export const resetPassword = async (req, res) => {
 };
 
 export const login = async (req, res) => {
+  const reqStart = performance.now();
   try {
     const { password } = req.body;
     const email = req.body.email?.toLowerCase();
@@ -359,17 +381,6 @@ export const login = async (req, res) => {
         return res.status(403).json({ message: `Account locked due to too many failed attempts. Try again in ${remaining} minutes.` });
     }
 
-    // Removed verification and signup completion blocks to allow non-blocking email verification
-    // if (!user.isEmailVerified) {
-    //     console.log(`[Login] Failure: Email not verified (${email})`);
-    //     return res.status(403).json({ message: "Verify email", unverified: true });
-    // }
-
-    // if (!user.isSignupComplete) {
-    //     console.log(`[Login] Failure: Signup incomplete (${email})`);
-    //     return res.status(403).json({ message: "Complete signup", incompleteSignup: true });
-    // }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
         console.log(`[Login] Failure: Wrong password (${email})`);
@@ -407,19 +418,23 @@ export const login = async (req, res) => {
     await user.save();
 
     // Trigger Login Alerts
-    try {
-        await Notification.create({
-            userId: user._id,
-            title: isSuspicious ? "Suspicious Login Detected" : "New Login Detected",
-            message: isSuspicious 
-                ? `A suspicious login was detected on your account. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`
-                : `A new login was detected successfully on your account. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`,
-            type: isSuspicious ? "warning" : "success"
-        });
-        await sendLoginAlertEmail(user.email, { timestamp: new Date(), device, ip, role: user.role });
-    } catch (alertErr) {
-        console.error("Failed to send login alerts:", alertErr.message);
-    }
+    const emailQueueStart = performance.now();
+    setImmediate(async () => {
+        try {
+            await Notification.create({
+                userId: user._id,
+                title: isSuspicious ? "Suspicious Login Detected" : "New Login Detected",
+                message: isSuspicious 
+                    ? `A suspicious login was detected on your account. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`
+                    : `A new login was detected successfully on your account. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`,
+                type: isSuspicious ? "warning" : "success"
+            });
+            await sendLoginAlertEmail(user.email, { timestamp: new Date(), device, ip, role: user.role });
+        } catch (alertErr) {
+            console.error("Failed to send login alerts:", alertErr.message);
+        }
+    });
+    const emailQueueTime = performance.now() - emailQueueStart;
 
     // Phase 12: Generate emergencyId if not exists
     if (!user.emergencyId) {
@@ -445,6 +460,9 @@ export const login = async (req, res) => {
     
     await Session.create({ userId: user._id, token, deviceInfo: device });
     
+    const reqTime = performance.now() - reqStart;
+    console.log(`[Perf] Login: QueueAlert=${emailQueueTime.toFixed(2)}ms, Total=${reqTime.toFixed(2)}ms`);
+
     res.json({ token, balance: user.totalBalance, user: { name: user.name, email: user.email, role: tokenRole, emergencyId: user.emergencyId, isEmailVerified: user.isEmailVerified, isSignupComplete: user.isSignupComplete }, loginAlertStatus });
   } catch (err) { 
     console.error("Login Error:", err);
@@ -519,19 +537,21 @@ export const verifyEmail = async (req, res) => {
     user.lastLoginIp = ip;
     await user.save();
 
-    try {
-        await Notification.create({
-            userId: user._id,
-            title: isSuspicious ? "Suspicious Login Detected" : "New Login Detected",
-            message: isSuspicious 
-                ? `A suspicious login was detected on your account during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`
-                : `A new login was detected successfully during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`,
-            type: isSuspicious ? "warning" : "success"
-        });
-        await sendLoginAlertEmail(user.email, { timestamp: new Date(), device, ip, role: user.role });
-    } catch (alertErr) {
-        console.error("Failed to send login alerts on verification:", alertErr.message);
-    }
+    setImmediate(async () => {
+        try {
+            await Notification.create({
+                userId: user._id,
+                title: isSuspicious ? "Suspicious Login Detected" : "New Login Detected",
+                message: isSuspicious 
+                    ? `A suspicious login was detected on your account during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`
+                    : `A new login was detected successfully during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`,
+                type: isSuspicious ? "warning" : "success"
+            });
+            await sendLoginAlertEmail(user.email, { timestamp: new Date(), device, ip, role: user.role });
+        } catch (alertErr) {
+            console.error("Failed to send login alerts on verification:", alertErr.message);
+        }
+    });
 
     res.json({ 
         success: true, 
@@ -563,7 +583,14 @@ export const resendEmailOTP = async (req, res) => {
     await OTP.create({ userId: user._id, hashedOtp, expiresAt });
 
     console.log(`Resending OTP for email verification: ${user.email}`);
-    await sendOTPEmail(user.email, otp);
+    
+    setImmediate(async () => {
+        try {
+            await sendOTPEmail(user.email, otp);
+        } catch (err) {
+            console.error("[ResendOTP] Background email error:", err.message);
+        }
+    });
 
     res.json({ success: true, message: "A new OTP has been sent to your email" });
   } catch (err) {
@@ -604,9 +631,16 @@ export const verifySecurityQuestions = async (req, res) => {
         await OTP.deleteMany({ userId: user._id });
         await OTP.create({ userId: user._id, hashedOtp, expiresAt });
         
-        await sendPinResetAlertEmail(user.email);
         console.log(`Generating OTP for security question verification: ${user.email}`);
-        await sendOTPEmail(user.email, otp);
+        
+        setImmediate(async () => {
+            try {
+                await sendPinResetAlertEmail(user.email);
+                await sendOTPEmail(user.email, otp);
+            } catch (err) {
+                console.error("[VerifySecurityQuestions] Background email error:", err.message);
+            }
+        });
 
         res.json({ success: true, message: "Security answers correct. OTP sent to email." });
     } catch(err) {
@@ -689,8 +723,17 @@ export const requestPinOTP = async (req, res) => {
         await OTP.deleteMany({ userId: user._id });
         await OTP.create({ userId: user._id, hashedOtp, expiresAt });
 
-        console.log(`Generating OTP for PIN reset: ${user.email}`);
-        await sendOTPEmail(user.email, otp);
+        console.log(`Generating PIN reset OTP for: ${user.email}`);
+    
+    setImmediate(async () => {
+        try {
+            const startTime = Date.now();
+            await sendOTPEmail(user.email, otp);
+            console.log(`[Telemetry] PIN reset OTP email processed in ${Date.now() - startTime}ms`);
+        } catch (err) {
+            console.error("[RequestPinOTP] Background email error:", err.message);
+        }
+    });
 
         res.json({ success: true, message: "OTP sent to your email" });
     } catch (err) {

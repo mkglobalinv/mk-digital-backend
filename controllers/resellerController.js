@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import { performance } from "perf_hooks";
 import { calculateBulkDataPrices } from "../services/pricing/vtuPricing.js";
 import Transaction from "../models/Transaction.js";
 import PriceOverride from "../models/PriceOverride.js";
@@ -165,6 +166,7 @@ export const registerResellerUser = async (req, res) => {
 };
 
 export const registerResellerWithPayment = async (req, res) => {
+    const reqStart = performance.now();
     console.log("=== ENTER registerResellerWithPayment ===");
     console.log("Request URL:", req.originalUrl);
     console.log("HTTP Method:", req.method);
@@ -205,7 +207,9 @@ export const registerResellerWithPayment = async (req, res) => {
         }
 
         console.log("4. Hashing password...");
+        const hashStart = performance.now();
         const hashedPassword = await bcrypt.hash(password, 10);
+        const hashTime = performance.now() - hashStart;
         
         let baseSubdomain = businessName.toLowerCase().replace(/[^a-z0-9]/g, '');
         if (!baseSubdomain) baseSubdomain = 'store';
@@ -284,6 +288,7 @@ export const registerResellerWithPayment = async (req, res) => {
         console.log("Collection Indexes:", JSON.stringify(collectionIndexes, null, 2));
 
         console.log(`6. Executing save() on user (isUpgrade: ${isUpgrade})...`);
+        const dbStart = performance.now();
         try {
             await targetUser.save();
         } catch (saveError) {
@@ -298,6 +303,7 @@ export const registerResellerWithPayment = async (req, res) => {
             console.log("KeyValue:", saveError.keyValue);
             throw saveError; // rethrow to outer catch
         }
+        const dbTime = performance.now() - dbStart;
 
         console.log("=== IMMEDIATELY AFTER SAVE ===");
         console.log("Returned _id:", targetUser._id);
@@ -305,6 +311,9 @@ export const registerResellerWithPayment = async (req, res) => {
         console.log("updatedAt:", targetUser.updatedAt);
 
         console.log("7. response");
+        const reqTime = performance.now() - reqStart;
+        console.log(`[Perf] registerResellerWithPayment: Hash=${hashTime.toFixed(2)}ms, DBSave=${dbTime.toFixed(2)}ms, Total=${reqTime.toFixed(2)}ms`);
+
         res.status(201).json({ 
             message: "Reseller account created successfully", 
             userId: targetUser._id,

@@ -21,9 +21,9 @@ export default function GetStarted() {
           </div>
 
           <div className="space-y-4">
-            <a 
-              href={`${appUrl}/onboarding`}
-              className="group block w-full p-6 bg-white border-2 border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer relative overflow-hidden"
+            <button 
+              onClick={() => window.location.assign('/signup')}
+              className="group block w-full p-6 bg-white border-2 border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer relative overflow-hidden text-left"
             >
               <div className="flex items-center gap-4 relative z-10">
                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -35,11 +35,11 @@ export default function GetStarted() {
                 </div>
                 <ArrowRight className="text-slate-300 group-hover:text-blue-500 transition-colors" />
               </div>
-            </a>
+            </button>
 
-            <a 
-              href={`${appUrl}/business/signup`}
-              className="group block w-full p-6 bg-slate-900 border-2 border-slate-900 rounded-2xl hover:bg-slate-800 transition-all cursor-pointer relative overflow-hidden"
+            <button 
+              onClick={() => window.location.assign('/business/signup')}
+              className="group block w-full p-6 bg-slate-900 border-2 border-slate-900 rounded-2xl hover:bg-slate-800 transition-all cursor-pointer relative overflow-hidden text-left"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
               <div className="flex items-center gap-4 relative z-10">
@@ -52,15 +52,15 @@ export default function GetStarted() {
                 </div>
                 <ArrowRight className="text-slate-400 group-hover:text-white transition-colors" />
               </div>
-            </a>
+            </button>
           </div>
 
           <div className="mt-10 text-center">
             <p className="text-sm text-slate-500 font-medium">
               Already have an account?{' '}
-              <a href={`${appUrl}/login`} className="text-blue-600 font-bold hover:underline">
+              <button onClick={() => window.location.assign('/login')} className="text-blue-600 font-bold hover:underline">
                 Sign In
-              </a>
+              </button>
             </p>
           </div>
         </div>
