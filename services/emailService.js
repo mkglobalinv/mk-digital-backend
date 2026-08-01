@@ -30,12 +30,18 @@ console.log("==========================================");
 // --- 2. Email Flow Logging & HTTPS Transport ---
 export const sendEmail = async (to, subject, html) => {
     try {
+        console.log(`\n========== INITIATING EMAIL SEND ==========`);
+        console.log(`8. BREVO_API_KEY Exists: ${!!BREVO_API_KEY}`);
+        console.log(`9. EMAIL_FROM Exists: ${!!EMAIL_FROM}`);
+        console.log(`5. Sender Email: ${EMAIL_FROM}`);
+        console.log(`6. Recipient Email: ${to}`);
+        console.log(`7. Subject: ${subject}`);
+
         if (!BREVO_API_KEY) {
             console.log(`[MOCK EMAIL to ${to}] Subject: ${subject}`);
+            console.log(`==========================================\n`);
             return true;
         }
-
-        console.log(`[Email to ${to}] Preparing request via Brevo REST API...`);
 
         const payload = {
             sender: { name: "9JASUB", email: EMAIL_FROM },
@@ -43,6 +49,9 @@ export const sendEmail = async (to, subject, html) => {
             subject: subject,
             htmlContent: html
         };
+
+        console.log(`1. Full HTTP Request Payload (excluding API Key):`);
+        console.log(JSON.stringify(payload, null, 2));
 
         const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
             headers: {
@@ -53,31 +62,35 @@ export const sendEmail = async (to, subject, html) => {
             timeout: 10000 // 10 seconds timeout
         });
 
+        console.log(`2. HTTP Status Code: ${response.status}`);
+        console.log(`3. Complete JSON Response from Brevo:`);
+        console.log(JSON.stringify(response.data, null, 2));
+
         // Brevo returns HTTP 201 Created on success
         if (response.status === 201 || response.status === 200) {
-            console.log(`[Email to ${to}] Sent Successfully. MessageId: ${response.data.messageId}`);
+            console.log(`10. Success! Brevo messageId: ${response.data.messageId}`);
+            console.log(`==========================================\n`);
             return true;
         } else {
             console.warn(`[Email to ${to}] Unexpected success status: ${response.status}`);
+            console.log(`==========================================\n`);
             return true;
         }
 
     } catch (error) {
-        console.error(`[Email to ${to}] FAILED at Brevo REST API.`);
+        console.error(`\n[Email to ${to}] FAILED at Brevo REST API.`);
         
         if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            console.error("[BREVO API ERROR BODY]:", JSON.stringify(error.response.data, null, 2));
-            console.error(`Status: ${error.response.status}`);
+            console.error(`2. HTTP Status Code: ${error.response.status}`);
+            console.error(`4. Complete Error Body from Brevo:`);
+            console.error(JSON.stringify(error.response.data, null, 2));
         } else if (error.request) {
-            // The request was made but no response was received
             console.error("[NETWORK ERROR]: No response received from Brevo API.");
             console.error(error.message);
         } else {
-            // Something happened in setting up the request that triggered an Error
             console.error("[INTERNAL ERROR]:", error.message);
         }
+        console.log(`==========================================\n`);
         
         return false;
     }
