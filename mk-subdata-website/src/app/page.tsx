@@ -51,10 +51,10 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button onClick={() => window.location.assign('/login')} className="hidden sm:block text-slate-700 hover:text-blue-600 font-bold px-4 transition-colors">Login</button>
-            <button onClick={() => window.location.assign('/login')} className="px-6 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5">
+            <a href="/login" className="hidden sm:block text-slate-700 hover:text-blue-600 font-bold px-4 transition-colors">Login</a>
+            <a href="/login" className="px-6 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5">
               Get Started
-            </button>
+            </a>
           </div>
         </div>
       </nav>
@@ -345,9 +345,9 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <button onClick={() => window.location.assign('/login')} className="block w-full py-4 text-center bg-slate-700 hover:bg-slate-600 rounded-xl font-bold transition-colors">
+              <a href="/login" className="block w-full py-4 text-center bg-slate-700 hover:bg-slate-600 rounded-xl font-bold transition-colors">
                 Get Started
-              </button>
+              </a>
             </div>
 
             <div className="bg-gradient-to-b from-blue-600 to-indigo-700 rounded-3xl p-8 border-2 border-blue-400 shadow-2xl shadow-blue-900/50 text-white transform md:-translate-y-4 relative">
@@ -746,7 +746,7 @@ export default function Home() {
                 <li><Link href="/#pricing" className="text-slate-500 hover:text-blue-600 font-medium transition-colors">Pricing</Link></li>
                 <li><Link href="/#how-it-works" className="text-slate-500 hover:text-blue-600 font-medium transition-colors">How It Works</Link></li>
                 <li><Link href="/#about" className="text-slate-500 hover:text-blue-600 font-medium transition-colors">About Us</Link></li>
-                <li><button onClick={() => window.location.assign('/login')} className="text-slate-500 hover:text-blue-600 font-medium transition-colors">Login</button></li>
+                <li><a href="/login" className="text-slate-500 hover:text-blue-600 font-medium transition-colors">Login</a></li>
                 <li><Link href="/#contact" className="text-slate-500 hover:text-blue-600 font-medium transition-colors">Contact Us</Link></li>
               </ul>
             </div>

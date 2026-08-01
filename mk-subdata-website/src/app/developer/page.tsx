@@ -29,7 +29,7 @@ export default function DeveloperApi() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button onClick={() => window.location.assign('/login')} className="hidden sm:block text-slate-900 hover:text-blue-600 font-black px-4">Login</button>
+            <a href="/login" className="hidden sm:block text-slate-900 hover:text-blue-600 font-black px-4">Login</a>
             <Link href="/get-started" className="px-6 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 hover:-translate-y-0.5">
               Get Started
             </Link>
