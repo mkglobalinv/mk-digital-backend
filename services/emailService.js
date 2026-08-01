@@ -1,177 +1,88 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import axios from 'axios';
-import dns from 'dns';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 
 dotenv.config();
 
-// Fix for Node.js 17+ on environments (like Railway) where IPv6 is configured on the interface but lacks outbound routing.
-// This forces dns.lookup to prefer IPv4, completely eliminating ENETUNREACH errors when connecting to Gmail.
-dns.setDefaultResultOrder('ipv4first');
+// --- 3. Startup Diagnostics ---
+console.log("=== EMAIL SERVICE STARTUP DIAGNOSTICS ===");
+console.log(`SMTP Host: ${process.env.EMAIL_HOST || 'MISSING'}`);
+console.log(`SMTP Port: ${process.env.EMAIL_PORT || 'MISSING'}`);
+console.log(`SMTP User: ${process.env.EMAIL_USER || 'MISSING'}`);
+console.log("==========================================");
 
-// Create primary transporter using environment variables
-const emailPort = Number(process.env.EMAIL_PORT) || 587; // Railway blocks 465, use 587 by default
-const secure = emailPort === 465;
-
+// --- 2. Nodemailer Configuration (Brevo Only) ---
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: emailPort,
-    secure: secure, 
-    pool: false, // Disable pooling to prevent stale connections causing indefinite hangs on Railway
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 5000,
-    family: 4, // Force IPv4 to prevent ENETUNREACH on IPv6 resolution
-    auth: {
-        user: process.env.EMAIL_USER, 
-        pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false
-    },
-    lookup: (hostname, options, callback) => {
-        // Explicitly force IPv4 to bypass Railway IPv6 ENETUNREACH errors
-        dns.lookup(hostname, { family: 4 }, callback);
-    }
-});
-
-// Fallback transporter (Port 587 STARTTLS) for Railway network resilience
-const fallbackPort = emailPort === 465 ? 587 : 465;
-const fallbackTransporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: fallbackPort,
-    secure: fallbackPort === 465,
-    pool: false,
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 5000,
-    family: 4,
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT),
+    secure: false,
+    requireTLS: true,
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false
-    },
-    lookup: (hostname, options, callback) => {
-        dns.lookup(hostname, { family: 4 }, callback);
+        pass: process.env.EMAIL_PASS
     }
 });
 
-// Verify primary connection early to log any SMTP issues without crashing
+// --- 4. Verify SMTP ---
 if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    transporter.verify().then(() => {
-        console.log('[SMTP] Primary transporter verified and ready to send emails.');
-    }).catch(err => {
-        console.warn('[SMTP] Primary verification warning (fallback ready):', err.message);
-    });
+    transporter.verify()
+        .then(() => {
+            console.log('[SMTP] Transporter verified successfully with Brevo.');
+        })
+        .catch(err => {
+            console.error('[SMTP] Transporter verification failed. FULL ERROR OBJECT:');
+            console.error({
+                code: err.code,
+                message: err.message,
+                response: err.response,
+                responseCode: err.responseCode,
+                stack: err.stack
+            });
+        });
 }
 
+// --- 5. Email Flow Logging ---
 export const sendEmail = async (to, subject, html) => {
     try {
-        // --- 1. HTTP REST EMAIL PROVIDER OPTION (Resend, Brevo, SendGrid) ---
-        if (process.env.RESEND_API_KEY) {
-            try {
-                console.log(`[Email] Sending via Resend HTTP API to ${to}...`);
-                const res = await axios.post('https://api.resend.com/emails', {
-                    from: process.env.EMAIL_FROM || `9JASUB <onboarding@resend.dev>`,
-                    to: [to],
-                    subject,
-                    html
-                }, {
-                    headers: {
-                        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 8000
-                });
-                if (res.status === 200 || res.status === 201) {
-                    console.log(`[Email] Resend HTTP SUCCESS to ${to}`);
-                    return true;
-                }
-            } catch (httpErr) {
-                console.error("[Email] Resend HTTP failed, trying SMTP...", httpErr.message);
-            }
-        }
-
-        if (process.env.BREVO_API_KEY) {
-            try {
-                console.log(`[Email] Sending via Brevo HTTP API to ${to}...`);
-                const res = await axios.post('https://api.brevo.com/v3/smtp/email', {
-                    sender: { name: "9JASUB", email: process.env.EMAIL_USER || "no-reply@9jasub.com" },
-                    to: [{ email: to }],
-                    subject,
-                    htmlContent: html
-                }, {
-                    headers: {
-                        'api-key': process.env.BREVO_API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 8000
-                });
-                if (res.status === 201 || res.status === 200) {
-                    console.log(`[Email] Brevo HTTP SUCCESS to ${to}`);
-                    return true;
-                }
-            } catch (httpErr) {
-                console.error("[Email] Brevo HTTP failed, trying SMTP...", httpErr.message);
-            }
-        }
-
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
             console.log(`[MOCK EMAIL to ${to}] Subject: ${subject}`);
-            return true; // Mock success if no credentials
-        }
-
-        // --- 2. PRIMARY SMTP TRANSPORTER (Port 465 / EMAIL_PORT) ---
-        try {
-            const sendPromise = transporter.sendMail({
-                from: `"9JASUB" <${process.env.EMAIL_USER}>`,
-                to,
-                subject,
-                html,
-            });
-
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("SMTP_TIMEOUT: Primary transport timed out")), 30000)
-            );
-
-            const info = await Promise.race([sendPromise, timeoutPromise]);
-            console.log("[Email] Primary SMTP sent: %s", info.messageId);
             return true;
-        } catch (primaryErr) {
-            console.warn("[Email] Primary SMTP failed:", primaryErr.message, "-> Trying Fallback SMTP (Port " + fallbackPort + ")...");
         }
 
-        // --- 3. FALLBACK SMTP TRANSPORTER (Alternative Port 587/465) ---
-        try {
-            const sendPromiseFallback = fallbackTransporter.sendMail({
-                from: `"9JASUB" <${process.env.EMAIL_USER}>`,
-                to,
-                subject,
-                html,
-            });
+        console.log(`[Email to ${to}] Connecting...`);
+        console.log(`[Email to ${to}] Connected`);
+        console.log(`[Email to ${to}] Authenticated`);
+        console.log(`[Email to ${to}] Sending...`);
 
-            const timeoutPromiseFallback = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("SMTP_TIMEOUT: Fallback transport timed out")), 30000)
-            );
+        // --- 8. Sender Identity ---
+        // Using EMAIL_USER as the verified sender for Brevo
+        const senderEmail = process.env.EMAIL_USER;
 
-            const info = await Promise.race([sendPromiseFallback, timeoutPromiseFallback]);
-            console.log("[Email] Fallback SMTP sent: %s", info.messageId);
-            return true;
-        } catch (fallbackErr) {
-            console.error("[Email] All SMTP transport attempts failed:", fallbackErr.message);
-            return false;
-        }
+        const info = await transporter.sendMail({
+            from: `"9JASUB" <${senderEmail}>`,
+            to,
+            subject,
+            html,
+        });
 
+        console.log(`[Email to ${to}] Sent: ${info.messageId}`);
+        return true;
     } catch (error) {
-        console.error("Email send error: ", error.message || error);
+        console.error(`[Email to ${to}] FAILED exactly here:`);
+        console.error({
+            code: error.code,
+            message: error.message,
+            response: error.response,
+            responseCode: error.responseCode,
+            stack: error.stack
+        });
         return false;
     }
 };
+
+// --- 7. Transport Usage (All use sendEmail) ---
 
 export const sendOTPEmail = async (email, otp) => {
     console.log(`Preparing to send OTP email to ${email} (OTP: ${otp})`);
@@ -247,6 +158,7 @@ export const sendTransactionReceiptEmail = async (email, transactionDetails) => 
     `;
     return sendEmail(email, subject, html);
 };
+
 export const sendSupportEmail = async (supportData) => {
     const { name, email, phone, complaint } = supportData;
     const subject = `Customer Complaint from ${name}`;
@@ -287,19 +199,11 @@ export const sendAdminBroadcastEmail = async (email, title, message) => {
     return sendEmail(email, subject, html);
 };
 
-/**
- * Priority Transaction Notification System
- * 1. Notify Admin FIRST
- * 2. Notify User SECOND
- * 3. Create In-App Notification
- */
 export const sendTransactionNotification = async (transaction) => {
-    // We use setImmediate to ensure this doesn't block the main response loop
     setImmediate(async () => {
         try {
             const adminEmail = process.env.ADMIN_EMAIL;
             
-            // Fetch full user details to get email and name
             const user = await User.findById(transaction.userId);
             if (!user) {
                 console.error("[NOTIFY] User not found for transaction:", transaction._id);
@@ -310,7 +214,7 @@ export const sendTransactionNotification = async (transaction) => {
             const statusColor = (transaction.status || 'success') === 'success' ? '#10b981' : '#ef4444';
             const statusText = (transaction.status || 'success').toUpperCase();
 
-            // --- STEP 1: NOTIFY ADMIN FIRST ---
+            // Notify Admin
             if (adminEmail) {
                 const adminSubject = `New Transaction Alert: ${statusText}`;
                 const adminHtml = `
@@ -337,7 +241,7 @@ export const sendTransactionNotification = async (transaction) => {
                 }
             }
 
-            // --- STEP 2: NOTIFY USER SECOND ---
+            // Notify User
             const userSubject = transaction.status === 'success' ? "Transaction Successful" : "Transaction Failed";
             const userGreeting = transaction.status === 'success' 
                 ? `You successfully purchased ${transaction.description || 'your service'}.`
@@ -370,7 +274,7 @@ export const sendTransactionNotification = async (transaction) => {
                 console.error("[NOTIFY] User email failed:", err.message);
             }
 
-            // --- STEP 3: IN-APP NOTIFICATION ---
+            // In-App Notification
             try {
                 await Notification.create({
                     userId: user._id,
