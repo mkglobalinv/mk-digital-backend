@@ -2223,14 +2223,31 @@ app.use((req, res, next) => {
     const isMarketingDomain = envMarketingDomains.includes(host) || isPreview;
 
     if (isMarketingDomain) {
+        // Explicitly bypass marketing logic for VTU entry points
+        const vtuRoutes = ['/login', '/signup', '/business/login', '/business/signup', '/register'];
+        const cleanPathForCheck = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
+        
+        // If Next.js App Router tries to fetch a VTU route client-side, force a hard reload by returning 404
+        if (vtuRoutes.includes(cleanPathForCheck)) {
+            if (req.headers['rsc'] === '1' || req.headers['next-router-prefetch'] === '1') {
+                return res.status(404).send('Not Found');
+            }
+            return next();
+        }
+
         // 1. Use static for assets
         const isAsset = req.path.startsWith('/_next') || req.path.match(/\.(png|svg|jpg|ico|txt)$/);
         if (isAsset) {
-            return marketingStatic(req, res, next);
+            return marketingStatic(req, res, (err) => {
+                if (req.path.startsWith('/_next')) {
+                    return res.status(404).send('Not Found');
+                }
+                next(err);
+            });
         }
 
         // 2. Explicitly handle HTML paths for the marketing site ONLY
-        const marketingPages = ['/about', '/services', '/get-started', '/developer', '/docs', '/privacy', '/terms'];
+        const marketingPages = ['/about', '/services', '/get-started', '/developer', '/docs', '/privacy', '/terms', '/pricing', '/contact'];
         const cleanPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
 
         if (marketingPages.includes(cleanPath)) {
