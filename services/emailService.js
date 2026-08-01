@@ -2,10 +2,15 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import axios from 'axios';
+import dns from 'dns';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 
 dotenv.config();
+
+// Fix for Node.js 17+ on environments (like Railway) where IPv6 is configured on the interface but lacks outbound routing.
+// This forces dns.lookup to prefer IPv4, completely eliminating ENETUNREACH errors when connecting to Gmail.
+dns.setDefaultResultOrder('ipv4first');
 
 // Create primary transporter using environment variables
 const emailPort = Number(process.env.EMAIL_PORT) || 587; // Railway blocks 465, use 587 by default
