@@ -8,7 +8,7 @@ import Notification from '../models/Notification.js';
 dotenv.config();
 
 // Create primary transporter using environment variables
-const emailPort = Number(process.env.EMAIL_PORT) || 465;
+const emailPort = Number(process.env.EMAIL_PORT) || 587; // Railway blocks 465, use 587 by default
 const secure = emailPort === 465;
 
 const transporter = nodemailer.createTransport({
@@ -16,9 +16,9 @@ const transporter = nodemailer.createTransport({
     port: emailPort,
     secure: secure, 
     pool: false, // Disable pooling to prevent stale connections causing indefinite hangs on Railway
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 30000,
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
     family: 4, // Force IPv4 to prevent ENETUNREACH on IPv6 resolution
     auth: {
         user: process.env.EMAIL_USER, 
@@ -36,9 +36,9 @@ const fallbackTransporter = nodemailer.createTransport({
     port: fallbackPort,
     secure: fallbackPort === 465,
     pool: false,
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 30000,
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
     family: 4,
     auth: {
         user: process.env.EMAIL_USER,
