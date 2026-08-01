@@ -2229,12 +2229,9 @@ app.use((req, res, next) => {
         const vtuRoutes = ['/login', '/signup', '/business/login', '/business/signup', '/register'];
         const cleanPathForCheck = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
         
-        // If Next.js App Router tries to fetch a VTU route client-side, force a hard reload by returning 404
         if (vtuRoutes.includes(cleanPathForCheck)) {
-            if (req.headers['rsc'] === '1' || req.headers['next-router-prefetch'] === '1') {
-                return res.status(404).send('Not Found');
-            }
-            return next();
+            // Force serve VTU app immediately to prevent any fall-through marketing static errors
+            return res.sendFile(path.join(__dirname, "mk-vtu-frontend", "dist", "index.html"));
         }
 
         // 1. Use static for assets
