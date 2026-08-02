@@ -6,7 +6,7 @@ const RAILWAY_API_URL = 'https://backboard.railway.app/graphql/v2';
 
 class RailwayService {
   constructor() {
-    this.token = process.env.RAILWAY_API_TOKEN;
+    this.token = process.env.RAILWAY_TOKEN || process.env.RAILWAY_API_TOKEN;
     this.environmentId = process.env.RAILWAY_ENVIRONMENT_ID;
     this.projectId = process.env.RAILWAY_PROJECT_ID;
     this.serviceId = process.env.RAILWAY_SERVICE_ID;
@@ -14,7 +14,7 @@ class RailwayService {
 
   getHeaders() {
     if (!this.token) {
-      throw new Error("RAILWAY_API_TOKEN is missing in the environment variables.");
+      throw new Error("RAILWAY_TOKEN is missing in the environment variables.");
     }
     return {
       'Content-Type': 'application/json',
