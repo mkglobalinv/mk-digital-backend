@@ -1,6 +1,6 @@
 // RESTART: 2026-05-01T13:42:00Z
 import dotenv from "dotenv";
-import brandingRoutes from './routes/brandingRoutes.js';
+import brandingRoutes, { resolveReseller } from './routes/brandingRoutes.js';
 import http from "http";
 import systemLogger from "./services/logger.js";
 
@@ -2284,8 +2284,59 @@ app.use(['/api', '/auth', '/user', '/buy-', '/reseller-assets', '/assets'], (req
     res.status(404).json({ status: "error", message: "Endpoint or asset not found" });
 });
 
-app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, "mk-vtu-frontend", "dist", "index.html"));
+app.get(/.*/, async (req, res) => {
+    try {
+        const indexPath = path.join(__dirname, "mk-vtu-frontend", "dist", "index.html");
+        
+        // If it's an API request fallback, don't serve HTML
+        if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
+            return res.status(404).json({ status: "error", message: "Endpoint not found" });
+        }
+
+        // Only process index.html rendering if it's the root or a clean path, ignoring static assets
+        if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico)$/)) {
+            return res.status(404).send("Not found");
+        }
+
+        const fs = await import('fs/promises');
+        let html = await fs.readFile(indexPath, 'utf-8');
+        
+        const reseller = await resolveReseller(req);
+        
+        // Setup variables (fallback to 9JASUB if it's the main platform or no reseller found)
+        const siteName = reseller?.branding?.siteName || '9JASUB';
+        const description = reseller?.branding?.description || 'Buy Data, Airtime, Electricity, Cable TV and more instantly.';
+        const logo = reseller?.branding?.logo || 'https://9jasub.com/logo.png';
+        const themeColor = reseller?.branding?.primaryColor || '#3B82F6';
+        
+        // Dynamically replace title
+        html = html.replace(/<title>(.*?)<\/title>/, `<title>${siteName} - Premium VTU Services</title>`);
+        
+        // Construct the OG tags
+        const metaTags = `
+    <meta name="description" content="${description}" />
+    <meta property="og:title" content="${siteName} - Premium VTU Services" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:image" content="${logo}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://${req.get('host')}${req.originalUrl}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${siteName}" />
+    <meta name="twitter:description" content="${description}" />
+    <meta name="twitter:image" content="${logo}" />
+    <meta name="theme-color" content="${themeColor}" />
+    <link rel="icon" href="${logo}" />
+    <link rel="apple-touch-icon" href="${logo}" />
+`;
+        
+        // Insert right before </head>
+        html = html.replace('</head>', `${metaTags}\n</head>`);
+        
+        res.send(html);
+    } catch (err) {
+        console.error('Error rendering dynamic index.html:', err);
+        res.sendFile(path.join(__dirname, "mk-vtu-frontend", "dist", "index.html"));
+    }
 });
 
 

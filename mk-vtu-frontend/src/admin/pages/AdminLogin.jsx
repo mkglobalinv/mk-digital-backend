@@ -3,8 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Mail, Lock, ArrowRight } from 'lucide-react';
 import API from '../../api';
 import './AdminLogin.css';
+import { useBranding } from '../../context/BrandingContext';
+import { isWhiteLabelSite } from '../../utils/whiteLabelHelper';
 
 const AdminLogin = ({ setAdminToken, setAdminUser }) => {
+  const siteInfo = useBranding();
+  const siteName = siteInfo?.branding?.siteName || '9JASUB';
+  const isWhiteLabel = siteInfo && isWhiteLabelSite(siteInfo);
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -120,7 +125,7 @@ const AdminLogin = ({ setAdminToken, setAdminUser }) => {
            <div className="shield-icon">
               <ShieldCheck size={40} />
            </div>
-           <h2>{step === 1 ? '9JASUB Admin Portal' : step === 2 ? 'Identity Verification' : 'Security Clearance'}</h2>
+           <h2>{step === 1 ? `${siteName} Admin Portal` : step === 2 ? 'Identity Verification' : 'Security Clearance'}</h2>
            <p>
             {step === 1 && 'Operations Administration'}
             {step === 2 && 'Enter the 6-digit code sent to your email'}
@@ -216,7 +221,7 @@ const AdminLogin = ({ setAdminToken, setAdminUser }) => {
         )}
 
         <div className="login-footer">
-          <p>© 9JASUB Powered by MK GLOBAL INVESTMENT LTD.</p>
+          <p>© {siteName} {(!siteInfo || !isWhiteLabel) && 'Powered by MK GLOBAL INVESTMENT LTD.'}</p>
           <p>Bank-Level Security Active 🔒</p>
         </div>
       </div>

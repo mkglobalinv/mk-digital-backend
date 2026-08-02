@@ -66,7 +66,7 @@ const ResellerDomain = ({ user, refreshUser }) => {
             const payload = {
                 domainOption,
                 domainName: domainOption === 'subdomain' ? `${user?.subdomain || 'app'}.9jasub.com` : domainName,
-                registrarProvider: '9JASUB Managed',
+                registrarProvider: 'Platform Managed',
                 whatsappNumber,
                 contactEmail: '',
                 adminNotes: domainOption === 'subdomain' ? notes : `Website Name: ${websiteName}\nAlternative Domain: ${alternativeDomain}\nNotes: ${notes}`.trim()

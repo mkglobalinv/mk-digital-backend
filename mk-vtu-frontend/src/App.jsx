@@ -871,7 +871,7 @@ function App() {
                   <button onClick={logout} style={{ marginTop: '32px', background: 'none', border: 'none', color: '#EF4444', fontWeight: '600', fontSize: '14.3px', cursor: 'pointer', zIndex: 10 }}>Log Out</button>
                 )}
                 <div style={{ marginTop: '48px', fontSize: '12.1px', color: '#64748b', fontWeight: 500 }}>
-                  © {new Date().getFullYear()} {siteInfo?.branding?.siteName || "9JASUB"} Systems. All rights reserved.
+                  © {new Date().getFullYear()} {siteInfo?.branding?.siteName || (isWhiteLabelSite(siteInfo) ? 'VTU Portal' : '9JASUB')} Systems. All rights reserved.
                 </div>
               </div>
             ) : (
@@ -1021,7 +1021,7 @@ function App() {
             {token && !loadingUser && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/reseller') && !location.pathname.startsWith('/website') && (
               <>
                 <div className="branding-footer" style={{ textAlign: 'center', padding: '4px 8px 60px', fontSize: '8.5px', letterSpacing: '0.1px', opacity: 0.6, color: '#888', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
-                  <span>© {siteInfo?.branding?.siteName || "9JASUB"} {(!siteInfo || !isWhiteLabelSite(siteInfo)) && 'Powered by MK GLOBAL INVESTMENT LTD.'}</span>
+                  <span>© {siteInfo?.branding?.siteName || (isWhiteLabelSite(siteInfo) ? 'VTU Portal' : '9JASUB')} {!isWhiteLabelSite(siteInfo) && ' Powered by MK GLOBAL INVESTMENT LTD.'}</span>
                 </div>
                 <BottomNav />
               </>

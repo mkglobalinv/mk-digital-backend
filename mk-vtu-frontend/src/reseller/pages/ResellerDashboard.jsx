@@ -544,7 +544,7 @@ const ResellerDashboard = ({ user }) => {
                             
                             <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '16px', borderRadius: '12px', marginTop: '8px', position: 'relative', zIndex: 1 }}>
                                 <p style={{ margin: 0, fontSize: '14px', color: '#fcd34d', lineHeight: '1.5', fontWeight: 500 }}>
-                                    <strong style={{ color: '#fbbf24' }}>Important Notice:</strong> Your earnings depend on the prices you choose, the services you sell, and the number of customers using your website. 9JASUB does not guarantee a fixed income or profit.
+                                    <strong style={{ color: '#fbbf24' }}>Important Notice:</strong> Your earnings depend on the prices you choose, the services you sell, and the number of customers using your website. {user?.branding?.siteName || 'The platform'} does not guarantee a fixed income or profit.
                                 </p>
                             </div>
                         </div>

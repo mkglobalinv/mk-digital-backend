@@ -69,7 +69,7 @@ const Support = ({ siteInfo }) => {
 
         <div className="support-footer-info">
            <p>Our dedicated team is ready to assist you with any transaction issues or service inquiries.</p>
-           <p className="branding-text">© {getSiteName({ branding })} Powered by MK GLOBAL INVESTMENT LTD.</p>
+           <p className="branding-text">© {getSiteName({ branding })} {(!siteInfo || !isWhiteLabelSite(siteInfo)) && 'Powered by MK GLOBAL INVESTMENT LTD.'}</p>
         </div>
       </div>
     </div>

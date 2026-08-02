@@ -5,7 +5,7 @@ import CustomDomainRequest from '../models/CustomDomainRequest.js';
 const router = express.Router();
 
 // Helper to resolve the reseller based on the host header
-const resolveReseller = async (req) => {
+export const resolveReseller = async (req) => {
     try {
         const host = req.headers.host || '';
         const cleanHost = host.split(':')[0].toLowerCase();
