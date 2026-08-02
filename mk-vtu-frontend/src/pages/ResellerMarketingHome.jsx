@@ -7,18 +7,20 @@ import {
   Tv, 
   GraduationCap, 
   Wallet, 
+  Code,
   Zap, 
-  ShieldCheck, 
-  CreditCard, 
-  HeadphonesIcon,
-  Mail,
-  Phone,
-  Menu,
-  X,
+  CheckCircle2,
   ArrowRight,
-  CheckCircle2
+  TrendingUp,
+  ShieldCheck,
+  HeadphonesIcon,
+  Server,
+  PlayCircle,
+  Menu,
+  X
 } from 'lucide-react';
 import { getSiteName, getSiteSupportEmail } from '../utils/whiteLabelHelper';
+import dashboardMockup from '../assets/dashboard-mockup.png';
 import './ResellerMarketingHome.css';
 
 const ResellerMarketingHome = ({ siteInfo }) => {
@@ -27,9 +29,8 @@ const ResellerMarketingHome = ({ siteInfo }) => {
 
   const siteName = getSiteName(siteInfo);
   const logoUrl = siteInfo?.branding?.logo || null;
-  const primaryColor = siteInfo?.branding?.primaryColor || '#2563eb'; 
+  const primaryColor = siteInfo?.branding?.primaryColor || '#6366f1'; 
   const supportEmail = getSiteSupportEmail(siteInfo);
-  const whatsappNumber = siteInfo?.branding?.whatsappNumber || '';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,255 +40,294 @@ const ResellerMarketingHome = ({ siteInfo }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const waLink = whatsappNumber ? `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}` : '#';
-  const mailLink = supportEmail ? `mailto:${supportEmail}` : '#';
-
-  const services = [
-    { name: 'Cheap Data', desc: 'Instant data top-up for all networks at wholesale prices.', icon: Wifi, iconColor: '#2563eb', iconBg: '#eff6ff' },
-    { name: 'Airtime VTU', desc: 'Automated airtime recharge with instant delivery.', icon: Smartphone, iconColor: '#059669', iconBg: '#ecfdf5' },
-    { name: 'Electricity Bills', desc: 'Pay prepaid and postpaid meters instantly.', icon: Lightbulb, iconColor: '#d97706', iconBg: '#fffbeb' },
-    { name: 'Cable TV', desc: 'Renew DSTV, GOTV, and Startimes without delay.', icon: Tv, iconColor: '#7c3aed', iconBg: '#f5f3ff' },
-    { name: 'WAEC Result', desc: 'Get WAEC result checker scratch cards.', icon: GraduationCap, iconColor: '#4f46e5', iconBg: '#eef2ff' },
-    { name: 'NECO Tokens', desc: 'Instant NECO result checker tokens.', icon: GraduationCap, iconColor: '#e11d48', iconBg: '#fff1f2' },
-    { name: 'JAMB E-Pins', desc: 'Purchase JAMB E-Pins securely and fast.', icon: GraduationCap, iconColor: '#ea580c', iconBg: '#fff7ed' },
-    { name: 'Wallet Funding', desc: 'Automated bank transfers for instant wallet funding.', icon: Wallet, iconColor: '#0d9488', iconBg: '#f0fdfa' },
-  ];
-
-  const features = [
-    { title: 'Lightning Fast', desc: 'Transactions are processed and delivered instantly via our automated system.', icon: Zap },
-    { title: 'Bank-Grade Security', desc: 'Your funds and data are protected with enterprise-level security protocols.', icon: ShieldCheck },
-    { title: 'Best Prices', desc: 'Enjoy the most affordable rates for data, airtime, and bill payments.', icon: CreditCard },
-    { title: '24/7 Support', desc: 'Our dedicated customer success team is always available to assist you.', icon: HeadphonesIcon },
-  ];
-
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
-    <div className="rmh-container" style={{ '--theme-primary': primaryColor }}>
+    <div className="saas-container" style={{ '--theme-primary': primaryColor }}>
       
       {/* HEADER */}
-      <header className={`rmh-header ${isScrolled ? 'rmh-scrolled' : ''}`}>
-        <div className="rmh-header-inner">
-          
-          <Link to="/" className="rmh-logo-area">
+      <header className={`saas-header ${isScrolled ? 'saas-scrolled' : ''}`}>
+        <div className="saas-header-inner">
+          <Link to="/" className="saas-logo-area">
             {logoUrl ? (
-               <img src={logoUrl} alt={siteName} className="rmh-logo-img" />
+               <img src={logoUrl} alt={siteName} className="saas-logo-img" />
             ) : (
-              <div className="rmh-logo-fallback">
-                {siteName.charAt(0).toUpperCase()}
-              </div>
+              <div className="saas-logo-fallback">{siteName.charAt(0).toUpperCase()}</div>
             )}
-            <span className="rmh-site-name">{siteName}</span>
+            <span className="saas-site-name">{siteName}</span>
           </Link>
 
-          <nav className="rmh-nav-desktop">
-            <a href="#home">Home</a>
+          <nav className="saas-nav-desktop">
+            <a href="#features">Features</a>
             <a href="#services">Services</a>
-            <a href="#features">Why Us</a>
-            <a href="#contact">Contact</a>
+            <a href="#pricing">Pricing</a>
           </nav>
 
-          <div className="rmh-cta-group">
-            <Link to="/login" className="rmh-btn-outline">Sign In</Link>
-            <Link to="/signup" className="rmh-btn-primary">
-              Create Account <ArrowRight size={16} />
-            </Link>
+          <div className="saas-cta-group">
+            <Link to="/login" className="saas-btn-text">Sign In</Link>
+            <Link to="/signup" className="saas-btn-primary">Get Started</Link>
           </div>
 
-          <button 
-            className="rmh-mobile-toggle"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle mobile menu"
-          >
+          <button className="saas-mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </header>
 
       {/* MOBILE MENU */}
-      <div className={`rmh-mobile-menu ${mobileMenuOpen ? 'rmh-menu-open' : ''}`}>
-        <div className="rmh-mobile-nav">
-          <a href="#home" onClick={closeMobileMenu}>Home</a>
+      <div className={`saas-mobile-menu ${mobileMenuOpen ? 'saas-menu-open' : ''}`}>
+        <div className="saas-mobile-nav">
+          <a href="#features" onClick={closeMobileMenu}>Features</a>
           <a href="#services" onClick={closeMobileMenu}>Services</a>
-          <a href="#features" onClick={closeMobileMenu}>Why Choose Us</a>
-          <a href="#contact" onClick={closeMobileMenu}>Contact</a>
+          <a href="#pricing" onClick={closeMobileMenu}>Pricing</a>
         </div>
-        
-        <div className="rmh-mobile-cta">
-          <Link to="/login" onClick={closeMobileMenu} className="rmh-btn-outline">
-            Sign In
-          </Link>
-          <Link to="/signup" onClick={closeMobileMenu} className="rmh-btn-primary">
-            Create Free Account <ArrowRight size={18} />
-          </Link>
+        <div className="saas-mobile-cta">
+          <Link to="/login" onClick={closeMobileMenu} className="saas-btn-outline">Sign In</Link>
+          <Link to="/signup" onClick={closeMobileMenu} className="saas-btn-primary">Get Started Free</Link>
         </div>
       </div>
 
       {/* HERO SECTION */}
-      <section id="home" className="rmh-hero">
-        <div className="rmh-hero-bg">
-          <div className="rmh-hero-blob rmh-blob-1"></div>
-          <div className="rmh-hero-blob rmh-blob-2"></div>
-        </div>
-
-        <div className="rmh-hero-content">
-          <div className="rmh-badge">
-            <span className="rmh-badge-dot"></span>
-            The #1 Platform for VTU Services
-          </div>
-          
-          <h1 className="rmh-hero-title">
-            Automate Your <br />
-            <span className="rmh-hero-highlight">Digital Payments</span>
-          </h1>
-          
-          <p className="rmh-hero-subtitle">
-            Experience the fastest and most secure way to buy data, airtime, pay electricity bills, and renew TV subscriptions directly from your devices.
-          </p>
-          
-          <div className="rmh-hero-actions">
-            <Link to="/signup" className="rmh-btn-hero-primary">
-              Get Started Now <ArrowRight size={20} />
-            </Link>
-            <Link to="/login" className="rmh-btn-hero-secondary">
-              Sign In to Dashboard
-            </Link>
-          </div>
-
-          <div className="rmh-trust-indicators">
-            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={18} /> <span>Instant Delivery</span></div>
-            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={18} /> <span>100% Secure</span></div>
-            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={18} /> <span>24/7 Automated</span></div>
-          </div>
-        </div>
-      </section>
-
-      {/* SERVICES SECTION */}
-      <section id="services" className="rmh-services">
-        <div className="rmh-section-header">
-          <h2 className="rmh-section-title">Everything You Need</h2>
-          <p className="rmh-section-subtitle">One platform to handle all your utility bills and top-ups seamlessly.</p>
-        </div>
-        
-        <div className="rmh-services-grid">
-          {services.map((service, index) => {
-            const Icon = service.icon;
-            return (
-              <div key={index} className="rmh-service-card">
-                <div className="rmh-service-icon-wrapper" style={{ backgroundColor: service.iconBg, color: service.iconColor }}>
-                  <Icon size={28} strokeWidth={2.5} />
-                </div>
-                <h3 className="rmh-service-title">{service.name}</h3>
-                <p className="rmh-service-desc">{service.desc}</p>
-              </div>
-            )
-          })}
-        </div>
-      </section>
-
-      {/* FEATURES SECTION */}
-      <section id="features" className="rmh-features">
-        <div className="rmh-features-inner">
-          <div className="rmh-features-text">
-            <h2 className="rmh-section-title">Why We Are Different</h2>
-            <p className="rmh-section-subtitle rmh-margin-bottom">We built a platform that prioritizes speed, security, and affordability above everything else.</p>
-            <Link to="/signup" className="rmh-btn-hero-primary rmh-inline-flex">
-              Join Us Today <ArrowRight size={20} />
-            </Link>
-          </div>
-          
-          <div className="rmh-features-grid">
-            {features.map((feat, index) => {
-              const Icon = feat.icon;
-              return (
-                <div key={index} className="rmh-feature-card">
-                  <div className="rmh-feature-icon">
-                    <Icon size={24} strokeWidth={2.5} />
-                  </div>
-                  <h3 className="rmh-feature-title">{feat.title}</h3>
-                  <p className="rmh-feature-desc">{feat.desc}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* CONTACT SECTION */}
-      <section id="contact" className="rmh-contact">
-        <div className="rmh-section-header">
-          <h2 className="rmh-section-title">We're Here to Help</h2>
-          <p className="rmh-section-subtitle">Have questions? Reach out to our support team.</p>
-        </div>
-        
-        <div className="rmh-contact-box">
-          {supportEmail && (
-            <a href={mailLink} className="rmh-contact-item rmh-contact-email">
-              <div className="rmh-contact-icon">
-                <Mail size={32} strokeWidth={2} />
-              </div>
-              <h4 className="rmh-contact-title">Email Support</h4>
-              <span className="rmh-contact-value">{supportEmail}</span>
-            </a>
-          )}
-
-          {whatsappNumber && (
-            <a href={waLink} target="_blank" rel="noopener noreferrer" className="rmh-contact-item rmh-contact-wa">
-              <div className="rmh-contact-icon">
-                <Phone size={32} strokeWidth={2} />
-              </div>
-              <h4 className="rmh-contact-title">WhatsApp Us</h4>
-              <span className="rmh-contact-value">{whatsappNumber}</span>
-            </a>
-          )}
-
-          {!supportEmail && !whatsappNumber && (
-            <div className="rmh-contact-missing">
-              Contact information is currently being updated.
+      <section className="saas-hero">
+        <div className="saas-hero-bg-gradient"></div>
+        <div className="saas-hero-content">
+          <div className="saas-hero-text">
+            <div className="saas-badge animate-fade-in-up">
+              <span className="saas-badge-dot"></span>
+              Welcome to the future of digital payments
             </div>
-          )}
+            <h1 className="saas-hero-title animate-fade-in-up delay-100">
+              The complete toolkit for <br className="hidden-mobile" />
+              <span className="saas-gradient-text">VTU & Bill Payments</span>
+            </h1>
+            <p className="saas-hero-subtitle animate-fade-in-up delay-200">
+              Launch your branded VTU website, process transactions instantly, and manage your telecom business with our powerful infrastructure.
+            </p>
+            <div className="saas-hero-actions animate-fade-in-up delay-300">
+              <Link to="/signup" className="saas-btn-primary saas-btn-large">
+                Create Website <ArrowRight size={18} />
+              </Link>
+              <a href="#preview" className="saas-btn-secondary saas-btn-large">
+                <PlayCircle size={18} /> View Demo
+              </a>
+            </div>
+          </div>
+          
+          <div className="saas-hero-visual animate-fade-in-up delay-400">
+            <div className="saas-dashboard-wrapper">
+              <img src={dashboardMockup} alt="Dashboard Preview" className="saas-dashboard-img" />
+              <div className="saas-dashboard-glow"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS / TRUST ROW */}
+      <section className="saas-stats-row">
+        <div className="saas-stats-inner">
+          <div className="saas-stat-item">
+            <h4 className="saas-stat-value">99.9%</h4>
+            <p className="saas-stat-label">API Uptime</p>
+          </div>
+          <div className="saas-stat-divider"></div>
+          <div className="saas-stat-item">
+            <h4 className="saas-stat-value">1,000+</h4>
+            <p className="saas-stat-label">Active Resellers</p>
+          </div>
+          <div className="saas-stat-divider"></div>
+          <div className="saas-stat-item">
+            <h4 className="saas-stat-value">Instant</h4>
+            <p className="saas-stat-label">Transactions</p>
+          </div>
+          <div className="saas-stat-divider"></div>
+          <div className="saas-stat-item">
+            <h4 className="saas-stat-value">24/7</h4>
+            <p className="saas-stat-label">Customer Support</p>
+          </div>
+        </div>
+      </section>
+
+      {/* BENTO GRID SERVICES */}
+      <section id="services" className="saas-services">
+        <div className="saas-section-header">
+          <h2 className="saas-section-title">Everything you need to scale</h2>
+          <p className="saas-section-subtitle">A comprehensive suite of digital services designed for maximum profitability.</p>
+        </div>
+
+        <div className="saas-bento-grid">
+          <div className="saas-bento-card card-data">
+            <div className="saas-bento-icon"><Wifi size={24} /></div>
+            <h3>Cheap Data</h3>
+            <p>Instant top-up for all networks at wholesale prices.</p>
+          </div>
+          <div className="saas-bento-card card-airtime">
+            <div className="saas-bento-icon"><Smartphone size={24} /></div>
+            <h3>Airtime VTU</h3>
+            <p>Automated airtime recharge with instant delivery.</p>
+          </div>
+          <div className="saas-bento-card card-bills">
+            <div className="saas-bento-icon"><Lightbulb size={24} /></div>
+            <h3>Electricity</h3>
+            <p>Pay prepaid and postpaid meters instantly.</p>
+          </div>
+          <div className="saas-bento-card card-tv">
+            <div className="saas-bento-icon"><Tv size={24} /></div>
+            <h3>Cable TV</h3>
+            <p>Renew DSTV, GOTV, and Startimes without delay.</p>
+          </div>
+          <div className="saas-bento-card card-exams">
+            <div className="saas-bento-icon"><GraduationCap size={24} /></div>
+            <h3>Exam Pins</h3>
+            <p>Instant WAEC, NECO, and JAMB result tokens.</p>
+          </div>
+          <div className="saas-bento-card card-wallet">
+            <div className="saas-bento-icon"><Wallet size={24} /></div>
+            <h3>Wallet System</h3>
+            <p>Automated bank transfers for instant wallet funding.</p>
+          </div>
+          <div className="saas-bento-card card-website">
+            <div className="saas-bento-icon"><Code size={24} /></div>
+            <h3>Website Builder</h3>
+            <p>Launch your own VTU platform in minutes.</p>
+          </div>
+          <div className="saas-bento-card card-api">
+            <div className="saas-bento-icon"><Server size={24} /></div>
+            <h3>Developer API</h3>
+            <p>Integrate our fast VTU engine into your app.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING COMPARISON */}
+      <section id="pricing" className="saas-pricing">
+        <div className="saas-section-header">
+          <h2 className="saas-section-title">Wholesale pricing, maximum profit</h2>
+          <p className="saas-section-subtitle">Stop paying retail. Access direct-to-market rates and scale your margins.</p>
+        </div>
+
+        <div className="saas-comparison-container">
+          <div className="saas-compare-card">
+            <div className="saas-compare-header">
+              <Wifi size={20} className="saas-compare-icon" /> Data Subscriptions
+            </div>
+            <div className="saas-compare-body">
+              <div className="saas-compare-row">
+                <span className="saas-compare-label">Retail Average</span>
+                <span className="saas-compare-retail strike">₦300 / GB</span>
+              </div>
+              <div className="saas-compare-arrow">↓</div>
+              <div className="saas-compare-row saas-highlight-row">
+                <span className="saas-compare-label">Your Price</span>
+                <span className="saas-compare-yours">Save up to 30%</span>
+              </div>
+            </div>
+            <div className="saas-compare-footer">High Profit Margins</div>
+          </div>
+
+          <div className="saas-compare-card">
+            <div className="saas-compare-header">
+              <Smartphone size={20} className="saas-compare-icon" /> Airtime Topup
+            </div>
+            <div className="saas-compare-body">
+              <div className="saas-compare-row">
+                <span className="saas-compare-label">Retail Average</span>
+                <span className="saas-compare-retail strike">Face Value</span>
+              </div>
+              <div className="saas-compare-arrow">↓</div>
+              <div className="saas-compare-row saas-highlight-row">
+                <span className="saas-compare-label">Your Price</span>
+                <span className="saas-compare-yours">Up to 4% Discount</span>
+              </div>
+            </div>
+            <div className="saas-compare-footer">Instant Cash Back</div>
+          </div>
+
+          <div className="saas-compare-card">
+            <div className="saas-compare-header">
+              <Lightbulb size={20} className="saas-compare-icon" /> Bill Payments
+            </div>
+            <div className="saas-compare-body">
+              <div className="saas-compare-row">
+                <span className="saas-compare-label">Retail Average</span>
+                <span className="saas-compare-retail strike">₦100 Fee</span>
+              </div>
+              <div className="saas-compare-arrow">↓</div>
+              <div className="saas-compare-row saas-highlight-row">
+                <span className="saas-compare-label">Your Price</span>
+                <span className="saas-compare-yours">Zero Extra Fees</span>
+              </div>
+            </div>
+            <div className="saas-compare-footer">Keep 100% of Surcharges</div>
+          </div>
+        </div>
+      </section>
+
+      {/* DASHBOARD SHOWCASE */}
+      <section id="preview" className="saas-showcase">
+        <div className="saas-showcase-inner">
+          <div className="saas-showcase-text">
+            <h2>Built for business owners</h2>
+            <p>Our dashboard provides everything you need to manage users, track revenue, and configure your white-label brand.</p>
+            <ul className="saas-feature-list">
+              <li><CheckCircle2 size={18} className="saas-check-icon" /> <strong>Automatic Transactions</strong> – Zero manual intervention required.</li>
+              <li><CheckCircle2 size={18} className="saas-check-icon" /> <strong>Wallet Management</strong> – Automated virtual bank accounts for users.</li>
+              <li><CheckCircle2 size={18} className="saas-check-icon" /> <strong>Website Builder</strong> – Launch and customize your domain.</li>
+              <li><CheckCircle2 size={18} className="saas-check-icon" /> <strong>Live Analytics</strong> – Track sales, profit, and user growth.</li>
+              <li><CheckCircle2 size={18} className="saas-check-icon" /> <strong>White-label Branding</strong> – Make the platform 100% yours.</li>
+            </ul>
+          </div>
+          <div className="saas-showcase-image-wrapper">
+             <img src={dashboardMockup} alt="Product Showcase" className="saas-showcase-img" />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA SECTION */}
+      <section className="saas-cta-section">
+        <div className="saas-cta-card">
+          <h2>Launch Your VTU Website Today</h2>
+          <p>Join thousands of resellers building their businesses on our infrastructure.</p>
+          <div className="saas-cta-buttons">
+            <Link to="/signup" className="saas-btn-primary saas-btn-large">Start Free</Link>
+            <a href={`mailto:${supportEmail || 'support@' + siteName.toLowerCase().replace(/\s+/g, '') + '.com'}`} className="saas-btn-secondary saas-btn-large">Contact Sales</a>
+          </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="rmh-footer">
-        <div className="rmh-footer-inner">
-          <div className="rmh-footer-grid">
-            
-            <div className="rmh-footer-brand">
-              <Link to="/" className="rmh-footer-logo">
-                {logoUrl ? (
-                  <img src={logoUrl} alt={siteName} />
-                ) : (
-                  <span>{siteName}</span>
-                )}
-              </Link>
-              <p className="rmh-footer-desc">
-                Your reliable partner for automated digital payments, VTU services, and seamless utility bill settlements in Nigeria.
+      <footer className="saas-footer">
+        <div className="saas-footer-inner">
+          <div className="saas-footer-top">
+            <div className="saas-footer-brand">
+              {logoUrl ? (
+                <img src={logoUrl} alt={siteName} className="saas-footer-logo" />
+              ) : (
+                <span className="saas-footer-logo-text">{siteName}</span>
+              )}
+              <p className="saas-footer-desc">
+                Your reliable partner for automated digital payments and VTU services.
               </p>
             </div>
             
-            <div className="rmh-footer-nav-col">
-              <h4 className="rmh-footer-heading">Quick Links</h4>
-              <ul className="rmh-footer-list">
-                <li><Link to="/login">Sign In</Link></li>
-                <li><Link to="/signup">Create Account</Link></li>
-                <li><a href="#services">Our Services</a></li>
-              </ul>
-            </div>
-
-            <div className="rmh-footer-nav-col">
-              <h4 className="rmh-footer-heading">Contact</h4>
-              <ul className="rmh-footer-list">
-                {supportEmail && <li><a href={mailLink}>{supportEmail}</a></li>}
-                {whatsappNumber && <li><a href={waLink} target="_blank" rel="noopener noreferrer">{whatsappNumber}</a></li>}
-              </ul>
+            <div className="saas-footer-links">
+              <div className="saas-footer-col">
+                <h4>Product</h4>
+                <a href="#features">Features</a>
+                <a href="#services">Services</a>
+                <a href="#pricing">Pricing</a>
+              </div>
+              <div className="saas-footer-col">
+                <h4>Company</h4>
+                <Link to="/login">Sign In</Link>
+                <Link to="/signup">Create Account</Link>
+                {supportEmail && <a href={`mailto:${supportEmail}`}>Contact Us</a>}
+              </div>
             </div>
           </div>
           
-          <div className="rmh-footer-bottom">
-            <div className="rmh-copyright">&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</div>
-            <div className="rmh-footer-legal">
+          <div className="saas-footer-bottom">
+            <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
+            <div className="saas-footer-legal">
               <Link to="#">Privacy Policy</Link>
               <Link to="#">Terms of Service</Link>
             </div>
@@ -299,4 +339,3 @@ const ResellerMarketingHome = ({ siteInfo }) => {
 };
 
 export default ResellerMarketingHome;
-
