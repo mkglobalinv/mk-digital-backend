@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Mail, ArrowRight, ShieldCheck, RefreshCw, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../api';
 import './Auth.css';
