@@ -2486,6 +2486,100 @@ export const updateDomainRequestStatus = async (req, res) => {
     }
 };
 
+import deploymentProvider from '../services/deploymentProvider.js';
+
+export const approveDomainDeployment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Use findOneAndUpdate to atomically acquire a lock for this deployment
+        const request = await CustomDomainRequest.findOneAndUpdate(
+            { 
+                _id: id, 
+                // Only lock if it hasn't been locked yet
+                deploymentStatus: { $nin: ['Processing_Lock', 'Completed'] },
+                status: { $nin: ['Connected Successfully', 'Website Deployment', 'SSL Activation', 'Domain Verification'] }
+            },
+            { $set: { deploymentStatus: 'Processing_Lock' } },
+            { new: true }
+        ).populate("resellerId");
+        
+        if (!request) {
+            // It was either not found, already connected, or already locked/processing (idempotency check)
+            const existingReq = await CustomDomainRequest.findById(id);
+            if (!existingReq) return res.status(404).json({ message: "Domain request not found." });
+            
+            // Idempotent success response if already deploying
+            if (['Website Deployment', 'SSL Activation', 'Domain Verification', 'Connected Successfully'].includes(existingReq.status) || existingReq.deploymentStatus === 'Processing_Lock') {
+                return res.json({ 
+                    status: 'success', 
+                    message: "Deployment is already in progress or completed.", 
+                    request: existingReq 
+                });
+            }
+            return res.status(400).json({ message: "Cannot deploy at this state." });
+        }
+
+        // Format the domain
+        const domain = request.domainName.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').trim();
+        
+        // 1. Pre-flight Syntax Validation
+        const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+        if (!domainRegex.test(domain) && domain !== 'localhost') {
+            request.deploymentStatus = 'Failed';
+            await request.save();
+            return res.status(400).json({ message: "Invalid domain format." });
+        }
+
+        // 2. Pre-flight Uniqueness Validation
+        const existingDomainUser = await User.findOne({ customDomain: domain, _id: { $ne: request.resellerId._id } });
+        if (existingDomainUser) {
+            request.deploymentStatus = 'Failed';
+            await request.save();
+            return res.status(400).json({ message: "Domain is already assigned to an active tenant." });
+        }
+
+        try {
+            // 3. Create the Custom Domain via Provider (Railway)
+            await deploymentProvider.createCustomDomain(domain);
+
+            // 4. Update the DB Status to begin monitoring
+            request.status = 'Website Deployment';
+            request.lifecycleStatus = 'Deployment Started';
+            request.deploymentStatus = 'Pending';
+            request.provider = 'railway'; // Future proof
+            await request.save();
+
+            // 5. Notify the User
+            if (request.resellerId) {
+                await Notification.create({
+                    userId: request.resellerId._id,
+                    title: "Domain Deployment Started",
+                    message: `We have started deploying your custom domain (${domain}). We will notify you once DNS records are ready.`,
+                    type: 'system',
+                    isRead: false
+                });
+            }
+
+            res.json({ 
+                status: 'success', 
+                message: `Automated deployment for ${domain} has been triggered.`, 
+                request 
+            });
+        } catch (providerErr) {
+            // Auto-cleanup on immediate failure
+            request.deploymentStatus = 'Failed';
+            request.status = 'Failed / Needs Correction';
+            request.adminNotes = `Deployment failed: ${providerErr.message}`;
+            await request.save();
+            throw providerErr;
+        }
+    } catch (err) {
+        console.error("[approveDomainDeployment Error]", err.message);
+        res.status(500).json({ message: "Deployment failed: " + err.message });
+    }
+};
+
 // --- FILE UPLOAD CONTROLLERS ---
 export const uploadApk = async (req, res) => {
     try {

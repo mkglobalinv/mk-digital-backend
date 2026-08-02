@@ -1,5 +1,6 @@
 // RESTART: 2026-05-01T13:42:00Z
 import dotenv from "dotenv";
+import brandingRoutes from './routes/brandingRoutes.js';
 import http from "http";
 import systemLogger from "./services/logger.js";
 
@@ -134,6 +135,7 @@ import { initBackupScheduler } from './services/backupService.js';
 import storage from './services/storageAdapter.js';
 import socketService from './services/socketService.js';
 import reconciliationService from './services/reconciliationService.js';
+import domainMonitor from './services/domainMonitor.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -2273,6 +2275,9 @@ app.use((req, res, next) => {
     }
 });
 
+// Inject dynamic white-label branding assets before static routing
+app.use(brandingRoutes);
+
 app.use(express.static(path.join(__dirname, "mk-vtu-frontend", "dist")));
 
 app.use(['/api', '/auth', '/user', '/buy-', '/reseller-assets', '/assets'], (req, res) => {
@@ -2330,6 +2335,7 @@ const startServer = async () => {
         startResellerMaintenanceWorker();
         initBackupScheduler();
         reconciliationService.startScheduler();
+        domainMonitor.start();
 
         // Start Memory Protection and register cleanups
         startMemoryMonitor();

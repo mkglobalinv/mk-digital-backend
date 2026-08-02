@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { User, Phone, MapPin, CreditCard, ArrowRight, ShieldCheck } from 'lucide-react';
+import { User, Phone, MapPin, CreditCard, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import './Auth.css';
-import logo from '../assets/logo.jpg';
 
 const KYC = ({ user }) => {
   const [fullName, setFullName] = useState(user?.name || '');
@@ -95,7 +94,7 @@ const KYC = ({ user }) => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? <img src={logo} alt="Loading" className="btn-logo-loader" /> : (
+            {loading ? <div style={{display:'flex',justifyContent:'center'}}><Loader2 className="animate-spin" size={24} /></div> : (
               <>Submit KYC <ArrowRight size={18} /></>
             )}
           </button>

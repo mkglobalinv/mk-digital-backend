@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { User, Lock, ArrowRight, CheckCircle } from 'lucide-react';
+import { User, Lock, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../api';
 import './Auth.css';
-import logo from '../assets/logo.jpg';
+import './Auth.css';
 
 const ContinueSignup = () => {
   const [transactionPin, setTransactionPin] = useState('');
@@ -164,7 +164,7 @@ const ContinueSignup = () => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? <img src={logo} alt="Loading" className="btn-logo-loader" /> : (
+            {loading ? <div style={{display:'flex',justifyContent:'center'}}><Loader2 className="animate-spin" size={24} /></div> : (
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                 Complete Signup <ArrowRight size={18} />
               </span>

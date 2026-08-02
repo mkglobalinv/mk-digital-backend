@@ -3,9 +3,11 @@ import { Mail, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../api';
 import './Auth.css';
-import logo from '../assets/logo.jpg';
+import { useBranding } from '../context/BrandingContext';
+import BrandLogo from '../components/BrandLogo';
 
-const VerifyEmail = ({ setToken, siteInfo }) => {
+const VerifyEmail = ({ setToken }) => {
+  const siteInfo = useBranding();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -96,7 +98,7 @@ const VerifyEmail = ({ setToken, siteInfo }) => {
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo-wrapper" style={{ margin: '0 auto 20px', width: '64px' }}>
-            <img src={siteInfo?.branding?.logo || siteInfo?.logo || logo} alt="Logo" style={{ width: '100%', borderRadius: '12px' }} />
+            <BrandLogo siteInfo={siteInfo} style={{ width: '100%', borderRadius: '12px' }} />
           </div>
           <h1 className="auth-title">Verify Email</h1>
           <p className="auth-subtitle">We sent a 6-digit code to {email || 'your email'}</p>
@@ -123,7 +125,7 @@ const VerifyEmail = ({ setToken, siteInfo }) => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading || otp.length !== 6}>
-            {loading ? <img src={siteInfo?.branding?.logo || siteInfo?.logo || logo} alt="Loading" className="btn-logo-loader" /> : (
+            {loading ? <div style={{display:'flex',justifyContent:'center'}}><Loader2 className="animate-spin" size={24} /></div> : (
               <>Verify OTP <ArrowRight size={18} /></>
             )}
           </button>

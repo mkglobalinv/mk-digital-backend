@@ -33,6 +33,7 @@ import Sidebar from "./components/Sidebar";
 import BottomNav from "./components/BottomNav";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
+import { BrandingProvider } from "./context/BrandingContext";
 import API from "./api";
 import { Loader2, ShieldAlert, Fingerprint, Lock, PlusCircle, Globe, MessageCircle } from "lucide-react";
 import { isBiometricAvailable, authenticateBiometric } from "./services/biometricService";
@@ -397,6 +398,15 @@ function App() {
         const pColor = branding.primaryColor;
         document.documentElement.style.setProperty('--primary', pColor);
         document.documentElement.style.setProperty('--primary-light', pColor.startsWith('#') ? pColor + '22' : 'rgba(59, 130, 246, 0.15)');
+        
+        // Update Theme Color Meta Tag
+        let themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (!themeMeta) {
+            themeMeta = document.createElement('meta');
+            themeMeta.name = "theme-color";
+            document.head.appendChild(themeMeta);
+        }
+        themeMeta.content = pColor;
       }
       if (branding.backgroundColor) {
         document.documentElement.style.setProperty('--bg-color', branding.backgroundColor);
@@ -409,6 +419,35 @@ function App() {
       }
       if (branding.siteName) {
         document.title = branding.siteName;
+        
+        // Update OG Title
+        let ogTitle = document.querySelector('meta[property="og:title"]');
+        if (!ogTitle) {
+            ogTitle = document.createElement('meta');
+            ogTitle.setAttribute('property', 'og:title');
+            document.head.appendChild(ogTitle);
+        }
+        ogTitle.content = branding.siteName;
+      }
+      
+      if (branding.logo) {
+          // Update Favicon (for SPA immediate update, though backend intercepts initial load)
+          let icon = document.querySelector('link[rel="icon"]');
+          if (!icon) {
+              icon = document.createElement('link');
+              icon.rel = "icon";
+              document.head.appendChild(icon);
+          }
+          icon.href = branding.logo;
+
+          // Update OG Image
+          let ogImage = document.querySelector('meta[property="og:image"]');
+          if (!ogImage) {
+              ogImage = document.createElement('meta');
+              ogImage.setAttribute('property', 'og:image');
+              document.head.appendChild(ogImage);
+          }
+          ogImage.content = branding.logo;
       }
     }
   };
@@ -620,6 +659,7 @@ function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
+        <BrandingProvider siteInfo={siteInfo}>
         {isWarningOpen && (
           <div className="inactivity-warning-overlay animate-fade-in" style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -981,7 +1021,7 @@ function App() {
             {token && !loadingUser && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/reseller') && !location.pathname.startsWith('/website') && (
               <>
                 <div className="branding-footer" style={{ textAlign: 'center', padding: '4px 8px 60px', fontSize: '8.5px', letterSpacing: '0.1px', opacity: 0.6, color: '#888', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
-                  <span>© {siteInfo?.branding?.siteName || "9JASUB"} Powered by MK GLOBAL INVESTMENT LTD.</span>
+                  <span>© {siteInfo?.branding?.siteName || "9JASUB"} {(!siteInfo || !isWhiteLabelSite(siteInfo)) && 'Powered by MK GLOBAL INVESTMENT LTD.'}</span>
                 </div>
                 <BottomNav />
               </>
@@ -1019,6 +1059,7 @@ function App() {
             )}
           </div>
         </div>
+        </BrandingProvider>
       </ToastProvider>
     </ThemeProvider>
   );

@@ -74,6 +74,21 @@ const AdminDomainRequests = () => {
         }
     };
 
+    const approveDeployment = async (id) => {
+        if (!window.confirm("Are you sure you want to trigger the automated deployment for this domain?")) return;
+        setUpdatingId(id);
+        setMsg({ type: '', text: '' });
+        try {
+            const res = await API.post(`/api/admin/domain-requests/${id}/deploy`);
+            setMsg({ type: 'success', text: res.data.message || 'Automated deployment triggered successfully!' });
+            await fetchRequests();
+        } catch (err) {
+            setMsg({ type: 'error', text: err.response?.data?.message || 'Deployment processing failed' });
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
     const openWhatsApp = (req) => {
         const phone = req.whatsappNumber || (req.resellerId?.phone) || '';
         if (!phone) {
@@ -206,6 +221,35 @@ const AdminDomainRequests = () => {
                                     </div>
 
                                     <div style={{ background: 'var(--bg-color)', borderRadius: '20px', padding: '24px', border: '1px solid #e2e8f0' }}>
+                                        {req.metaData?.dnsRecords && req.metaData.dnsRecords.length > 0 && (
+                                            <div style={{ marginBottom: '24px', background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: '12px', padding: '16px' }}>
+                                                <h4 style={{ fontSize: '13.2px', fontWeight: 800, color: '#d97706', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <AlertTriangle size={16} /> Required DNS Configuration
+                                                </h4>
+                                                <div style={{ overflowX: 'auto' }}>
+                                                    <table style={{ width: '100%', fontSize: '13.2px', textAlign: 'left', borderCollapse: 'collapse' }}>
+                                                        <thead>
+                                                            <tr style={{ color: '#92400e', borderBottom: '1px solid #fcd34d' }}>
+                                                                <th style={{ padding: '8px' }}>Type</th>
+                                                                <th style={{ padding: '8px' }}>Name</th>
+                                                                <th style={{ padding: '8px' }}>Value</th>
+                                                                <th style={{ padding: '8px' }}>Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {req.metaData.dnsRecords.map((dns, i) => (
+                                                                <tr key={i} style={{ borderBottom: '1px solid #fde68a' }}>
+                                                                    <td style={{ padding: '8px', fontWeight: 700 }}>{dns.type}</td>
+                                                                    <td style={{ padding: '8px', fontFamily: 'monospace' }}>{dns.name}</td>
+                                                                    <td style={{ padding: '8px', fontFamily: 'monospace' }}>{dns.value}</td>
+                                                                    <td style={{ padding: '8px', fontWeight: 700, color: dns.status === 'VERIFIED' ? '#059669' : '#dc2626' }}>{dns.status}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                                             <div>
                                                 <label style={{ fontSize: '12.1px', fontWeight: 800, color: 'var(--text-light)', display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>Fulfillment Milestone</label>
@@ -285,15 +329,28 @@ const AdminDomainRequests = () => {
                                                 Send Dashboard Notification
                                             </label>
 
-                                            <button 
-                                                className="admin-btn primary" 
-                                                onClick={() => updateStatus(key)}
-                                                disabled={updatingId === key}
-                                                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 32px', borderRadius: '14px', fontSize: '15.4px' }}
-                                            >
-                                                {updatingId === key ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
-                                                Update Infrastructure State
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '12px' }}>
+                                                {req.status !== 'Connected Successfully' && req.status !== 'Website Deployment' && (
+                                                    <button 
+                                                        className="admin-btn"
+                                                        onClick={() => approveDeployment(key)}
+                                                        disabled={updatingId === key}
+                                                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 24px', borderRadius: '14px', fontSize: '14.3px', background: '#10b981', color: 'white', border: 'none', fontWeight: 800, cursor: 'pointer' }}
+                                                    >
+                                                        {updatingId === key ? <RefreshCw size={16} className="animate-spin" /> : <Server size={16} />}
+                                                        Approve Deployment
+                                                    </button>
+                                                )}
+                                                <button 
+                                                    className="admin-btn primary" 
+                                                    onClick={() => updateStatus(key)}
+                                                    disabled={updatingId === key}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 32px', borderRadius: '14px', fontSize: '15.4px' }}
+                                                >
+                                                    {updatingId === key ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+                                                    Update Infrastructure State
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

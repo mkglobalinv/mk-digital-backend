@@ -556,7 +556,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                   </select>
                 </div>
                 <div className="purchase-input-group">
-                  <label>Select Operator {fetchingOperators && <img src={logo} alt="Loading" className="btn-logo-loader" style={{ display: 'inline', width: '16px', height: '16px' }} />}</label>
+                  <label>Select Operator {fetchingOperators && <Loader2 className="animate-spin" size={16} style={{display:'inline'}} />}</label>
                   <select className="purchase-input" value={operatorId} onChange={(e) => setOperatorId(e.target.value)} required disabled={fetchingOperators}>
                     {fetchingOperators ? (
                       <option value="">Loading operators...</option>

@@ -27,11 +27,10 @@ const ResellerMarketingHome = ({ siteInfo }) => {
 
   const siteName = getSiteName(siteInfo);
   const logoUrl = siteInfo?.branding?.logo || null;
-  const primaryColor = siteInfo?.branding?.primaryColor || '#2563eb'; // Default to a professional blue
+  const primaryColor = siteInfo?.branding?.primaryColor || '#2563eb'; 
   const supportEmail = getSiteSupportEmail(siteInfo);
   const whatsappNumber = siteInfo?.branding?.whatsappNumber || '';
 
-  // Handle scroll effect for navbar
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -64,64 +63,61 @@ const ResellerMarketingHome = ({ siteInfo }) => {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
-    <div className="rmh-container">
+    <div className="rmh-container" style={{ '--theme-primary': primaryColor }}>
       
       {/* HEADER */}
-      <header className={`rmh-header ${isScrolled ? 'scrolled' : ''}`}>
+      <header className={`rmh-header ${isScrolled ? 'rmh-scrolled' : ''}`}>
         <div className="rmh-header-inner">
           
-          {/* Logo */}
-          <div className="rmh-logo-area">
+          <Link to="/" className="rmh-logo-area">
             {logoUrl ? (
                <img src={logoUrl} alt={siteName} className="rmh-logo-img" />
             ) : (
-              <div className="rmh-logo-fallback" style={{ backgroundColor: primaryColor }}>
+              <div className="rmh-logo-fallback">
                 {siteName.charAt(0).toUpperCase()}
               </div>
             )}
             <span className="rmh-site-name">{siteName}</span>
-          </div>
+          </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="rmh-nav">
+          <nav className="rmh-nav-desktop">
             <a href="#home">Home</a>
             <a href="#services">Services</a>
             <a href="#features">Why Us</a>
             <a href="#contact">Contact</a>
           </nav>
 
-          {/* Desktop CTA */}
           <div className="rmh-cta-group">
             <Link to="/login" className="rmh-btn-outline">Sign In</Link>
-            <Link to="/signup" className="rmh-btn-primary" style={{ backgroundColor: primaryColor }}>
+            <Link to="/signup" className="rmh-btn-primary">
               Create Account <ArrowRight size={16} />
             </Link>
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button 
             className="rmh-mobile-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </header>
 
-      {/* Mobile Navigation Menu */}
-      <div className={`rmh-mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
-        <nav className="rmh-mobile-nav">
+      {/* MOBILE MENU */}
+      <div className={`rmh-mobile-menu ${mobileMenuOpen ? 'rmh-menu-open' : ''}`}>
+        <div className="rmh-mobile-nav">
           <a href="#home" onClick={closeMobileMenu}>Home</a>
           <a href="#services" onClick={closeMobileMenu}>Services</a>
           <a href="#features" onClick={closeMobileMenu}>Why Choose Us</a>
           <a href="#contact" onClick={closeMobileMenu}>Contact</a>
-        </nav>
+        </div>
         
         <div className="rmh-mobile-cta">
           <Link to="/login" onClick={closeMobileMenu} className="rmh-btn-outline">
             Sign In
           </Link>
-          <Link to="/signup" onClick={closeMobileMenu} className="rmh-btn-primary" style={{ backgroundColor: primaryColor, justifyContent: 'center' }}>
+          <Link to="/signup" onClick={closeMobileMenu} className="rmh-btn-primary">
             Create Free Account <ArrowRight size={18} />
           </Link>
         </div>
@@ -130,8 +126,8 @@ const ResellerMarketingHome = ({ siteInfo }) => {
       {/* HERO SECTION */}
       <section id="home" className="rmh-hero">
         <div className="rmh-hero-bg">
-          <div className="rmh-hero-blob1"></div>
-          <div className="rmh-hero-blob2"></div>
+          <div className="rmh-hero-blob rmh-blob-1"></div>
+          <div className="rmh-hero-blob rmh-blob-2"></div>
         </div>
 
         <div className="rmh-hero-content">
@@ -150,7 +146,7 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           </p>
           
           <div className="rmh-hero-actions">
-            <Link to="/signup" className="rmh-btn-hero-primary" style={{ backgroundColor: primaryColor }}>
+            <Link to="/signup" className="rmh-btn-hero-primary">
               Get Started Now <ArrowRight size={20} />
             </Link>
             <Link to="/login" className="rmh-btn-hero-secondary">
@@ -158,10 +154,10 @@ const ResellerMarketingHome = ({ siteInfo }) => {
             </Link>
           </div>
 
-          <div className="rmh-trust">
-            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={20} /> Instant Delivery</div>
-            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={20} /> 100% Secure</div>
-            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={20} /> 24/7 Automated</div>
+          <div className="rmh-trust-indicators">
+            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={18} /> <span>Instant Delivery</span></div>
+            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={18} /> <span>100% Secure</span></div>
+            <div className="rmh-trust-item"><CheckCircle2 color="#10b981" size={18} /> <span>24/7 Automated</span></div>
           </div>
         </div>
       </section>
@@ -173,30 +169,30 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           <p className="rmh-section-subtitle">One platform to handle all your utility bills and top-ups seamlessly.</p>
         </div>
         
-        <div className="rmh-grid-4">
+        <div className="rmh-services-grid">
           {services.map((service, index) => {
             const Icon = service.icon;
             return (
-              <div key={index} className="rmh-card">
-                <div className="rmh-icon-box" style={{ backgroundColor: service.iconBg, color: service.iconColor }}>
+              <div key={index} className="rmh-service-card">
+                <div className="rmh-service-icon-wrapper" style={{ backgroundColor: service.iconBg, color: service.iconColor }}>
                   <Icon size={28} strokeWidth={2.5} />
                 </div>
-                <h3>{service.name}</h3>
-                <p>{service.desc}</p>
+                <h3 className="rmh-service-title">{service.name}</h3>
+                <p className="rmh-service-desc">{service.desc}</p>
               </div>
             )
           })}
         </div>
       </section>
 
-      {/* WHY CHOOSE US SECTION */}
+      {/* FEATURES SECTION */}
       <section id="features" className="rmh-features">
         <div className="rmh-features-inner">
           <div className="rmh-features-text">
             <h2 className="rmh-section-title">Why We Are Different</h2>
-            <p className="rmh-section-subtitle" style={{ marginBottom: '32px' }}>We built a platform that prioritizes speed, security, and affordability above everything else.</p>
-            <Link to="/signup" className="rmh-btn-hero-primary" style={{ backgroundColor: primaryColor, display: 'inline-flex' }}>
-              Join Us Today
+            <p className="rmh-section-subtitle rmh-margin-bottom">We built a platform that prioritizes speed, security, and affordability above everything else.</p>
+            <Link to="/signup" className="rmh-btn-hero-primary rmh-inline-flex">
+              Join Us Today <ArrowRight size={20} />
             </Link>
           </div>
           
@@ -204,12 +200,12 @@ const ResellerMarketingHome = ({ siteInfo }) => {
             {features.map((feat, index) => {
               const Icon = feat.icon;
               return (
-                <div key={index} className="rmh-feat-card">
-                  <div className="rmh-feat-icon">
-                    <Icon size={24} />
+                <div key={index} className="rmh-feature-card">
+                  <div className="rmh-feature-icon">
+                    <Icon size={24} strokeWidth={2.5} />
                   </div>
-                  <h3>{feat.title}</h3>
-                  <p>{feat.desc}</p>
+                  <h3 className="rmh-feature-title">{feat.title}</h3>
+                  <p className="rmh-feature-desc">{feat.desc}</p>
                 </div>
               )
             })}
@@ -226,22 +222,22 @@ const ResellerMarketingHome = ({ siteInfo }) => {
         
         <div className="rmh-contact-box">
           {supportEmail && (
-            <a href={mailLink} className="rmh-contact-item">
-              <div className="rmh-contact-icon" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>
-                <Mail size={36} strokeWidth={1.5} />
+            <a href={mailLink} className="rmh-contact-item rmh-contact-email">
+              <div className="rmh-contact-icon">
+                <Mail size={32} strokeWidth={2} />
               </div>
-              <h4>Email Support</h4>
-              <span style={{ color: '#2563eb' }}>{supportEmail}</span>
+              <h4 className="rmh-contact-title">Email Support</h4>
+              <span className="rmh-contact-value">{supportEmail}</span>
             </a>
           )}
 
           {whatsappNumber && (
-            <a href={waLink} target="_blank" rel="noopener noreferrer" className="rmh-contact-item">
-              <div className="rmh-contact-icon" style={{ backgroundColor: '#ecfdf5', color: '#059669' }}>
-                <Phone size={36} strokeWidth={1.5} />
+            <a href={waLink} target="_blank" rel="noopener noreferrer" className="rmh-contact-item rmh-contact-wa">
+              <div className="rmh-contact-icon">
+                <Phone size={32} strokeWidth={2} />
               </div>
-              <h4>WhatsApp Us</h4>
-              <span style={{ color: '#059669' }}>{whatsappNumber}</span>
+              <h4 className="rmh-contact-title">WhatsApp Us</h4>
+              <span className="rmh-contact-value">{whatsappNumber}</span>
             </a>
           )}
 
@@ -258,31 +254,31 @@ const ResellerMarketingHome = ({ siteInfo }) => {
         <div className="rmh-footer-inner">
           <div className="rmh-footer-grid">
             
-            <div className="rmh-footer-info">
-              <div className="rmh-footer-logo">
+            <div className="rmh-footer-brand">
+              <Link to="/" className="rmh-footer-logo">
                 {logoUrl ? (
                   <img src={logoUrl} alt={siteName} />
                 ) : (
                   <span>{siteName}</span>
                 )}
-              </div>
+              </Link>
               <p className="rmh-footer-desc">
                 Your reliable partner for automated digital payments, VTU services, and seamless utility bill settlements in Nigeria.
               </p>
             </div>
             
-            <div className="rmh-footer-nav">
-              <h4>Quick Links</h4>
-              <ul>
+            <div className="rmh-footer-nav-col">
+              <h4 className="rmh-footer-heading">Quick Links</h4>
+              <ul className="rmh-footer-list">
                 <li><Link to="/login">Sign In</Link></li>
                 <li><Link to="/signup">Create Account</Link></li>
                 <li><a href="#services">Our Services</a></li>
               </ul>
             </div>
 
-            <div className="rmh-footer-nav">
-              <h4>Contact</h4>
-              <ul>
+            <div className="rmh-footer-nav-col">
+              <h4 className="rmh-footer-heading">Contact</h4>
+              <ul className="rmh-footer-list">
                 {supportEmail && <li><a href={mailLink}>{supportEmail}</a></li>}
                 {whatsappNumber && <li><a href={waLink} target="_blank" rel="noopener noreferrer">{whatsappNumber}</a></li>}
               </ul>
@@ -290,10 +286,10 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           </div>
           
           <div className="rmh-footer-bottom">
-            <div>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</div>
-            <div className="rmh-footer-links">
-              <span>Privacy Policy</span>
-              <span>Terms of Service</span>
+            <div className="rmh-copyright">&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</div>
+            <div className="rmh-footer-legal">
+              <Link to="#">Privacy Policy</Link>
+              <Link to="#">Terms of Service</Link>
             </div>
           </div>
         </div>
@@ -303,3 +299,4 @@ const ResellerMarketingHome = ({ siteInfo }) => {
 };
 
 export default ResellerMarketingHome;
+

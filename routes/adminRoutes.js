@@ -37,6 +37,7 @@ import {
   updateAppRequestStatus,
   getDomainRequests,
   updateDomainRequestStatus,
+  approveDomainDeployment,
   adminLoginStep2,
   adminLoginStep3,
   setupAdminSecurityQuestions,
@@ -933,6 +934,7 @@ router.post("/force-sync", requireOwner, forceSyncReseller);
 
 router.get("/domain-requests", requireOwner, getDomainRequests);
 router.put("/domain-requests/:id", requireOwner, updateDomainRequestStatus);
+router.post("/domain-requests/:id/deploy", requireOwner, approveDomainDeployment);
 
 router.post("/diagnostics/email", requireOwner, executeEmailDiagnosticTest);
 

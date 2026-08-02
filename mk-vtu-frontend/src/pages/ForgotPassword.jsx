@@ -3,7 +3,6 @@ import { Mail, Lock, KeyRound, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-r
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../api';
 import './Auth.css';
-import logo from '../assets/logo.jpg';
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);

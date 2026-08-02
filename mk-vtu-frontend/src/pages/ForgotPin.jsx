@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../api';
 import './Auth.css';
-import logo from '../assets/logo.jpg';
 
 const ForgotPin = () => {
   const [step, setStep] = useState(1); // 1: Questions, 2: OTP, 3: New PIN
@@ -138,7 +137,7 @@ const ForgotPin = () => {
                 </div>
 
                 <button type="submit" className="auth-btn" disabled={loading}>
-                    {loading ? <img src={logo} alt="Loading" className="btn-logo-loader" /> : (
+                    {loading ? <div style={{display:'flex',justifyContent:'center'}}><Loader2 className="animate-spin" size={24} /></div> : (
                         <>Verify Answers <ArrowRight size={18} /></>
                     )}
                 </button>
@@ -159,7 +158,7 @@ const ForgotPin = () => {
                 </div>
 
                 <button type="submit" className="auth-btn" disabled={loading || otp.length !== 6}>
-                    {loading ? <img src={logo} alt="Loading" className="btn-logo-loader" /> : (
+                    {loading ? <div style={{display:'flex',justifyContent:'center'}}><Loader2 className="animate-spin" size={24} /></div> : (
                         <>Verify OTP <ArrowRight size={18} /></>
                     )}
                 </button>
@@ -191,7 +190,7 @@ const ForgotPin = () => {
                 </div>
 
                 <button type="submit" className="auth-btn" disabled={loading}>
-                    {loading ? <img src={logo} alt="Loading" className="btn-logo-loader" /> : (
+                    {loading ? <div style={{display:'flex',justifyContent:'center'}}><Loader2 className="animate-spin" size={24} /></div> : (
                         <>Reset PIN <ArrowRight size={18} /></>
                     )}
                 </button>

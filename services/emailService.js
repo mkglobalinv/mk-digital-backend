@@ -6,6 +6,22 @@ import Notification from '../models/Notification.js';
 
 dotenv.config();
 
+// Helper to get siteName for emails
+const getBrandingForEmail = async (email) => {
+    try {
+        const user = await User.findOne({ email }).populate('resellerId').lean();
+        if (user && user.resellerId && user.resellerId.branding) {
+            return user.resellerId.branding;
+        }
+        if (user && user.branding) {
+            return user.branding;
+        }
+    } catch (e) {
+        console.error("Email branding lookup error", e);
+    }
+    return { siteName: "9JASUB", primaryColor: "#3B82F6" }; // Fallback
+};
+
 // --- 1. Startup Diagnostics ---
 console.log("=== EMAIL SERVICE STARTUP DIAGNOSTICS ===");
 console.log(`Transport: Brevo REST API (HTTPS)`);
@@ -43,8 +59,11 @@ export const sendEmail = async (to, subject, html) => {
             return true;
         }
 
+        const branding = await getBrandingForEmail(to);
+        const senderName = branding?.siteName || "9JASUB";
+
         const payload = {
-            sender: { name: "9JASUB", email: EMAIL_FROM },
+            sender: { name: senderName, email: EMAIL_FROM },
             to: [{ email: to }],
             subject: subject,
             htmlContent: html
@@ -100,10 +119,14 @@ export const sendEmail = async (to, subject, html) => {
 
 export const sendOTPEmail = async (email, otp) => {
     console.log(`Preparing to send OTP email to ${email} (OTP: ${otp})`);
-    const subject = "OTP Verification";
+    const branding = await getBrandingForEmail(email);
+    const siteName = branding.siteName || "9JASUB";
+    const primaryColor = branding.primaryColor || "#4CAF50";
+    
+    const subject = `${siteName} OTP Verification`;
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-            <h2 style="color: #4CAF50; text-align: center;">OTP Verification</h2>
+            <h2 style="color: ${primaryColor}; text-align: center;">${siteName} OTP Verification</h2>
             <p>Your verification OTP is:</p>
             <div style="text-align: center; margin: 20px 0;">
                 <span style="font-size: 24px; font-weight: bold; padding: 10px 20px; background-color: #f4f4f4; border-radius: 5px; letter-spacing: 5px;">${otp}</span>
@@ -128,11 +151,13 @@ export const sendOTPEmail = async (email, otp) => {
 };
 
 export const sendPinResetAlertEmail = async (email) => {
-    const subject = "Security Alert: Transaction PIN Reset Attempt";
+    const branding = await getBrandingForEmail(email);
+    const siteName = branding.siteName || "9JASUB";
+    const subject = `Security Alert: Transaction PIN Reset Attempt`;
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ffcccc; border-radius: 10px;">
             <h2 style="color: #D32F2F; text-align: center;">Security Alert</h2>
-            <p>Someone attempted to reset your Transaction PIN on 9JASUB.</p>
+            <p>Someone attempted to reset your Transaction PIN on ${siteName}.</p>
             <p>If this was you, you can safely ignore this alert.</p>
             <p><strong>If you did not make this request, please contact support immediately and change your account password.</strong></p>
         </div>
@@ -141,14 +166,16 @@ export const sendPinResetAlertEmail = async (email) => {
 };
 
 export const sendTransactionReceiptEmail = async (email, transactionDetails) => {
+    const branding = await getBrandingForEmail(email);
+    const siteName = branding.siteName || "9JASUB";
     const { type, amount, description, reference, status, date } = transactionDetails;
-    const subject = "Transaction Receipt - 9JASUB";
+    const subject = `Transaction Receipt - ${siteName}`;
     const color = status === 'success' ? '#4CAF50' : '#F44336';
     
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
             <h2 style="color: ${color}; text-align: center;">Transaction ${status.toUpperCase()}</h2>
-            <p>Here is the receipt for your recent transaction on 9JASUB:</p>
+            <p>Here is the receipt for your recent transaction on ${siteName}:</p>
             <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                 <tr>
                     <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Amount</strong></td>
@@ -167,7 +194,7 @@ export const sendTransactionReceiptEmail = async (email, transactionDetails) => 
                     <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${new Date(date).toLocaleString()}</td>
                 </tr>
             </table>
-            <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #888;">Thank you for using 9JASUB.</p>
+            <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #888;">Thank you for using ${siteName}.</p>
         </div>
     `;
     return sendEmail(email, subject, html);
@@ -191,22 +218,26 @@ export const sendSupportEmail = async (supportData) => {
 };
 
 export const sendAdminBroadcastEmail = async (email, title, message) => {
+    const branding = await getBrandingForEmail(email);
+    const siteName = branding.siteName || "9JASUB";
+    const primaryColor = branding.primaryColor || "#3b82f6";
+
     const subject = title;
     const html = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; color: #1e293b;">
             <div style="text-align: center; margin-bottom: 20px;">
-                <h1 style="color: #3b82f6; margin: 0; font-size: 24px;">9JASUB</h1>
+                <h1 style="color: ${primaryColor}; margin: 0; font-size: 24px;">${siteName}</h1>
                 <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Secure & Fast VTU Services</p>
             </div>
-            <div style="border-top: 3px solid #3b82f6; padding-top: 20px;">
+            <div style="border-top: 3px solid ${primaryColor}; padding-top: 20px;">
                 <h2 style="color: #0f172a; font-size: 20px; margin-bottom: 15px;">${title}</h2>
                 <div style="line-height: 1.6; font-size: 16px;">
                     ${message.replace(/\n/g, '<br>')}
                 </div>
             </div>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;">
-                <p>You are receiving this email because you have an account on 9JASUB.</p>
-                <p>&copy; 2024 9JASUB. All rights reserved.</p>
+                <p>You are receiving this email because you have an account on ${siteName}.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.</p>
             </div>
         </div>
     `;
@@ -255,6 +286,9 @@ export const sendTransactionNotification = async (transaction) => {
                 }
             }
 
+            const branding = user.resellerId?.branding || { siteName: "9JASUB" };
+            const siteName = branding.siteName || "9JASUB";
+
             // Notify User
             const userSubject = transaction.status === 'success' ? "Transaction Successful" : "Transaction Failed";
             const userGreeting = transaction.status === 'success' 
@@ -278,7 +312,7 @@ export const sendTransactionNotification = async (transaction) => {
                     </div>
                     ${transaction.token ? `<div style="padding: 10px; background: #fffbeb; border: 1px dashed #f59e0b; border-radius: 8px; text-align: center; font-weight: bold; margin: 10px 0;">Token/PIN: ${transaction.token}</div>` : ''}
                     <p style="font-size: 14px; color: #64748b;">If you have any questions, please contact our support team.</p>
-                    <p>Thank you for choosing 9JASUB!</p>
+                    <p>Thank you for choosing ${siteName}!</p>
                 </div>
             `;
             try {
@@ -364,15 +398,18 @@ export const sendAdminOTPEmail = async (email, otp) => {
 };
 
 export const sendLoginAlertEmail = async (email, details) => {
+    const branding = await getBrandingForEmail(email);
+    const siteName = branding.siteName || "9JASUB";
+    const primaryColor = branding.primaryColor || "#3b82f6";
     const { timestamp, device, ip, role } = details;
     const subject = "New Login Detected";
     const html = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; color: #1e293b;">
             <div style="text-align: center; margin-bottom: 20px;">
-                <h1 style="color: #3b82f6; margin: 0; font-size: 24px;">9JASUB</h1>
+                <h1 style="color: ${primaryColor}; margin: 0; font-size: 24px;">${siteName}</h1>
                 <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Secure & Fast VTU Services</p>
             </div>
-            <div style="border-top: 3px solid #3b82f6; padding-top: 20px;">
+            <div style="border-top: 3px solid ${primaryColor}; padding-top: 20px;">
                 <h2 style="color: #0f172a; font-size: 20px; margin-bottom: 15px;">New Login Detected</h2>
                 <p style="font-size: 15px; line-height: 1.6;">A new login was detected on your account.</p>
                 <div style="background-color: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin: 20px 0; font-size: 14.5px;">
@@ -385,7 +422,7 @@ export const sendLoginAlertEmail = async (email, details) => {
                 <p style="font-size: 14.5px; color: #ef4444; font-weight: bold; line-height: 1.6;">If this was not you, please secure your account immediately.</p>
             </div>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;">
-                <p>&copy; 2024 9JASUB. All rights reserved.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.</p>
             </div>
         </div>
     `;

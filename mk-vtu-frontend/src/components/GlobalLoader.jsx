@@ -1,7 +1,15 @@
 import React from 'react';
-import logo from '../assets/9jasub.jpg';
+import logoDefault from '../assets/9jasub.jpg';
+import { useBranding } from '../context/BrandingContext';
+import { isWhiteLabelSite } from '../utils/whiteLabelHelper';
 
 const GlobalLoader = () => {
+  const siteInfo = useBranding();
+  const logo = siteInfo?.branding?.logo || siteInfo?.logo;
+  const siteName = siteInfo?.branding?.siteName || siteInfo?.name || "P";
+  
+  const displayLogo = logo || (!isWhiteLabelSite(siteInfo) ? logoDefault : null);
+
   return (
     <div style={{
       position: 'fixed',
@@ -21,20 +29,33 @@ const GlobalLoader = () => {
         height: '80px',
         borderRadius: '50%',
         padding: '5px',
-        background: 'linear-gradient(45deg, #3B82F6, #10B981)',
+        background: 'linear-gradient(45deg, var(--primary, #3B82F6), var(--secondary, #10B981))',
         animation: 'spin 2s linear infinite',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <img src={logo} alt="Loading" style={{
-          width: '70px',
-          height: '70px',
-          borderRadius: '50%',
-          objectFit: 'cover'
-        }} />
+        {displayLogo ? (
+            <img src={displayLogo} alt="Loading" style={{
+              width: '70px',
+              height: '70px',
+              borderRadius: '50%',
+              objectFit: 'cover'
+            }} />
+        ) : (
+            <div style={{
+                width: '70px', height: '70px', borderRadius: '50%',
+                background: 'var(--bg-color)', color: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '28px', fontWeight: 'bold'
+            }}>
+                {siteName.charAt(0).toUpperCase()}
+            </div>
+        )}
       </div>
-      <h2 style={{ color: 'white', marginTop: '20px', fontSize: '19.8px', letterSpacing: '2px' }}>9JASUB</h2>
+      <h2 style={{ color: 'white', marginTop: '20px', fontSize: '19.8px', letterSpacing: '2px' }}>
+          {siteInfo?.branding?.siteName || 'LOADING...'}
+      </h2>
       
       <style>{`
         @keyframes spin {

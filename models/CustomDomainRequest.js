@@ -32,7 +32,11 @@ const customDomainRequestSchema = new mongoose.Schema({
   deploymentUrl: { type: String },
   liveUrl: { type: String },
   estimatedCompletionTime: { type: String },
-  correctionRequired: { type: Boolean, default: false }
+  correctionRequired: { type: Boolean, default: false },
+  
+  // Infrastructure Extensions
+  provider: { type: String, default: 'railway' },
+  metaData: { type: mongoose.Schema.Types.Mixed, default: {} } // For storing DNS records or provider-specific IDs
 }, { 
   timestamps: true 
 });
@@ -40,5 +44,6 @@ const customDomainRequestSchema = new mongoose.Schema({
 // Operational lookup indexes for speedy resolution
 customDomainRequestSchema.index({ resellerId: 1 });
 customDomainRequestSchema.index({ status: 1 });
+customDomainRequestSchema.index({ deploymentStatus: 1 }); // Useful for the monitoring worker
 
 export default mongoose.model("CustomDomainRequest", customDomainRequestSchema);
