@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mksubdata-v3';
+const CACHE_NAME = 'app-cache-v3';
 const urlsToCache = [
   '/index.html',
   '/offline.html',
