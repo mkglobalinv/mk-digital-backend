@@ -800,37 +800,72 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
               </>
             )}
 
-            {/* Referral Dashboard Widget */}
-            {!siteInfo && (
-              <div className="fintech-promo-card animate-fade-in" style={{ position: 'relative', overflow: 'hidden', padding: '16px', background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary, #8B5CF6) 100%)', color: 'white', marginBottom: '24px', cursor: 'pointer', borderRadius: '16px', boxShadow: '0 8px 24px -8px var(--primary-glow)' }} onClick={() => navigate('/referrals')}>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full blur-xl -mr-8 -mt-8 pointer-events-none"></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '15px' }}>
-                    <Users size={18} />
-                    <span>Referral Center</span>
+            {/* Promo Banners Row */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'stretch' }}>
+              {/* Referral Dashboard Widget */}
+              {!siteInfo && (
+                <div className="fintech-promo-card animate-fade-in" style={{ flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden', padding: '12px', background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary, #8B5CF6) 100%)', color: 'white', cursor: 'pointer', borderRadius: '16px', boxShadow: '0 8px 24px -8px var(--primary-glow)', display: 'flex', flexDirection: 'column', minHeight: '130px', margin: 0 }} onClick={() => navigate('/referrals')}>
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full blur-xl -mr-8 -mt-8 pointer-events-none"></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', fontSize: '12px' }}>
+                      <Users size={14} />
+                      <span>Referral Center</span>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.2)', padding: '3px 8px', borderRadius: '8px', fontSize: '9px', fontWeight: 'bold', backdropFilter: 'blur(4px)' }}>
+                      Open &rarr;
+                    </div>
                   </div>
-                  <div style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', backdropFilter: 'blur(4px)' }}>
-                    Open &rarr;
+                  <p style={{ fontSize: '10px', opacity: 0.9, marginBottom: 'auto', position: 'relative', zIndex: 1, lineHeight: '1.3' }}>Invite friends and earn up to ₦2,000/activation!</p>
+                  
+                  <div style={{ display: 'flex', gap: '6px', position: 'relative', zIndex: 1, marginTop: '10px' }}>
+                    <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <div style={{ fontSize: '8px', opacity: 0.8, marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Invited</div>
+                      <div style={{ fontSize: '12px', fontWeight: '900' }}>{referralAnalytics?.totalReferrals || 0}</div>
+                    </div>
+                    <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '10px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <div style={{ fontSize: '8px', opacity: 0.8, marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Earned</div>
+                      <div style={{ fontSize: '12px', fontWeight: '900', whiteSpace: 'nowrap' }}>₦{(referralAnalytics?.totalReferralIncome || 0).toLocaleString()}</div>
+                    </div>
                   </div>
                 </div>
-                <p style={{ fontSize: '12px', opacity: 0.9, marginBottom: '16px', position: 'relative', zIndex: 1 }}>Invite friends and earn up to ₦2,000 per activation!</p>
-                
-                <div style={{ display: 'flex', gap: '8px', position: 'relative', zIndex: 1 }}>
-                  <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Invited</div>
-                    <div style={{ fontSize: '16px', fontWeight: '900' }}>{referralAnalytics?.totalReferrals || 0}</div>
+              )}
+
+              {/* Website Owner Promo */}
+              {!isWhiteLabelSite(siteInfo) && showResellerPromo && (
+                <div className="fintech-promo-card vip-reseller-banner animate-fade-in" onClick={() => navigate('/reseller/onboarding')} style={{ flex: 1, minWidth: 0, padding: '12px', display: 'flex', flexDirection: 'column', minHeight: '130px', margin: 0, position: 'relative', borderRadius: '16px' }}>
+                  <div className="vip-banner-overlay" style={{ borderRadius: '16px' }}></div>
+                  <div 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setShowResellerPromo(false); 
+                      setPromoClosedManually(true); 
+                    }}
+                    className="vip-close-btn"
+                    style={{ top: '8px', right: '8px', padding: '4px' }}
+                  >
+                    <XCircle size={14} />
                   </div>
-                  <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Total Earned</div>
-                    <div style={{ fontSize: '16px', fontWeight: '900' }}>₦{(referralAnalytics?.totalReferralIncome || 0).toLocaleString()}</div>
+                  <div className="fintech-promo-tag vip-tag" style={{ marginBottom: '6px', padding: '3px 6px', fontSize: '9px', alignSelf: 'flex-start' }}>
+                    <Zap size={10} />
+                    <span style={{ marginLeft: '2px' }}>WEBSITE OWNER</span>
+                  </div>
+                  <h4 className="vip-title" style={{ fontSize: '12px', marginBottom: '4px', lineHeight: '1.2' }}>
+                    Own Your VTU Website & App
+                  </h4>
+                  <p className="vip-desc" style={{ fontSize: '10px', marginBottom: 'auto', lineHeight: '1.3' }}>
+                    Launch your branded VTU website in just 5 mins. Start free today.
+                  </p>
+                  <div className="premium-btn vip-action-btn" style={{ justifyContent: 'center', padding: '6px', fontSize: '11px', marginTop: '10px', borderRadius: '8px' }}>
+                    <span>Launch My Website</span>
+                    <ArrowRight size={11} style={{ marginLeft: '4px' }} />
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* 6. Business Console */}
             {isActiveReseller(user) && (
-              <div className="fintech-promo-card premium-glass animate-fade-in" style={{ position: 'relative', overflow: 'hidden', padding: '20px' }}>
+              <div className="fintech-promo-card premium-glass animate-fade-in" style={{ position: 'relative', overflow: 'hidden', padding: '20px', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div className="fintech-promo-tag" style={{ margin: 0, color: '#3b82f6', background: 'rgba(59, 130, 246, 0.1)' }}>
                     <ShieldCheck size={12} />
@@ -879,36 +914,6 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
                   }} className="premium-btn reseller-btn-whatsapp">
                     WhatsApp
                   </button>
-                </div>
-              </div>
-            )}
-
-            {!isWhiteLabelSite(siteInfo) && showResellerPromo && (
-              <div className="fintech-promo-card vip-reseller-banner animate-fade-in" onClick={() => navigate('/reseller/onboarding')}>
-                <div className="vip-banner-overlay"></div>
-                <div 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    setShowResellerPromo(false); 
-                    setPromoClosedManually(true); 
-                  }}
-                  className="vip-close-btn"
-                >
-                  <XCircle size={18} />
-                </div>
-                <div className="fintech-promo-tag vip-tag" style={{ marginBottom: '6px' }}>
-                  <Zap size={11} />
-                  <span>WEBSITE OWNER</span>
-                </div>
-                <h4 className="vip-title" style={{ fontSize: '16px', marginBottom: '4px' }}>
-                  Own Your VTU Website & App
-                </h4>
-                <p className="vip-desc" style={{ fontSize: '13px', marginBottom: '12px' }}>
-                  Launch your branded VTU website in just 5 minutes. Start free today.
-                </p>
-                <div className="premium-btn vip-action-btn" style={{ justifyContent: 'center', padding: '10px' }}>
-                  <span>Launch My Website</span>
-                  <ArrowRight size={13} />
                 </div>
               </div>
             )}
