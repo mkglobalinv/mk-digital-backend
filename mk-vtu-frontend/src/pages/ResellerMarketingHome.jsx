@@ -12,7 +12,11 @@ import {
   Menu,
   X,
   Zap,
-  Globe
+  ShieldCheck,
+  TrendingDown,
+  Clock,
+  CreditCard,
+  Headphones
 } from 'lucide-react';
 import { getSiteName, getSiteSupportEmail } from '../utils/whiteLabelHelper';
 import vtuMockup from '../assets/vtu-app-mockup.png';
@@ -51,9 +55,9 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           </Link>
 
           <nav className="saas-nav-desktop">
+            <a href="#services">Services</a>
             <a href="#features">Features</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#referral">Referral</a>
+            <a href="#why-us">Why Us</a>
             <a href="#faq">FAQ</a>
           </nav>
 
@@ -71,9 +75,9 @@ const ResellerMarketingHome = ({ siteInfo }) => {
       {/* MOBILE MENU */}
       <div className={`saas-mobile-menu ${mobileMenuOpen ? 'saas-menu-open' : ''}`}>
         <div className="saas-mobile-nav">
+          <a href="#services" onClick={closeMobileMenu}>Services</a>
           <a href="#features" onClick={closeMobileMenu}>Features</a>
-          <a href="#pricing" onClick={closeMobileMenu}>Pricing</a>
-          <a href="#referral" onClick={closeMobileMenu}>Referral</a>
+          <a href="#why-us" onClick={closeMobileMenu}>Why Us</a>
           <a href="#faq" onClick={closeMobileMenu}>FAQ</a>
         </div>
         <div className="saas-mobile-cta">
@@ -85,6 +89,7 @@ const ResellerMarketingHome = ({ siteInfo }) => {
       {/* 1. HERO SECTION */}
       <section className="saas-hero">
         <div className="saas-hero-bg-gradient"></div>
+        <div className="saas-hero-bg-glow"></div>
         <div className="saas-badge animate-fade-in-up">
           <Zap size={14} color={primaryColor} /> Fast, Secure & Automated
         </div>
@@ -93,24 +98,24 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           <span className="saas-gradient-text">simplified.</span>
         </h1>
         <p className="saas-hero-subtitle animate-fade-in-up delay-200">
-          Purchase cheap data, airtime, and pay bills instantly. Experience seamless, bank-level secure transactions without the wait.
+          Purchase affordable data, airtime, and pay bills instantly. Experience seamless, bank-level secure transactions without the wait.
         </p>
         <div className="saas-hero-actions animate-fade-in-up delay-300">
           <Link to="/signup" className="saas-btn-primary saas-btn-large">
-            Create Free Account <ArrowRight size={18} />
+            Create Account <ArrowRight size={18} />
           </Link>
           <Link to="/login" className="saas-btn-secondary saas-btn-large">
-            Sign In
+            Login
           </Link>
         </div>
       </section>
 
-      {/* 2. TRUST & SUPPORTED NETWORKS */}
-      <section className="saas-trust">
+      {/* 2. TRUSTED SERVICES */}
+      <section id="services" className="saas-trust">
         <div className="saas-trust-inner">
           <div className="saas-trust-stat">
             <p className="saas-trust-val">99.9%</p>
-            <p className="saas-trust-label">Uptime</p>
+            <p className="saas-trust-label">Uptime Reliability</p>
           </div>
           <div className="saas-trust-networks">
             <span className="saas-network-badge">MTN</span>
@@ -120,8 +125,8 @@ const ResellerMarketingHome = ({ siteInfo }) => {
             <span className="saas-network-badge">DSTV</span>
           </div>
           <div className="saas-trust-stat">
-            <p className="saas-trust-val">24/7</p>
-            <p className="saas-trust-label">Support</p>
+            <p className="saas-trust-val">&lt;3s</p>
+            <p className="saas-trust-label">Avg. Delivery</p>
           </div>
         </div>
       </section>
@@ -135,13 +140,13 @@ const ResellerMarketingHome = ({ siteInfo }) => {
         <div className="saas-features-grid">
           <div className="saas-feature-card">
             <div className="saas-feature-icon"><Wifi size={24} /></div>
-            <h3>Cheap Data</h3>
+            <h3>Data Bundles</h3>
             <p>Access high-speed internet across all networks at unbeatable discounted rates.</p>
           </div>
           <div className="saas-feature-card">
             <div className="saas-feature-icon"><Smartphone size={24} /></div>
             <h3>Instant Airtime</h3>
-            <p>Recharge your line seamlessly and earn cash-back on every single top-up.</p>
+            <p>Recharge your line seamlessly and enjoy fast delivery on every top-up.</p>
           </div>
           <div className="saas-feature-card">
             <div className="saas-feature-icon"><Lightbulb size={24} /></div>
@@ -168,12 +173,15 @@ const ResellerMarketingHome = ({ siteInfo }) => {
 
       {/* 4. PLATFORM PREVIEW */}
       <section className="saas-preview-section">
-        <div className="saas-section-header" style={{ marginBottom: '40px' }}>
+        <div className="saas-preview-bg"></div>
+        <div className="saas-section-header" style={{ marginBottom: '40px', position: 'relative', zIndex: 2 }}>
           <h2 className="saas-section-title">Designed for speed</h2>
           <p className="saas-section-subtitle">Enjoy a clean, intuitive dashboard that makes managing your transactions incredibly simple.</p>
         </div>
         <div className="saas-preview-wrapper">
-          <img src={vtuMockup} alt="Platform Dashboard" className="saas-preview-img" loading="lazy" />
+          <div className="saas-device-frame">
+            <img src={vtuMockup} alt="Platform Dashboard" className="saas-preview-img" loading="lazy" />
+          </div>
         </div>
       </section>
 
@@ -188,7 +196,7 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           <div className="saas-step-item">
             <div className="saas-step-number">1</div>
             <h3>Create Account</h3>
-            <p>Sign up in seconds. It's completely free and requires no paperwork.</p>
+            <p>Sign up in seconds. It's completely free and highly secure.</p>
           </div>
           <div className="saas-step-item">
             <div className="saas-step-number">2</div>
@@ -198,93 +206,104 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           <div className="saas-step-item">
             <div className="saas-step-number">3</div>
             <h3>Transact</h3>
-            <p>Buy data or pay bills at discounted rates and get instant value.</p>
+            <p>Buy data or pay bills at affordable rates and get instant value.</p>
           </div>
         </div>
       </section>
 
-      {/* 6. PRICING */}
-      <section id="pricing" className="saas-section" style={{ background: 'var(--gray-50)', padding: '100px 24px', maxWidth: 'none' }}>
+      {/* 6. WHY CHOOSE US & BENEFITS */}
+      <section id="why-us" className="saas-section saas-benefits-section">
         <div className="saas-section-header">
-          <h2 className="saas-section-title">Simple, transparent pricing</h2>
-          <p className="saas-section-subtitle">Choose the plan that best fits your needs. Upgrade anytime.</p>
+          <h2 className="saas-section-title">Why customers choose us</h2>
+          <p className="saas-section-subtitle">Experience the next generation of digital payments, built entirely around your needs.</p>
         </div>
-        <div className="saas-pricing-grid">
-          <div className="saas-pricing-card">
-            <h3 className="saas-pricing-title">Personal</h3>
-            <p className="saas-pricing-desc">Perfect for individuals who want cheap data and airtime.</p>
-            <div className="saas-pricing-price">Free <span>/ forever</span></div>
-            <ul className="saas-pricing-features">
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Discounted Data Rates</li>
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Airtime Cash-Back</li>
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Zero Extra Fees</li>
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Secure Wallet Access</li>
-            </ul>
-            <Link to="/signup" className="saas-btn-secondary saas-pricing-btn">Get Started</Link>
+        <div className="saas-benefits-grid">
+          <div className="saas-benefit-card">
+            <TrendingDown size={28} className="saas-benefit-icon" />
+            <div className="saas-benefit-content">
+              <h3>Save More</h3>
+              <p>Enjoy highly competitive and affordable rates on all network data plans and VTU services.</p>
+            </div>
           </div>
-          
-          <div className="saas-pricing-card premium">
-            <div className="saas-pricing-badge">Recommended</div>
-            <h3 className="saas-pricing-title">Website Owner</h3>
-            <p className="saas-pricing-desc">Launch your own branded VTU business instantly.</p>
-            <div className="saas-pricing-price">₦5,000 <span>/ one-time</span></div>
-            <ul className="saas-pricing-features">
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Everything in Personal</li>
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Your Own Branded Website</li>
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Set Your Own Prices</li>
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Keep 100% of Your Profit</li>
-              <li><CheckCircle2 size={18} className="saas-pricing-icon" /> Automated Customer Wallets</li>
-            </ul>
-            <Link to="/signup" className="saas-btn-primary saas-pricing-btn">Start Your Business</Link>
+          <div className="saas-benefit-card">
+            <Zap size={28} className="saas-benefit-icon" />
+            <div className="saas-benefit-content">
+              <h3>Fast Delivery</h3>
+              <p>Say goodbye to pending transactions. Get instant value delivery guaranteed.</p>
+            </div>
+          </div>
+          <div className="saas-benefit-card">
+            <ShieldCheck size={28} className="saas-benefit-icon" />
+            <div className="saas-benefit-content">
+              <h3>Secure Payments</h3>
+              <p>Your transactions are protected by industry-leading encryption and bank-level security.</p>
+            </div>
+          </div>
+          <div className="saas-benefit-card">
+            <Clock size={28} className="saas-benefit-icon" />
+            <div className="saas-benefit-content">
+              <h3>24/7 Availability</h3>
+              <p>Our platform never sleeps. Recharge or pay bills any time of the day or night.</p>
+            </div>
+          </div>
+          <div className="saas-benefit-card">
+            <CreditCard size={28} className="saas-benefit-icon" />
+            <div className="saas-benefit-content">
+              <h3>Simple Wallet Funding</h3>
+              <p>Get a personalized bank account for instant and automatic wallet top-ups.</p>
+            </div>
+          </div>
+          <div className="saas-benefit-card">
+            <Headphones size={28} className="saas-benefit-icon" />
+            <div className="saas-benefit-content">
+              <h3>Excellent Support</h3>
+              <p>Our dedicated support team is always on standby to resolve any issues promptly.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 7. REFERRAL PROGRAM */}
-      <section id="referral" className="saas-referral">
-        <div className="saas-referral-text">
-          <h2>Earn while you sleep</h2>
-          <p>Invite friends to {siteName} and earn a massive 15% commission on our platform profit from every eligible transaction they make. Forever.</p>
-          <Link to="/signup" className="saas-btn-primary">Start Earning <ArrowRight size={18}/></Link>
-        </div>
-        <div className="saas-referral-graphic">
-          <h3>15%</h3>
-          <p>Profit Commission</p>
-        </div>
-      </section>
-
-      {/* 8. FAQ */}
+      {/* 7. FAQ */}
       <section id="faq" className="saas-section">
         <div className="saas-section-header">
           <h2 className="saas-section-title">Frequently asked questions</h2>
-          <p className="saas-section-subtitle">Everything you need to know about the product and billing.</p>
+          <p className="saas-section-subtitle">Got questions? We've got answers.</p>
         </div>
         <div className="saas-faq">
           <div className="saas-faq-item">
-            <h4 className="saas-faq-q">How fast is the delivery?</h4>
-            <p className="saas-faq-a">Transactions are processed instantly. Once your payment is confirmed via your wallet, the service is delivered in milliseconds.</p>
+            <h4 className="saas-faq-q">How fast are transactions?</h4>
+            <p className="saas-faq-a">Transactions are processed and delivered instantly. Once you complete a purchase, the service is credited to the target number in milliseconds.</p>
+          </div>
+          <div className="saas-faq-item">
+            <h4 className="saas-faq-q">Which networks are supported?</h4>
+            <p className="saas-faq-a">We support all major networks including MTN, Airtel, GLO, and 9mobile for both data and airtime purchases.</p>
           </div>
           <div className="saas-faq-item">
             <h4 className="saas-faq-q">How do I fund my wallet?</h4>
-            <p className="saas-faq-a">Upon registration, you are assigned a dedicated automated bank account. Any transfer to this account instantly funds your wallet.</p>
+            <p className="saas-faq-a">Upon registration, you are instantly assigned a dedicated automated bank account. Any transfer made to this account automatically funds your wallet within seconds.</p>
           </div>
           <div className="saas-faq-item">
-            <h4 className="saas-faq-q">Can I start my own VTU business?</h4>
-            <p className="saas-faq-a">Yes! Upgrade to the Website Owner plan for a one-time fee to get a fully branded portal where you set your own prices and keep the profit.</p>
+            <h4 className="saas-faq-q">Are my payments secure?</h4>
+            <p className="saas-faq-a">Yes. We use advanced, bank-level encryption to secure all your data and payments. We never store your card details directly.</p>
+          </div>
+          <div className="saas-faq-item">
+            <h4 className="saas-faq-q">What happens if a transaction fails?</h4>
+            <p className="saas-faq-a">In the rare event of a network failure, our system automatically reverses the transaction and refunds your wallet instantly.</p>
           </div>
         </div>
       </section>
 
-      {/* 9. FINAL CTA */}
+      {/* 8. FINAL CTA */}
       <section className="saas-cta">
+        <div className="saas-cta-glow"></div>
         <h2>Ready to simplify your payments?</h2>
-        <p>Join thousands of users leveraging {siteName} for fast, reliable, and secure digital transactions.</p>
+        <p>Join thousands of happy customers using {siteName} for fast, reliable, and secure digital transactions.</p>
         <Link to="/signup" className="saas-btn-secondary saas-btn-large" style={{ color: 'var(--theme-primary)' }}>
-          Create Free Account
+          Create Account Now
         </Link>
       </section>
 
-      {/* 10. FOOTER */}
+      {/* 9. FOOTER */}
       <footer className="saas-footer">
         <div className="saas-footer-inner">
           <div className="saas-footer-top">
@@ -300,25 +319,25 @@ const ResellerMarketingHome = ({ siteInfo }) => {
             </div>
             
             <div className="saas-footer-col">
-              <h4>Platform</h4>
+              <h4>Quick Links</h4>
+              <a href="#services">Services</a>
               <a href="#features">Features</a>
-              <a href="#pricing">Pricing</a>
-              <a href="#referral">Referral Program</a>
+              <a href="#why-us">Why Choose Us</a>
+              <a href="#faq">FAQ</a>
             </div>
             
             <div className="saas-footer-col">
-              <h4>Company</h4>
-              <Link to="/login">Sign In</Link>
-              <Link to="/signup">Create Account</Link>
+              <h4>Support & Legal</h4>
               {supportEmail && <a href={`mailto:${supportEmail}`}>Contact Support</a>}
+              <Link to="#">Privacy Policy</Link>
+              <Link to="#">Terms of Service</Link>
             </div>
           </div>
           
           <div className="saas-footer-bottom">
             <span>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</span>
             <div className="saas-footer-legal">
-              <Link to="#">Privacy</Link>
-              <Link to="#">Terms</Link>
+              {/* Optional: Add social links here if provided in siteInfo */}
             </div>
           </div>
         </div>
