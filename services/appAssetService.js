@@ -270,7 +270,7 @@ export const generateAppAssets = async (user, jobId = null) => {
                 
                 const mainActivityPath = path.join(buildDir, 'app', 'src', 'main', 'java', 'com', 'mksubdata', 'app', 'MainActivity.java');
                 let javaContent = fs.readFileSync(mainActivityPath, 'utf8');
-                javaContent = javaContent.replace('https://9jasub.com', appUrl);
+                javaContent = javaContent.replace('https://mksubdata.com', appUrl);
                 fs.writeFileSync(mainActivityPath, javaContent);
                 
                 const iconResPath = path.join(buildDir, 'app', 'src', 'main', 'res', 'drawable', 'ic_launcher.png');
