@@ -16,6 +16,13 @@ if (!fs.existsSync(ASSETS_DIR)) {
     fs.mkdirSync(ASSETS_DIR, { recursive: true });
 }
 
+export const REQUIRED_PWA_ASSETS = [
+    'icon-192x192.png',
+    'icon-512x512.png',
+    'maskable-icon-512x512.png',
+    'manifest.json'
+];
+
 export const generateAppAssets = async (user, jobId = null) => {
     const updateJob = async (stage, pct, log = null) => {
         if (!jobId) return;
@@ -61,8 +68,10 @@ export const generateAppAssets = async (user, jobId = null) => {
         const hexColor = parseInt(primaryColor.replace('#', 'FF'), 16); // Convert hex to Jimp color (ARGB)
         
         await updateJob("Generating High-Res Icons", 20, "Creating 512x512 app icon...");
-        // --- 1. GENERATE ICON (512x512) ---
+        // --- 1. GENERATE ICON (512x512) & PWA ICONS ---
         const icon = new Jimp({ width: 512, height: 512, color: hexColor });
+        const maskableIcon = new Jimp({ width: 512, height: 512, color: hexColor });
+        
         if (appLogo) {
             try {
                 const base64Data = appLogo.replace(/^data:image\/\w+;base64,/, "");
@@ -73,12 +82,31 @@ export const generateAppAssets = async (user, jobId = null) => {
                 const x = (512 - logo.bitmap.width) / 2;
                 const y = (512 - logo.bitmap.height) / 2;
                 icon.composite(logo, x, y);
+                
+                // Maskable safe zone: 80% (409.6px circle)
+                const maskableLogo = await Jimp.read(logoBuffer);
+                maskableLogo.resize({ w: 350, h: 350 });
+                const mx = (512 - maskableLogo.bitmap.width) / 2;
+                const my = (512 - maskableLogo.bitmap.height) / 2;
+                maskableIcon.composite(maskableLogo, mx, my);
             } catch (err) {
                 console.error("[AssetGen] Logo processing failed for icon:", err.message);
             }
         }
         const iconPath = path.join(userAssetsDir, 'icon.png');
         await icon.write(iconPath);
+        
+        // PWA standard icons
+        const icon512Path = path.join(userAssetsDir, 'icon-512x512.png');
+        await icon.write(icon512Path);
+        
+        const icon192 = icon.clone().resize({ w: 192, h: 192 });
+        const icon192Path = path.join(userAssetsDir, 'icon-192x192.png');
+        await icon192.write(icon192Path);
+        
+        const maskablePath = path.join(userAssetsDir, 'maskable-icon-512x512.png');
+        await maskableIcon.write(maskablePath);
+        
         await new Promise(r => setTimeout(r, 100));
 
         await updateJob("Generating Splash Screen", 30, "Creating 1080x1920 launch splash screen...");
@@ -146,7 +174,7 @@ export const generateAppAssets = async (user, jobId = null) => {
             await new Promise(r => setTimeout(r, 100));
         }
 
-        // --- 5. GENERATE METADATA ---
+        // --- 5. GENERATE METADATA & PWA MANIFEST ---
         const metadata = {
             shortDescription: `Top up airtime, data, and pay bills easily with ${appName}.`,
             fullDescription: `${appName} is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!`,
@@ -154,6 +182,58 @@ export const generateAppAssets = async (user, jobId = null) => {
             privacyPolicyUrl: `https://${user.subdomain || 'app'}.9jasub.com/privacy-policy`,
             websiteUrl: `https://${user.subdomain || 'app'}.9jasub.com`
         };
+
+        const pwaManifest = {
+            name: appName,
+            short_name: appName,
+            description: metadata.shortDescription,
+            id: "/",
+            start_url: "/",
+            scope: "/",
+            display: "standalone",
+            display_override: ["window-controls-overlay", "standalone"],
+            orientation: "portrait",
+            theme_color: primaryColor,
+            background_color: "#ffffff",
+            categories: ["finance", "business", "utilities"],
+            shortcuts: [
+                {
+                    name: "Dashboard",
+                    short_name: "Dashboard",
+                    description: "Go to Dashboard",
+                    url: "/dashboard"
+                },
+                {
+                    name: "Wallet",
+                    short_name: "Wallet",
+                    description: "View Wallet",
+                    url: "/dashboard/wallet"
+                }
+            ],
+            icons: [
+                {
+                    src: `/reseller-assets/${brandName}/icon-192x192.png`,
+                    sizes: "192x192",
+                    type: "image/png",
+                    purpose: "any"
+                },
+                {
+                    src: `/reseller-assets/${brandName}/icon-512x512.png`,
+                    sizes: "512x512",
+                    type: "image/png",
+                    purpose: "any"
+                },
+                {
+                    src: `/reseller-assets/${brandName}/maskable-icon-512x512.png`,
+                    sizes: "512x512",
+                    type: "image/png",
+                    purpose: "maskable"
+                }
+            ]
+        };
+
+        const pwaManifestPath = path.join(userAssetsDir, 'manifest.json');
+        fs.writeFileSync(pwaManifestPath, JSON.stringify(pwaManifest, null, 2));
 
         await updateJob("Finalizing PWA Web Manifest Configurations", 50, "Configuring multi-tenant PWA metadata profiles...");
 

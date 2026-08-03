@@ -3013,8 +3013,8 @@ export const downloadAssetsZip = async (req, res) => {
             return res.status(404).json({ message: "Assets not generated for this app yet. Click 'Generate Assets' first." });
         }
 
-        const requiredFiles = ['icon-192x192.png', 'icon-512x512.png', 'maskable-icon-512x512.png', 'manifest.json'];
-        const missingFiles = requiredFiles.filter(file => !fs.existsSync(path.join(assetDir, file)));
+        const { REQUIRED_PWA_ASSETS } = await import('../services/appAssetService.js');
+        const missingFiles = REQUIRED_PWA_ASSETS.filter(file => !fs.existsSync(path.join(assetDir, file)));
         if (missingFiles.length > 0) {
             return res.status(500).json({ 
                 message: "Generated assets directory is missing required files.",
