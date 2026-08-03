@@ -45,32 +45,68 @@ export const resolveReseller = async (req) => {
 router.get('/manifest.json', async (req, res) => {
     const reseller = await resolveReseller(req);
     const branding = reseller?.branding || {};
+    const appSettings = reseller?.appSettings || {};
 
     const siteName = branding.siteName || '9JASUB Premium VTU';
     const primaryColor = branding.primaryColor || '#3B82F6';
     const logoUrl = branding.logo || '/logo.png'; // Fallback to platform logo
+    const resellerId = reseller?._id ? String(reseller._id) : 'platform';
+
+    const screenshots = (appSettings.generatedAssets?.screenshots && Array.isArray(appSettings.generatedAssets.screenshots) && appSettings.generatedAssets.screenshots.length > 0)
+        ? appSettings.generatedAssets.screenshots.map(ss => ({
+            "src": ss,
+            "sizes": "1080x1920",
+            "type": "image/jpeg",
+            "form_factor": "narrow"
+        }))
+        : [];
 
     const manifest = {
+        "id": `/?reseller=${resellerId}`,
         "name": siteName,
         "short_name": siteName,
         "description": `Welcome to ${siteName} - The best platform for VTU and Data services.`,
         "start_url": "/",
         "display": "standalone",
+        "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],
         "background_color": "#ffffff",
         "theme_color": primaryColor,
+        "categories": ["finance", "business", "utilities"],
         "icons": [
             {
                 "src": logoUrl,
-                "sizes": "192x192",
-                "type": "image/png"
+                "sizes": "72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512",
+                "type": "image/png",
+                "purpose": "any"
             },
             {
                 "src": logoUrl,
-                "sizes": "512x512",
-                "type": "image/png"
+                "sizes": "72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512",
+                "type": "image/png",
+                "purpose": "maskable"
+            }
+        ],
+        "shortcuts": [
+            {
+                "name": "Buy Data",
+                "short_name": "Data",
+                "description": "Purchase affordable data",
+                "url": "/purchase",
+                "icons": [{ "src": logoUrl, "sizes": "192x192", "type": "image/png" }]
+            },
+            {
+                "name": "Fund Wallet",
+                "short_name": "Wallet",
+                "description": "Fund your account",
+                "url": "/wallet",
+                "icons": [{ "src": logoUrl, "sizes": "192x192", "type": "image/png" }]
             }
         ]
     };
+    
+    if (screenshots.length > 0) {
+        manifest.screenshots = screenshots;
+    }
     
     // Cache for 10 minutes to respect cache protection requirement but allow changes
     res.setHeader('Cache-Control', 'public, max-age=600');

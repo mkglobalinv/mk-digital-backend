@@ -68,6 +68,25 @@ const AppDownload = () => {
                                 <Download size={24} /> APK Not Yet Available
                             </button>
                         )}
+                        
+                        <button 
+                            onClick={async () => {
+                                const promptEvent = window.deferredPrompt;
+                                if (promptEvent) {
+                                    promptEvent.prompt();
+                                    const { outcome } = await promptEvent.userChoice;
+                                    if (outcome === 'accepted') {
+                                        window.deferredPrompt = null;
+                                        window.dispatchEvent(new Event('appinstalled'));
+                                    }
+                                } else {
+                                    window.dispatchEvent(new CustomEvent('toast:show', { detail: { message: "App is already installed or your browser does not support it.", type: "info" } }));
+                                }
+                            }}
+                            style={{ background: 'transparent', border: '2px solid white', color: 'white', padding: '18px 36px', borderRadius: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                        >
+                            <Smartphone size={24} /> Install Web App
+                        </button>
                     </div>
                 </div>
             </div>
@@ -119,7 +138,7 @@ const AppDownload = () => {
             {/* Footer */}
             <footer style={{ padding: '60px 20px', textAlign: 'center', borderTop: '1px solid #e2e8f0', color: '#64748b' }}>
                 <p style={{ fontWeight: 700, marginBottom: '8px' }}>&copy; {new Date().getFullYear()} {appName}</p>
-                {!siteInfo && <p style={{ fontSize: '15.4px' }}>Powered by 9JASUB Infrastructure</p>}
+                {(!reseller || reseller.role === 'admin') && <p style={{ fontSize: '15.4px' }}>Powered by MK GLOBAL INVESTMENT LTD.</p>}
             </footer>
         </div>
     );

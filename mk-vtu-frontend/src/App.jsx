@@ -106,6 +106,7 @@ const ResellerPlatforms = React.lazy(() => import("./reseller/pages/ResellerPlat
 const ResellerEmailCampaign = React.lazy(() => import("./reseller/pages/ResellerEmailCampaign"));
 
 import PremiumLoader from "./components/PremiumLoader";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -183,7 +184,7 @@ function App() {
 
   useEffect(() => {
     fetchSiteInfo();
-    const handlePrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); };
+    const handlePrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); window.deferredPrompt = e; };
     window.addEventListener('beforeinstallprompt', handlePrompt);
     const handleOffline = () => setIsOffline(true);
     const handleOnline = () => setIsOffline(false);
@@ -660,6 +661,7 @@ function App() {
     <ThemeProvider>
       <ToastProvider>
         <BrandingProvider siteInfo={siteInfo}>
+        <PWAInstallPrompt deferredPrompt={deferredPrompt} setDeferredPrompt={setDeferredPrompt} />
         {isWarningOpen && (
           <div className="inactivity-warning-overlay animate-fade-in" style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,

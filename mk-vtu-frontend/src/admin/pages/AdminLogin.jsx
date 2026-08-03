@@ -8,7 +8,7 @@ import { isWhiteLabelSite } from '../../utils/whiteLabelHelper';
 
 const AdminLogin = ({ setAdminToken, setAdminUser }) => {
   const siteInfo = useBranding();
-  const siteName = siteInfo?.branding?.siteName || '9JASUB';
+  const siteName = siteInfo?.branding?.siteName || (window.location.host.includes('9jasub.com') ? '9JASUB' : 'Premium VTU');
   const isWhiteLabel = siteInfo && isWhiteLabelSite(siteInfo);
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');

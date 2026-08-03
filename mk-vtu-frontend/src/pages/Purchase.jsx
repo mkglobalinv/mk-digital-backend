@@ -406,7 +406,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
 
   const handleShareWhatsApp = () => {
       if (!receiptData) return;
-      const brandName = siteInfo?.branding?.siteName || '9JASUB';
+      const brandName = siteInfo?.branding?.siteName || (window.location.host.includes('9jasub.com') ? '9JASUB' : 'Premium VTU');
       const text = `*${brandName.toUpperCase()} RECEIPT*%0A*Transaction:* ${receiptData.desc}%0A*Amount:* ₦${receiptData.amount}%0A*Date:* ${receiptData.date}%0A*Status:* SUCCESS%0A${receiptData.token ? `*Token/PIN:* ${receiptData.token}%0A` : ''}%0AThank you for using ${brandName}!`;
       window.open(`https://wa.me/?text=${text}`, '_blank');
   };

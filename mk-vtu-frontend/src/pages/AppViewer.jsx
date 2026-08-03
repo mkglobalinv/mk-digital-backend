@@ -142,7 +142,7 @@ const AppViewer = ({ user, siteInfo }) => {
             <AlertTriangle size={48} style={{ marginBottom: '16px' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#f8fafc', marginBottom: '8px' }}>Connection Blocked</h3>
             <p style={{ color: '#94a3b8', maxWidth: '400px', marginBottom: '24px', lineHeight: '1.5' }}>
-              This website cannot be viewed inside {siteInfo?.branding?.siteName || '9JASUB'}.
+              This website cannot be viewed inside {siteInfo?.branding?.siteName || (window.location.host.includes('9jasub.com') ? '9JASUB' : 'Premium VTU')}.
             </p>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {platform && (
