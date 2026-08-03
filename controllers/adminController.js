@@ -33,8 +33,7 @@ import AppBuildJob from '../models/AppBuildJob.js';
 import { generateAppAssets } from '../services/appAssetService.js';
 import socketService from '../services/socketService.js';
 import Session from '../models/Session.js';
-import * as archiverNamespace from 'archiver';
-const archiver = archiverNamespace.default || archiverNamespace;
+// legacy archiver import removed
 import ProviderStatus from '../models/ProviderStatus.js';
 
 // One-time startup migration: cap any stale failureCount values > 3 that accumulated
@@ -2992,36 +2991,67 @@ export const generateAppAssetsForRequest = async (req, res) => {
 export const downloadAssetsZip = async (req, res) => {
     try {
         const { id } = req.params;
-        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ message: "Invalid resource identifier format." });
+        }
+        
         const request = await AppRequest.findById(id).populate('resellerId');
-        if (!request) return res.status(404).json({ message: "App request not found." });
+        if (!request) {
+            return res.status(404).json({ message: "App request not found." });
+        }
 
         const user = request.resellerId;
-        if (!user) return res.status(404).json({ message: "Reseller not found." });
+        if (!user) {
+            return res.status(404).json({ message: "Reseller not found." });
+        }
 
         const appName = request.appName || user.branding?.siteName || 'app';
         const cleanBrand = appName.toLowerCase().replace(/[^a-z0-9]/g, '');
         const assetDir = path.join(process.cwd(), 'reseller-assets', cleanBrand);
-
+        
         if (!fs.existsSync(assetDir)) {
             return res.status(404).json({ message: "Assets not generated for this app yet. Click 'Generate Assets' first." });
         }
 
+        const requiredFiles = ['icon-192x192.png', 'icon-512x512.png', 'maskable-icon-512x512.png', 'manifest.json'];
+        const missingFiles = requiredFiles.filter(file => !fs.existsSync(path.join(assetDir, file)));
+        if (missingFiles.length > 0) {
+            return res.status(500).json({ 
+                message: "Generated assets directory is missing required files.",
+                missingFiles 
+            });
+        }
+
         res.attachment(`${cleanBrand}-assets.zip`);
-        const archive = archiver('zip', { zlib: { level: 9 } });
-
-        archive.on('error', (err) => { throw err; });
-        archive.pipe(res);
-
-        // Add the directory contents
-        archive.directory(assetDir, false);
         
+        // Import ZipArchive dynamically to bypass ESM/CJS import issues and factory function deprecation
+        const archiverModule = await import('archiver');
+        const ZipArchive = archiverModule.ZipArchive || archiverModule.default?.ZipArchive;
+        if (!ZipArchive) {
+            throw new Error("Archiver module did not export ZipArchive correctly.");
+        }
+
+        const archive = new ZipArchive({ zlib: { level: 9 } });
+
+        archive.on('error', (err) => { 
+            console.error('[DownloadAssets] Stream Error:', err);
+            if (!res.headersSent) {
+                res.status(500).json({ message: "Failed to stream ZIP archive: " + err.message });
+            } else {
+                res.end(); // Safely terminate HTTP stream without crashing the Node process
+            }
+        });
+        
+        archive.pipe(res);
+        archive.directory(assetDir, false);
         await archive.finalize();
 
     } catch (err) {
-        console.error("ZIP Generation Error:", err);
+        console.error("[DownloadAssets] Exception caught:", err);
         if (!res.headersSent) {
             res.status(500).json({ message: "Failed to generate ZIP: " + err.message });
+        } else {
+            res.end();
         }
     }
 };
