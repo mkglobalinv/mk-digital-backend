@@ -4,7 +4,7 @@ import { useBranding } from '../context/BrandingContext';
 
 const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt }) => {
   const [showPrompt, setShowPrompt] = useState(false);
-  const { siteInfo } = useBranding();
+  const siteInfo = useBranding() || {};
 
   useEffect(() => {
     // Only show if we have a prompt and haven't dismissed it this session

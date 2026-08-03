@@ -166,6 +166,7 @@ export const createServiceStatusAdmin = async (req, res) => {
 export const updateServiceStatusAdmin = async (req, res) => {
   try {
     const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
     const updateFields = req.body;
 
     if (updateFields.expiresAt) {
@@ -198,6 +199,7 @@ export const updateServiceStatusAdmin = async (req, res) => {
 export const deleteServiceStatusAdmin = async (req, res) => {
   try {
     const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
     
     const statusToDelete = await ServiceStatus.findById(id);
     if (!statusToDelete) {

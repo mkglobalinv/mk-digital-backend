@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 export const getUserAudit = async (req, res) => {
     try {
         const { userId } = req.params;
+        if (userId && !userId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const user = await User.findById(userId).select('-password -transactionPin -withdrawalPin');
         if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -73,6 +74,7 @@ export const getUserAudit = async (req, res) => {
 export const getResellerCustomersAudit = async (req, res) => {
     try {
         const { resellerId } = req.params;
+        if (resellerId && !resellerId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { page = 1, limit = 50, search, startDate, endDate } = req.query;
 
         // Find customer IDs
@@ -114,6 +116,7 @@ export const getResellerCustomersAudit = async (req, res) => {
 export const getProfitLedgerAudit = async (req, res) => {
     try {
         const { resellerId } = req.params;
+        if (resellerId && !resellerId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { page = 1, limit = 50, search, startDate, endDate } = req.query;
 
         // Only reseller customer transactions

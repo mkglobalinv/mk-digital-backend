@@ -372,6 +372,7 @@ export const claimSubdomain = async (req, res) => {
 export const toggleResellerUserSuspension = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const user = await User.findById(id);
         
         if (!user) return res.status(404).json({ message: "User not found" });
@@ -1410,6 +1411,7 @@ export const createResellerContent = async (req, res) => {
 export const deleteResellerContent = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const content = await Content.findOneAndDelete({ _id: id, resellerId: req.user.id });
         if (!content) return res.status(404).json({ message: "Content not found or unauthorized" });
         res.json({ message: "Content deleted successfully" });
@@ -1449,6 +1451,7 @@ export const getBusinessProfileStats = async (req, res) => {
 export const adjustCustomerWallet = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { action, amount, reason, pin } = req.body;
         const numAmount = Number(amount);
 
@@ -1521,6 +1524,7 @@ export const adjustCustomerWallet = async (req, res) => {
 export const notifyCustomer = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { subject, message } = req.body;
 
         const User = (await import('../models/User.js')).default;

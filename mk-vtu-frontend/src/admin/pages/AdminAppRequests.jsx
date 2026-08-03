@@ -401,7 +401,7 @@ const AdminAppRequests = () => {
                                                     {generatingAssets[req._id] ? 'Computing...' : 'Generate Assets'}
                                                 </button>
                                                 <a 
-                                                    href={`${import.meta.env.VITE_API_URL}/api/admin/app-requests/${req._id}/assets/download?token=${(localStorage.getItem('superAdminToken') || localStorage.getItem('adminToken'))}`}
+                                                    href={`${import.meta.env.VITE_API_URL || window.location.origin || ''}/api/admin/app-requests/${req._id || 'missing_id'}/assets/download?token=${(localStorage.getItem('superAdminToken') || localStorage.getItem('adminToken'))}`}
                                                     className="premium-btn premium-btn-secondary"
                                                     style={{ textDecoration: 'none' }}
                                                 >

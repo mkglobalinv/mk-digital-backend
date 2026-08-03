@@ -9,6 +9,12 @@ const UserAudit = ({ token }) => {
   const { userId } = useParams();
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    if (!userId) {
+      navigate('/admin/users', { replace: true });
+    }
+  }, [userId, navigate]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [auditData, setAuditData] = useState(null);

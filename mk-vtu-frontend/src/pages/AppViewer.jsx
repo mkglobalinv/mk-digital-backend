@@ -6,6 +6,12 @@ import API from '../api';
 const AppViewer = ({ user, siteInfo }) => {
   const { platformId } = useParams();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!platformId) {
+      navigate('/admin/apps', { replace: true });
+    }
+  }, [platformId, navigate]);
   const [platform, setPlatform] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);

@@ -35,6 +35,7 @@ export const updatePlatform = async (req, res) => {
     try {
         console.log("REQUEST BODY:", req.body);
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const updates = req.body;
         
         const platform = await FuturePlatform.findByIdAndUpdate(id, updates, { new: true });
@@ -51,6 +52,7 @@ export const updatePlatform = async (req, res) => {
 export const deletePlatform = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         await FuturePlatform.findByIdAndDelete(id);
         res.json({ message: "Platform deleted successfully" });
     } catch (err) {

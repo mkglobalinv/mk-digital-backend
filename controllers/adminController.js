@@ -1588,6 +1588,7 @@ export const getResellers = async (req, res) => {
 export const getResellerCustomers = async (req, res) => {
     try {
         const { resellerId } = req.params;
+        if (resellerId && !resellerId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const customers = await User.find({ tenantOwnerId: resellerId }).select('-password').sort({ createdAt: -1 });
         res.json(customers);
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -1611,6 +1612,7 @@ export const updateResellerStatus = async (req, res) => {
 export const toggleIndependence = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { enabled } = req.body;
         const user = await User.findByIdAndUpdate(id, { independence_redirect_enabled: enabled }, { new: true });
         await AdminLog.create({ adminId: req.user._id, action: 'TOGGLE_INDEPENDENCE', details: { resellerId: id, enabled } });
@@ -1621,6 +1623,7 @@ export const toggleIndependence = async (req, res) => {
 export const resetBranding = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const user = await User.findByIdAndUpdate(id, { 
             admin_logo_url: null, 
             theme_color_primary: '#0f172a', 
@@ -1634,6 +1637,7 @@ export const resetBranding = async (req, res) => {
 export const forceLogout = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         await Session.updateMany({ userId: id }, { isValid: false });
         await AdminLog.create({ adminId: req.user._id, action: 'FORCE_LOGOUT', details: { targetUserId: id } });
         res.json({ message: "All active sessions invalidated." });
@@ -1740,6 +1744,7 @@ export const reverseTransaction = async (req, res) => {
 
 export const updateResellerBranding = async (req, res) => {
     const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
     const { branding } = req.body;
     try {
         const user = await User.findById(id);
@@ -1796,6 +1801,7 @@ export const broadcastToResellers = async (req, res) => {
 
 export const broadcastToResellerCustomers = async (req, res) => {
     const { id } = req.params; // Reseller ID
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
     const { title, message } = req.body;
     try {
         const customers = await User.find({ referredBy: id }, 'email name _id');
@@ -1838,6 +1844,7 @@ export const adminResetPassword = async (req, res) => {
 export const updateResellerLifecycle = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { status, adminNotes, notifyUser } = req.body;
         
         if (!['active', 'suspended', 'rejected', 'pending'].includes(status)) {
@@ -2296,6 +2303,7 @@ export const getAppRequests = async (req, res) => {
 export const updateAppRequestStatus = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { status, estimatedDeliveryTime, apkUrl, apkUploadedAt, apkFileSize, aabUrl, aabUploadedAt, aabFileSize, playStoreAssets, adminNotes, notifyUser } = req.body;
 
         if (!id) return res.status(400).json({ message: "Request ID is required." });
@@ -2381,6 +2389,7 @@ export const updateAppRequestStatus = async (req, res) => {
 export const forceRebuildApp = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const request = await AppRequest.findOne({ resellerId: id });
         if (!request) return res.status(404).json({ message: "App request not found for this reseller." });
 
@@ -2404,6 +2413,7 @@ export const forceRebuildApp = async (req, res) => {
 export const forceSyncReseller = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         socketService.emitResellerAppSync(id, { message: 'Configuration sync forced by admin...' });
         
         await AdminLog.create({ 
@@ -2433,6 +2443,7 @@ export const getDomainRequests = async (req, res) => {
 export const updateDomainRequestStatus = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { 
             status, 
             adminNotes, 
@@ -2491,6 +2502,7 @@ import deploymentProvider from '../services/deploymentProvider.js';
 export const approveDomainDeployment = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         
         // Use findOneAndUpdate to atomically acquire a lock for this deployment
         const request = await CustomDomainRequest.findOneAndUpdate(
@@ -2584,6 +2596,7 @@ export const approveDomainDeployment = async (req, res) => {
 export const uploadApk = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const request = await AppRequest.findById(id).populate('resellerId');
         if (!request) return res.status(404).json({ message: "App request not found." });
 
@@ -2694,6 +2707,7 @@ export const uploadApk = async (req, res) => {
 export const uploadAab = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const request = await AppRequest.findById(id);
         if (!request) return res.status(404).json({ message: "App request not found." });
 
@@ -2947,6 +2961,7 @@ function calculateSuccessRate(analytics) {
 export const generateAppAssetsForRequest = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const request = await AppRequest.findById(id).populate('resellerId');
         if (!request) return res.status(404).json({ message: "App request not found." });
 
@@ -2977,6 +2992,7 @@ export const generateAppAssetsForRequest = async (req, res) => {
 export const downloadAssetsZip = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const request = await AppRequest.findById(id).populate('resellerId');
         if (!request) return res.status(404).json({ message: "App request not found." });
 
@@ -3014,6 +3030,7 @@ import { insertLedgerEntry, syncLedgerToMongo } from '../services/supabaseLedger
 export const initiateResellerWalletAction = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { amount, type, wallet, reason, fundingPassword } = req.body;
         const numericAmount = Number(amount);
 
@@ -3099,6 +3116,7 @@ export const initiateResellerWalletAction = async (req, res) => {
 export const confirmResellerWalletAction = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { intentToken, otp } = req.body;
         
         const secret = process.env.JWT_SECRET || 'mk_sub_data_secret_2024_premium';
@@ -3673,6 +3691,7 @@ export const getProviders = async (req, res) => {
 export const updateProviderStatus = async (req, res) => {
     try {
         const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { isUnderMaintenance, manualDisabled } = req.body;
         const provider = await ProviderStatus.findById(id);
         if (!provider) return res.status(404).json({ success: false, message: 'Provider not found' });
@@ -3757,6 +3776,7 @@ export const regenerateResellerUrl = async (req, res) => {
 export const getResellerPricingDashboard = async (req, res) => {
     try {
         const resellerId = req.params.id;
+        if (resellerId && !resellerId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const reseller = await User.findById(resellerId);
         if (!reseller) return res.status(404).json({ message: 'Reseller not found' });
 
@@ -3840,6 +3860,7 @@ export const getResellerPricingDashboard = async (req, res) => {
 export const setResellerAssignedPrice = async (req, res) => {
     try {
         const resellerId = req.params.id;
+        if (resellerId && !resellerId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { serviceType, network, planId, buyingPrice, assignedSellingPrice, note } = req.body;
 
         if (!serviceType) return res.status(400).json({ message: 'serviceType is required' });
@@ -3892,6 +3913,7 @@ export const setResellerAssignedPrice = async (req, res) => {
 export const removeResellerAssignedPrice = async (req, res) => {
     try {
         const resellerId = req.params.id;
+        if (resellerId && !resellerId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { serviceType, network, planId } = req.body;
 
         const AdminPricingOverride = (await import('../models/AdminPricingOverride.js')).default;
@@ -3933,6 +3955,7 @@ export const removeResellerAssignedPrice = async (req, res) => {
 export const toggleResellerPricingPermission = async (req, res) => {
     try {
         const resellerId = req.params.id;
+        if (resellerId && !resellerId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { canOverridePricing } = req.body;
 
         if (typeof canOverridePricing !== 'boolean') {

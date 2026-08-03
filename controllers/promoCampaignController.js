@@ -30,6 +30,7 @@ export const createCampaign = async (req, res) => {
 export const updateCampaign = async (req, res) => {
   try {
     const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
     const { name, activeStatus, startDate, endDate, displayFrequency, ctaText, ctaUrl, cards } = req.body;
     
     if (activeStatus) {
@@ -71,6 +72,7 @@ export const getAdminCampaigns = async (req, res) => {
 export const deleteCampaign = async (req, res) => {
   try {
     const { id } = req.params;
+        if (id && !id.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
     await PromoCampaign.findByIdAndDelete(id);
     await PromoCard.deleteMany({ campaignId: id });
     await PromoCampaignView.deleteMany({ campaignId: id });

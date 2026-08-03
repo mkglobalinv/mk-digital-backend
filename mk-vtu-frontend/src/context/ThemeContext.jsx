@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => useContext(ThemeContext) || { theme: "light", toggleTheme: () => {} };
 
 export const ThemeProvider = ({ children }) => {
   const [isLightMode, setIsLightMode] = useState(() => {

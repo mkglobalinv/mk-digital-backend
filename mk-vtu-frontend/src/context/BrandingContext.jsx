@@ -11,5 +11,5 @@ export const BrandingProvider = ({ siteInfo, children }) => {
 };
 
 export const useBranding = () => {
-    return useContext(BrandingContext);
+    return useContext(BrandingContext) || {};
 };
