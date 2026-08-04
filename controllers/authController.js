@@ -4,7 +4,7 @@ import Session from "../models/Session.js";
 import OTPAuditLog from "../models/OTPAuditLog.js";
 import Notification from "../models/Notification.js";
 import { logFraudEvent } from "../middlewares/fraudMiddleware.js";
-import { sendPinResetAlertEmail, sendOTPEmail, sendLoginAlertEmail } from "../services/emailService.js";
+import { sendPinResetAlertEmail, sendOTPEmail, sendLoginAlertEmail, dispatchOTP } from "../services/emailService.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 // import { handleVACreation } from "../services/accountService.js";
@@ -78,13 +78,7 @@ export const register = async (req, res) => {
     const otpTime = performance.now() - otpStart;
 
     const emailQueueStart = performance.now();
-    setImmediate(async () => {
-      try {
-        await sendOTPEmail(newUser.email, otp);
-      } catch (err) {
-        console.error("[Signup] OTP Email Error:", err.message);
-      }
-    });
+    const emailSent = await dispatchOTP(newUser.email, otp);
     const emailQueueTime = performance.now() - emailQueueStart;
 
     const reqTime = performance.now() - reqStart;
@@ -141,9 +135,8 @@ export const requestOTP = async (req, res) => {
     const emailQueueStart = performance.now();
     console.log(`Generating OTP for password reset for: ${user.email}`);
     
-    setImmediate(async () => {
-      try {
-        const emailSent = await sendOTPEmail(user.email, otp);
+    // Directly send OTP and record audit log
+        const emailSent = await dispatchOTP(user.email, otp);
         const attemptsCount = await OTPAuditLog.countDocuments({ email, action: isResend ? "resend" : "request" });
         await OTPAuditLog.create({
           email,
@@ -152,10 +145,6 @@ export const requestOTP = async (req, res) => {
           attempts: attemptsCount + 1,
           details: emailSent ? "OTP sent successfully" : "SMTP transport failure"
         });
-      } catch (err) {
-        console.error("[RequestOTP] Background error:", err.message);
-      }
-    });
     const emailQueueTime = performance.now() - emailQueueStart;
 
     const reqTime = performance.now() - reqStart;

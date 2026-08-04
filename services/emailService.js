@@ -50,10 +50,24 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// --- Startup Diagnostics & Instrumentation ---
+transporter.verify((error, success) => {
+    console.log("========== SMTP VERIFICATION ==========");
+    if (error) {
+        console.error("transporter.verify() FAILED:");
+        console.error(error);
+    } else {
+        console.log("transporter.verify() SUCCESS:", success);
+    }
+    console.log("=======================================");
+});
+
 // --- 2. Email Flow Logging & SMTP Transport ---
 export const sendEmail = async (to, subject, html) => {
     try {
         console.log(`\n========== INITIATING EMAIL SEND ==========`);
+        console.log(`SMTP Host: ${process.env.EMAIL_HOST || 'smtp.gmail.com'}`);
+        console.log(`SMTP Port: ${process.env.EMAIL_PORT || 587}`);
         console.log(`Sender Email: ${EMAIL_FROM}`);
         console.log(`Recipient Email: ${to}`);
         console.log(`Subject: ${subject}`);
@@ -73,9 +87,15 @@ export const sendEmail = async (to, subject, html) => {
         return true;
 
     } catch (error) {
-        console.error(`\n[Email to ${to}] FAILED at SMTP Transport.`);
-        console.error("[INTERNAL ERROR]:", error.message);
-        console.log(`==========================================\n`);
+        console.error(`\n========== NODEMAILER ERROR ==========`);
+        console.error(`[Email to ${to}] FAILED at SMTP Transport.`);
+        console.error(`Error Code:`, error.code);
+        console.error(`Error Command:`, error.command);
+        console.error(`Error Response:`, error.response);
+        console.error(`Error ResponseCode:`, error.responseCode);
+        console.error(`Full Error Object:`, JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        console.error(`Stack Trace:\n`, error.stack);
+        console.error(`==========================================\n`);
         
         return false;
     }
@@ -393,4 +413,22 @@ export const sendLoginAlertEmail = async (email, details) => {
         </div>
     `;
     return sendEmail(email, subject, html);
+};
+// === Shared OTP dispatch helper ===
+export const dispatchOTP = async (email, otp) => {
+  console.log(`OTP dispatch started for ${email}`);
+  try {
+    const sent = await sendOTPEmail(email, otp);
+    console.log(`OTP dispatch succeeded for ${email}`);
+    return true;
+  } catch (error) {
+    console.error(`OTP dispatch failed for ${email}`);
+    console.error('Error Code:', error.code);
+    console.error('Error Command:', error.command);
+    console.error('Error Response:', error.response);
+    console.error('Error ResponseCode:', error.responseCode);
+    console.error('Full Error Object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    console.error('Stack Trace:\n', error.stack);
+    return false;
+  }
 };
