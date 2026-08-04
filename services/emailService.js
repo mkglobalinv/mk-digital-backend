@@ -1,4 +1,4 @@
-import axios from 'axios';
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import User from '../models/User.js';
@@ -24,16 +24,9 @@ const getBrandingForEmail = async (email) => {
 
 // --- 1. Startup Diagnostics ---
 console.log("=== EMAIL SERVICE STARTUP DIAGNOSTICS ===");
-console.log(`Transport: Brevo REST API (HTTPS)`);
+console.log(`Transport: Nodemailer (SMTP)`);
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || process.env.EMAIL_USER;
-
-if (!BREVO_API_KEY) {
-    console.error(`[CRITICAL] BREVO_API_KEY is missing from environment variables.`);
-} else {
-    console.log(`BREVO_API_KEY: EXISTS (Length: ${BREVO_API_KEY.length})`);
-}
 
 if (!EMAIL_FROM) {
     console.error(`[CRITICAL] EMAIL_FROM is missing from environment variables.`);
@@ -42,73 +35,46 @@ if (!EMAIL_FROM) {
 }
 console.log("==========================================");
 
+const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: process.env.EMAIL_PORT || 587,
+    secure: String(process.env.EMAIL_PORT) === '465', 
+    pool: false,
+    family: 4,
+    auth: {
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
 
-// --- 2. Email Flow Logging & HTTPS Transport ---
+// --- 2. Email Flow Logging & SMTP Transport ---
 export const sendEmail = async (to, subject, html) => {
     try {
         console.log(`\n========== INITIATING EMAIL SEND ==========`);
-        console.log(`8. BREVO_API_KEY Exists: ${!!BREVO_API_KEY}`);
-        console.log(`9. EMAIL_FROM Exists: ${!!EMAIL_FROM}`);
-        console.log(`5. Sender Email: ${EMAIL_FROM}`);
-        console.log(`6. Recipient Email: ${to}`);
-        console.log(`7. Subject: ${subject}`);
-
-        if (!BREVO_API_KEY) {
-            console.log(`[MOCK EMAIL to ${to}] Subject: ${subject}`);
-            console.log(`==========================================\n`);
-            return true;
-        }
+        console.log(`Sender Email: ${EMAIL_FROM}`);
+        console.log(`Recipient Email: ${to}`);
+        console.log(`Subject: ${subject}`);
 
         const branding = await getBrandingForEmail(to);
         const senderName = branding?.siteName || "9JASUB";
 
-        const payload = {
-            sender: { name: senderName, email: EMAIL_FROM },
-            to: [{ email: to }],
+        const info = await transporter.sendMail({
+            from: `"${senderName}" <${EMAIL_FROM}>`,
+            to: to,
             subject: subject,
-            htmlContent: html
-        };
-
-        console.log(`1. Full HTTP Request Payload (excluding API Key):`);
-        console.log(JSON.stringify(payload, null, 2));
-
-        const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
-            headers: {
-                'api-key': BREVO_API_KEY,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            timeout: 10000 // 10 seconds timeout
+            html: html
         });
 
-        console.log(`2. HTTP Status Code: ${response.status}`);
-        console.log(`3. Complete JSON Response from Brevo:`);
-        console.log(JSON.stringify(response.data, null, 2));
-
-        // Brevo returns HTTP 201 Created on success
-        if (response.status === 201 || response.status === 200) {
-            console.log(`10. Success! Brevo messageId: ${response.data.messageId}`);
-            console.log(`==========================================\n`);
-            return true;
-        } else {
-            console.warn(`[Email to ${to}] Unexpected success status: ${response.status}`);
-            console.log(`==========================================\n`);
-            return true;
-        }
+        console.log(`Success! Message sent: ${info.messageId}`);
+        console.log(`==========================================\n`);
+        return true;
 
     } catch (error) {
-        console.error(`\n[Email to ${to}] FAILED at Brevo REST API.`);
-        
-        if (error.response) {
-            console.error(`2. HTTP Status Code: ${error.response.status}`);
-            console.error(`4. Complete Error Body from Brevo:`);
-            console.error(JSON.stringify(error.response.data, null, 2));
-        } else if (error.request) {
-            console.error("[NETWORK ERROR]: No response received from Brevo API.");
-            console.error(error.message);
-        } else {
-            console.error("[INTERNAL ERROR]:", error.message);
-        }
+        console.error(`\n[Email to ${to}] FAILED at SMTP Transport.`);
+        console.error("[INTERNAL ERROR]:", error.message);
         console.log(`==========================================\n`);
         
         return false;
