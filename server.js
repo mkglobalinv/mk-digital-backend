@@ -1917,7 +1917,8 @@ app.get("/api/transactions", auth, async (req, res) => {
     const filteredTransactions = rawTransactions.filter(tx => {
         if (tx.isInternal) {
             const isCashback = tx.ledger_type === 'LIFETIME_CASHBACK' || (tx.description && tx.description.toLowerCase().includes('cashback'));
-            if (!isCashback) return false;
+            const isReferral = tx.ledger_type === 'REFERRAL_ACTIVATION' || tx.ledger_type === 'LIFETIME_REFERRAL_SHARE' || (tx.reference && tx.reference.startsWith('REF-REWARD'));
+            if (!isCashback && !isReferral) return false;
         }
         if (tx.description) {
             const desc = tx.description.toLowerCase();

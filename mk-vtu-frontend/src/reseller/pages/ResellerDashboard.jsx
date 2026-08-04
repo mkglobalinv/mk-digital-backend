@@ -270,7 +270,7 @@ const ResellerDashboard = ({ user }) => {
                             color: '#fff', fontWeight: '800', fontSize: '16px', cursor: 'pointer', transition: 'all 0.2s',
                             boxShadow: '0 4px 12px rgba(59,130,246,0.3)'
                         }}>
-                            Upgrade to Basic (₦5,000)
+                            Website Setup & Activation Fee
                         </button>
                         <button onClick={closeWebsiteReady} style={{
                             padding: '16px', borderRadius: '12px', border: 'none', background: 'transparent',
@@ -356,7 +356,7 @@ const ResellerDashboard = ({ user }) => {
                             <ShieldCheck size={24} color="#8b5cf6" />
                         </div>
                         <div className="banner-text">
-                            <h4>Premium Subscription Active</h4>
+                            <h4>Website Hosting & Maintenance Fee Active</h4>
                             <p>Expires in <strong>{daysUntilPremiumExpiry} days</strong> ({new Date(user.subscriptionExpiresAt).toLocaleDateString()})</p>
                         </div>
                     </div>

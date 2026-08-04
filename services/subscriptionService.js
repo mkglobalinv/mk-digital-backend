@@ -41,10 +41,10 @@ class SubscriptionService {
 
         if (targetTier === 'premium' || targetTier === 'vip') {
             cost = durationMonths === 6 ? premiumPricing.sixMonths : premiumPricing.yearly;
-            description = `Premium Reseller ${actionType === 'renewal' ? 'Renewal' : 'Upgrade'} (${durationMonths} months)`;
+            description = `Website Hosting & Maintenance Fee ${actionType === 'renewal' ? 'Renewal' : 'Upgrade'} (${durationMonths} months)`;
         } else if (targetTier === 'basic' && actionType === 'activation') {
             cost = basicPricing.activation;
-            description = "Basic Reseller Lifetime Activation";
+            description = "Website Setup & Activation Fee";
         }
 
         // 2. Wallet Deductions & Transactions

@@ -66,7 +66,7 @@ const ResellerPremium = ({ user, refreshUser }) => {
         <div className="reseller-container animate-fade-in">
             <header className="reseller-header" style={{ textAlign: 'center', marginBottom: '48px' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', padding: '8px 20px', borderRadius: '100px', fontSize: '15.4px', fontWeight: 700, marginBottom: '16px' }}>
-                    <ShieldCheck size={18} /> Premium Website Plans
+                    <ShieldCheck size={18} /> Website Hosting & Maintenance Fee Plans
                 </div>
                 <h1 style={{ fontSize: '39.6px', fontWeight: 900, marginBottom: '16px' }}>Scale Your Website.</h1>
                 <p style={{ color: '#64748b', fontSize: '19.8px', maxWidth: '700px', margin: '0 auto' }}>
@@ -84,7 +84,7 @@ const ResellerPremium = ({ user, refreshUser }) => {
             {(user?.resellerTier === 'premium' || user?.resellerTier === 'vip') && (
                 <div className="alert success" style={{ maxWidth: '800px', margin: '0 auto 32px' }}>
                     <CheckCircle size={20} />
-                    <span>You have an active Premium Subscription. Valid until {user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt).toLocaleDateString() : 'Active'}. You can renew below to extend your validity.</span>
+                    <span>You have an active Website Hosting & Maintenance Fee. Valid until {user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt).toLocaleDateString() : 'Active'}. You can renew below to extend your validity.</span>
                 </div>
             )}
 
@@ -150,7 +150,7 @@ const ResellerPremium = ({ user, refreshUser }) => {
                 <Shield size={40} color="#6366f1" style={{ marginBottom: '16px' }} />
                 <h3 style={{ fontSize: '22.0px', fontWeight: 800, marginBottom: '8px' }}>Website Impact</h3>
                 <p style={{ color: 'var(--reseller-text-muted)', lineHeight: '1.6' }}>
-                    If your premium subscription expires, your website, customers, and website URL will remain fully active. You will only lose access to the VIP features (Bulk Email, Android App, Priority Support).
+                    If your Website Hosting & Maintenance Fee expires, your website, customers, and website URL will remain fully active. You will only lose access to the VIP features (Bulk Email, Android App, Priority Support).
                 </p>
             </div>
 

@@ -54,17 +54,17 @@ export const startResellerMaintenanceWorker = () => {
 
                 await Notification.create({
                     userId: user._id,
-                    title: 'Premium Subscription Expired',
-                    message: 'Your Premium subscription has expired. You have been automatically downgraded to the Starter plan. Your business and customers remain active.',
+                    title: 'Website Hosting & Maintenance Fee Expired',
+                    message: 'Your Website Hosting & Maintenance Fee has expired. You have been automatically downgraded to the Starter plan. Your business and customers remain active.',
                     type: 'system'
                 });
             }
 
             // 3. Subscription Reminders (30, 7, 1 days)
             const warningPeriods = [
-                { days: 30, message: 'Your Premium subscription expires in 30 days. Renew now for uninterrupted access to custom domains and APK tools.' },
-                { days: 7, message: 'Warning: Your Premium subscription expires in 7 days. Your custom domain may pause if not renewed.' },
-                { days: 1, message: 'CRITICAL: Your Premium subscription expires tomorrow! Renew now to keep your premium features active.' }
+                { days: 30, message: 'Your Website Hosting & Maintenance Fee expires in 30 days. Renew now for uninterrupted access to custom domains and APK tools.' },
+                { days: 7, message: 'Warning: Your Website Hosting & Maintenance Fee expires in 7 days. Your custom domain may pause if not renewed.' },
+                { days: 1, message: 'CRITICAL: Your Website Hosting & Maintenance Fee expires tomorrow! Renew now to keep your premium features active.' }
             ];
 
             for (const period of warningPeriods) {

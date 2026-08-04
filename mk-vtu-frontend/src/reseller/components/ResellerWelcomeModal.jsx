@@ -67,7 +67,7 @@ const ResellerWelcomeModal = ({ user }) => {
                     <div className="welcome-section highlight-section">
                         <h4><Lightbulb size={20} /> 💡 Important Tip</h4>
                         <p>Your customers use <strong>their own funds</strong> to purchase services.</p>
-                        <p>You only need to fund your <strong>Main Wallet (Operating Balance)</strong> when using optional platform features that specifically require payment, such as Premium subscriptions or other paid services.</p>
+                        <p>You only need to fund your <strong>Main Wallet (Operating Balance)</strong> when using optional platform features that specifically require payment, such as Website Hosting & Maintenance Fees or other paid services.</p>
                     </div>
                 </div>
 

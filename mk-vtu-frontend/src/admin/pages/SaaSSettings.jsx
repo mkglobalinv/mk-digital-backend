@@ -261,7 +261,7 @@ const SaaSSettings = () => {
                             <ShieldCheck size={20} />
                         </div>
                         <div>
-                            <h2 style={{ fontSize: '19.8px', fontWeight: 800, margin: 0 }}>Premium Subscription</h2>
+                            <h2 style={{ fontSize: '19.8px', fontWeight: 800, margin: 0 }}>Website Hosting & Maintenance Fee</h2>
                             <p style={{ margin: 0, fontSize: '14.3px', color: 'var(--text-gray)' }}>Revenue model configuration.</p>
                         </div>
                     </div>
