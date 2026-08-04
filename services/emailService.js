@@ -26,7 +26,14 @@ const getBrandingForEmail = async (email) => {
 console.log("=== EMAIL SERVICE STARTUP DIAGNOSTICS ===");
 console.log(`Transport: Nodemailer (SMTP)`);
 
-const EMAIL_FROM = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+// Resolve email credentials, prefer Brevo-specific env vars if present
+const EMAIL_USER = process.env.EMAIL_USER || process.env.BREVO_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS || process.env.BREVO_PASS;
+const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
+
+if (!EMAIL_USER || !EMAIL_PASS) {
+    console.error('[CRITICAL] Email credentials are missing. Set EMAIL_USER and EMAIL_PASS (or BREVO_USER/BREVO_PASS).');
+}
 
 if (!EMAIL_FROM) {
     console.error(`[CRITICAL] EMAIL_FROM is missing from environment variables.`);
@@ -36,14 +43,16 @@ if (!EMAIL_FROM) {
 console.log("==========================================");
 
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    // Default to Brevo SMTP if environment variables are missing
+    host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com',
     port: process.env.EMAIL_PORT || 587,
-    secure: String(process.env.EMAIL_PORT) === '465', 
+    // Use secure connection for port 465, otherwise plain TLS
+    secure: String(process.env.EMAIL_PORT) === '465',
     pool: false,
     family: 4,
     auth: {
-        user: process.env.EMAIL_USER, 
-        pass: process.env.EMAIL_PASS,
+        user: process.env.EMAIL_USER, // Brevo SMTP username (usually your email)
+        pass: process.env.EMAIL_PASS, // Brevo SMTP password or API key
     },
     tls: {
         rejectUnauthorized: false
@@ -65,8 +74,8 @@ transporter.verify((error, success) => {
 // --- 2. Email Flow Logging & SMTP Transport ---
 export const sendEmail = async (to, subject, html) => {
     try {
-        console.log(`\n========== INITIATING EMAIL SEND ==========`);
-        console.log(`SMTP Host: ${process.env.EMAIL_HOST || 'smtp.gmail.com'}`);
+        console.log(`========== INITIATING EMAIL SEND ==========`);
+        console.log(`SMTP Host: ${process.env.EMAIL_HOST || 'smtp-relay.brevo.com'}`);
         console.log(`SMTP Port: ${process.env.EMAIL_PORT || 587}`);
         console.log(`Sender Email: ${EMAIL_FROM}`);
         console.log(`Recipient Email: ${to}`);

@@ -4,12 +4,36 @@ import Session from "../models/Session.js";
 import OTPAuditLog from "../models/OTPAuditLog.js";
 import Notification from "../models/Notification.js";
 import { logFraudEvent } from "../middlewares/fraudMiddleware.js";
-import { sendPinResetAlertEmail, sendOTPEmail, sendLoginAlertEmail, dispatchOTP } from "../services/emailService.js";
+import { sendPinResetAlertEmail, sendOTPEmail, sendLoginAlertEmail, dispatchOTP as sendEmailOTP } from "../services/emailService.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 // import { handleVACreation } from "../services/accountService.js";
 import auditLogService from "../services/auditLogService.js";
 import { performance } from "perf_hooks";
+
+// === Shared OTP dispatch helper ===
+export const dispatchOTP = async (email, otp) => {
+  console.log(`[DISPATCH OTP] Target recipient: ${email}, OTP: ${otp}`);
+  try {
+    const sent = await sendEmailOTP(email, otp);
+    if (sent) {
+      console.log(`[DISPATCH OTP] Success for ${email}`);
+      return true;
+    } else {
+      console.error(`[DISPATCH OTP] Reported failure for ${email}`);
+      return false;
+    }
+  } catch (error) {
+    console.error(`[DISPATCH OTP] Exception for ${email}`);
+    console.error('Error Code:', error.code);
+    console.error('Error Command:', error.command);
+    console.error('Error Response:', error.response);
+    console.error('Error ResponseCode:', error.responseCode);
+    console.error('Full Error Object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    console.error('Stack Trace:\n', error.stack);
+    return false;
+  }
+};
 
 export const register = async (req, res) => {
   const reqStart = performance.now();
@@ -78,6 +102,8 @@ export const register = async (req, res) => {
     const otpTime = performance.now() - otpStart;
 
     const emailQueueStart = performance.now();
+    console.log('[REGISTRATION] Recipient email:', newUser.email, 'OTP generated:', otp);
+    console.log(`[AUTH] Dispatching registration OTP to ${newUser.email}`);
     const emailSent = await dispatchOTP(newUser.email, otp);
     const emailQueueTime = performance.now() - emailQueueStart;
 
@@ -136,6 +162,8 @@ export const requestOTP = async (req, res) => {
     console.log(`Generating OTP for password reset for: ${user.email}`);
     
     // Directly send OTP and record audit log
+        console.log('[REQUEST OTP] Recipient email:', user.email, 'OTP generated:', otp);
+        console.log(`[AUTH] Dispatching request OTP to ${user.email}`);
         const emailSent = await dispatchOTP(user.email, otp);
         const attemptsCount = await OTPAuditLog.countDocuments({ email, action: isResend ? "resend" : "request" });
         await OTPAuditLog.create({
@@ -575,7 +603,8 @@ export const resendEmailOTP = async (req, res) => {
     
     setImmediate(async () => {
         try {
-            await sendOTPEmail(user.email, otp);
+            console.log(`[AUTH] Dispatching resend OTP to ${user.email}`);
+            await dispatchOTP(user.email, otp);
         } catch (err) {
             console.error("[ResendOTP] Background email error:", err.message);
         }
@@ -625,7 +654,8 @@ export const verifySecurityQuestions = async (req, res) => {
         setImmediate(async () => {
             try {
                 await sendPinResetAlertEmail(user.email);
-                await sendOTPEmail(user.email, otp);
+                console.log(`[AUTH] Dispatching security question OTP to ${user.email}`);
+                await dispatchOTP(user.email, otp);
             } catch (err) {
                 console.error("[VerifySecurityQuestions] Background email error:", err.message);
             }
@@ -717,14 +747,16 @@ export const requestPinOTP = async (req, res) => {
     setImmediate(async () => {
         try {
             const startTime = Date.now();
-            await sendOTPEmail(user.email, otp);
-            console.log(`[Telemetry] PIN reset OTP email processed in ${Date.now() - startTime}ms`);
-        } catch (err) {
-            console.error("[RequestPinOTP] Background email error:", err.message);
+         console.log('[ADMIN LOGIN] Recipient email:', user.email, 'OTP generated:', otp);
+         console.log(`[AUTH] Dispatching pin reset OTP to ${user.email}`);
+        const sent = await dispatchOTP(user.email, otp);
+        if (!sent) {
+            console.error("[Security] Admin OTP dispatch reported failure");
         }
-    });
-
-        res.json({ success: true, message: "OTP sent to your email" });
+        console.log(`[Telemetry] PIN reset OTP email processed in ${Date.now() - startTime}ms`);
+    } catch (error) {
+        console.error("[SECURITY] Unhandled SMTP exception caught during dispatch:", error);
+    }    res.json({ success: true, message: "OTP sent to your email" });
     } catch (err) {
         console.error("REQUEST PIN OTP ERROR:", err);
         res.status(500).json({ message: "Server error" });
