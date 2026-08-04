@@ -419,8 +419,13 @@ export const dispatchOTP = async (email, otp) => {
   console.log(`OTP dispatch started for ${email}`);
   try {
     const sent = await sendOTPEmail(email, otp);
-    console.log(`OTP dispatch succeeded for ${email}`);
-    return true;
+    if (sent) {
+      console.log(`OTP dispatch succeeded for ${email}`);
+      return true;
+    } else {
+      console.error(`OTP dispatch reported failure for ${email}`);
+      return false;
+    }
   } catch (error) {
     console.error(`OTP dispatch failed for ${email}`);
     console.error('Error Code:', error.code);

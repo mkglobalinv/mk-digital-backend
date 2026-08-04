@@ -18,7 +18,8 @@ import {
     sendTransactionNotification, 
     sendAdminLoginAlert, 
     sendAdminOTPEmail,
-    sendEmail
+    sendEmail,
+    dispatchOTP
 } from '../services/emailService.js';
 import { uploadBufferToSupabase } from '../services/supabaseStorage.js';
 import OTP from '../models/OTP.js';
@@ -143,11 +144,13 @@ export const adminLogin = async (req, res) => {
 
     let emailSent = true;
     try {
-        sendAdminOTPEmail(user.email, otpCode).catch(err => {
-            console.error("[Security] Admin OTP async error:", err);
-        });
-    } catch (smtpErr) {
-        console.error("[SECURITY] Unhandled SMTP exception caught during dispatch:", smtpErr);
+        const sent = await dispatchOTP(user.email, otpCode);
+        if (!sent) {
+            console.error("[Security] Admin OTP dispatch reported failure");
+            emailSent = false;
+        }
+    } catch (error) {
+        console.error("[SECURITY] Unhandled SMTP exception caught during dispatch:", error);
         emailSent = false;
     }
     console.log(`[SECURITY] Admin Login OTP generated for ${user.email}: ${otpCode}`);
@@ -1264,17 +1267,18 @@ export const initiateWalletAction = async (req, res) => {
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         await OTP.deleteMany({ userId: admin._id });
         const hashedOtp = await bcrypt.hash(otpCode, 10);
-        await OTP.create({ 
-            userId: admin._id, 
-            hashedOtp, 
-            expiresAt: new Date(Date.now() + 10 * 60000) 
-        });
-
-        // Fire-and-forget Admin OTP to prevent login hanging on SMTP timeouts
-        sendAdminOTPEmail(admin.email, otpCode).catch(err => {
-            console.error('[AdminSecurity] Background OTP failed:', err.message);
-        });
-        const emailSent = true;
+        // Awaited OTP dispatch to ensure delivery outcome
+        let emailSent = true;
+        try {
+            const sent = await dispatchOTP(admin.email, otpCode);
+            if (!sent) {
+                console.error("[Security] Admin OTP dispatch reported failure");
+                emailSent = false;
+            }
+        } catch (error) {
+            console.error("[SECURITY] Unhandled SMTP exception caught during dispatch:", error);
+            emailSent = false;
+        }
         console.log(`[SECURITY] Admin Funding OTP generated for ${admin.email}: ${otpCode}`);
         if (!emailSent) {
             console.warn("[SECURITY] Failed to dispatch security OTP via email. Proceeding for fallback access. Check console for OTP.");
