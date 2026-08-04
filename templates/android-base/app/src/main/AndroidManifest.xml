@@ -13,7 +13,7 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".MainActivity"
+            android:name="com.mksubdata.app.MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize">
             <intent-filter>

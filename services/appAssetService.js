@@ -251,10 +251,11 @@ export const generateAppAssets = async (user, jobId = null) => {
             const templateDir = path.join(process.cwd(), 'templates', 'android-base');
             
             try {
-                if (!fs.existsSync(buildDir)) {
-                    fs.mkdirSync(buildDir, { recursive: true });
-                    copyRecursiveSync(templateDir, buildDir);
+                if (fs.existsSync(buildDir)) {
+                    fs.rmSync(buildDir, { recursive: true, force: true });
                 }
+                fs.mkdirSync(buildDir, { recursive: true });
+                copyRecursiveSync(templateDir, buildDir);
                 
                 const appUrl = `https://${user.subdomain || 'app'}.9jasub.com/dashboard`;
                 
