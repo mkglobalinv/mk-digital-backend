@@ -1,0 +1,44 @@
+{
+  "buildId": null,
+  "resellerId": "mock_user_id",
+  "appName": "Mksubdata Verified",
+  "packageName": "com.mksubdata.verified",
+  "generatedAt": "2026-08-04T08:18:52.426Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1785831481586-649471544-mksubdataverified-release.apk",
+    "iconUrl": "/reseller-assets/mksubdataverified/icon.png",
+    "splashUrl": "/reseller-assets/mksubdataverified/splash.png",
+    "featureGraphicUrl": "/reseller-assets/mksubdataverified/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/mksubdataverified/screenshot_login.png",
+      "/reseller-assets/mksubdataverified/screenshot_dashboard.png",
+      "/reseller-assets/mksubdataverified/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-08-04T08:18:52.426Z",
+    "pwaUrl": "https://verifiedapp.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Mksubdata Verified.",
+    "fullDescription": "Mksubdata Verified is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "test@verified.com",
+    "privacyPolicyUrl": "https://verifiedapp.9jasub.com/privacy-policy",
+    "websiteUrl": "https://verifiedapp.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 314832,
+    "memoryUsageMb": 25,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/mksubdataverified"
+  },
+  "infrastructure": {
+    "signature": "af586e0f83d1c9ef1efdce0de657cf159fdd0073a1c26ab621d66608d0a4324c",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

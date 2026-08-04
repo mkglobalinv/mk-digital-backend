@@ -150,6 +150,16 @@ export const buyAirtimeWithClubkonnect = async (network, amount, phone) => {
     try {
         const result = await getWithRetry(endpoint, params);
         if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        
+        if (!result.success && result.status === "unknown") {
+            return {
+                success: false,
+                status: "unknown",
+                reference: RequestID,
+                message: result.message || "Provider communication error. Pending reconciliation.",
+                provider_used: 'clubkonnect'
+            };
+        }
         const response = result.response;
         const data = result.data;
         console.log(`[ClubKonnect] AIRTIME RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
@@ -242,6 +252,16 @@ export const buyDataWithClubkonnect = async (network, planId, phone) => {
     try {
         const result = await getWithRetry(endpoint, params);
         if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        
+        if (!result.success && result.status === "unknown") {
+            return {
+                success: false,
+                status: "unknown",
+                reference: RequestID,
+                message: result.message || "Provider communication error. Pending reconciliation.",
+                provider_used: 'clubkonnect'
+            };
+        }
         const response = result.response;
         const data = result.data;
         console.log(`[ClubKonnect] DATA RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
@@ -395,6 +415,11 @@ export const buyElectricityWithClubkonnect = async (discoId, meterType, meterNum
     try {
         const result = await getWithRetry(endpoint, params);
         if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        
+        if (!result.success && result.status === "unknown") {
+            return { status: "unknown", message: result.message || "Provider communication error.", reference: RequestID, provider_used: 'clubkonnect' };
+        }
+        
         const response = result.response;
         const data = result.data;
         console.log(`[ClubKonnect] ELECTRICITY RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
@@ -409,6 +434,11 @@ export const buyElectricityWithClubkonnect = async (discoId, meterType, meterNum
                 token: data.metertoken || data.token || null
             };
         }
+        
+        if (!statusStr || String(data?.statuscode) === "100" || statusStr === "ORDER_RECEIVED" || statusStr === "ORDER_PROCESSING") {
+            return { status: "unknown", message: data?.remark || data?.status_desc || "Transaction processing or unknown state", reference: RequestID, provider_used: 'clubkonnect' };
+        }
+        
         return { status: "failed", message: data?.remark || data?.status_desc || "Transaction failed", data };
     } catch (error) {
         console.error(`[ClubKonnect] ELECTRICITY ERROR:`, error.message);
@@ -439,6 +469,11 @@ export const buyCableTVWithClubkonnect = async (cableId, packageId, smartcard, p
     try {
         const result = await getWithRetry(endpoint, params);
         if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        
+        if (!result.success && result.status === "unknown") {
+            return { status: "unknown", message: result.message || "Provider communication error.", reference: RequestID, provider_used: 'clubkonnect' };
+        }
+        
         const response = result.response;
         const data = result.data;
         console.log(`[ClubKonnect] CABLE RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
@@ -447,6 +482,11 @@ export const buyCableTVWithClubkonnect = async (cableId, packageId, smartcard, p
         if (statusStr === "SUCCESS" || statusStr === "SUCCESSFUL" || statusStr === "ORDER_COMPLETED" || statusStr === "COMPLETED") {
             return { status: "success", data, reference: data.orderid || RequestID };
         }
+        
+        if (!statusStr || String(data?.statuscode) === "100" || statusStr === "ORDER_RECEIVED" || statusStr === "ORDER_PROCESSING") {
+            return { status: "unknown", message: data?.remark || data?.status_desc || "Transaction processing or unknown state", reference: RequestID, provider_used: 'clubkonnect' };
+        }
+        
         return { status: "failed", message: data?.remark || data?.status_desc || "Transaction failed", data };
     } catch (error) {
         console.error(`[ClubKonnect] CABLE ERROR:`, error.message);
@@ -476,6 +516,11 @@ export const buyEPINWithClubkonnect = async (networkCode, value, quantity) => {
     try {
         const result = await getWithRetry(endpoint, params);
         if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        
+        if (!result.success && result.status === "unknown") {
+            return { status: "unknown", message: result.message || "Provider communication error.", reference: RequestID, provider_used: 'clubkonnect' };
+        }
+        
         const response = result.response;
         const data = result.data;
         console.log(`[ClubKonnect] EPIN RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
@@ -489,6 +534,11 @@ export const buyEPINWithClubkonnect = async (networkCode, value, quantity) => {
                 token: JSON.stringify(data.TXN_EPIN || data.pins)
             };
         }
+        
+        if (!statusStr || String(data?.statuscode) === "100" || statusStr === "ORDER_RECEIVED" || statusStr === "ORDER_PROCESSING") {
+            return { status: "unknown", message: data?.remark || data?.status_desc || "Transaction processing or unknown state", reference: RequestID, provider_used: 'clubkonnect' };
+        }
+        
         return { status: "failed", message: data?.remark || data?.status_desc || "Transaction failed", data };
     } catch (error) {
         console.error(`[ClubKonnect] EPIN ERROR:`, error.message);
@@ -529,6 +579,11 @@ export const buyEducationWithClubkonnect = async (examType, phone) => {
     try {
         const result = await getWithRetry(endpoint, params);
         if (!result.success && result.status !== "failed" && result.status !== "unknown") throw new Error(result.message);
+        
+        if (!result.success && result.status === "unknown") {
+            return { status: "unknown", message: result.message || "Provider communication error.", reference: RequestID, provider_used: 'clubkonnect' };
+        }
+        
         const response = result.response;
         const data = result.data;
         console.log(`[ClubKonnect] EDUCATION RES | HTTP: ${response.status} | Raw:`, JSON.stringify(data));
@@ -542,6 +597,11 @@ export const buyEducationWithClubkonnect = async (examType, phone) => {
                 token: data.carddetails || data.pin || null
             };
         }
+        
+        if (!statusStr || String(data?.statuscode) === "100" || statusStr === "ORDER_RECEIVED" || statusStr === "ORDER_PROCESSING") {
+            return { status: "unknown", message: data?.remark || data?.status_desc || "Transaction processing or unknown state", reference: RequestID, provider_used: 'clubkonnect' };
+        }
+        
         return { status: "failed", message: data?.remark || data?.status_desc || "Transaction failed", data };
     } catch (error) {
         console.error(`[ClubKonnect] EDUCATION ERROR:`, error.message);

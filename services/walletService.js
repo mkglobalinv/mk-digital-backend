@@ -342,12 +342,16 @@ export const creditEarnings = async (userId, amount, reference = `COMM-${Date.no
         const user = await User.findById(userId).session(session);
         if (!user) throw new Error("User not found");
 
-        const balanceBefore = user.earningsBalance || 0;
-        const balanceAfter = balanceBefore + numericAmount;
+        // 1. Update MongoDB atomically
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { earningsBalance: numericAmount } },
+            { new: true, session }
+        );
+        if (!updatedUser) throw new Error("User update failed");
 
-        // 1. Update MongoDB
-        user.earningsBalance = balanceAfter;
-        await user.save({ session });
+        const balanceAfter = updatedUser.earningsBalance || 0;
+        const balanceBefore = balanceAfter - numericAmount;
 
         // 2. Write to Supabase Ledger
         const supabase = getSupabaseClient();
@@ -382,11 +386,11 @@ export const creditEarnings = async (userId, amount, reference = `COMM-${Date.no
         }
 
         socketService.emitWalletSync(userId, {
-            balance: user.balance1 + (user.balance2 || 0),
+            balance: updatedUser.balance1 + (updatedUser.balance2 || 0),
             earningsBalance: balanceAfter,
             message: description
         });
-        return user;
+        return updatedUser;
     } catch (err) {
         if (session) {
             await session.abortTransaction();
@@ -422,11 +426,15 @@ export const deductEarnings = async (userId, amount, reference = `WD-${Date.now(
             return null;
         }
 
-        const balanceAfter = balanceBefore - numericAmount;
+        // 1. Update MongoDB atomically
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { earningsBalance: -numericAmount } },
+            { new: true, session }
+        );
+        if (!updatedUser) throw new Error("User update failed");
 
-        // 1. Update MongoDB
-        user.earningsBalance = balanceAfter;
-        await user.save({ session });
+        const balanceAfter = updatedUser.earningsBalance || 0;
 
         // 2. Write to Supabase Ledger
         const supabase = getSupabaseClient();
@@ -461,11 +469,11 @@ export const deductEarnings = async (userId, amount, reference = `WD-${Date.now(
         }
 
         socketService.emitWalletSync(userId, {
-            balance: user.balance1 + (user.balance2 || 0),
+            balance: updatedUser.balance1 + (updatedUser.balance2 || 0),
             earningsBalance: balanceAfter,
             message: `Debit: ₦${numericAmount} deducted.`
         });
-        return user;
+        return updatedUser;
     } catch (err) {
         if (session) {
             await session.abortTransaction();
@@ -495,12 +503,16 @@ export const refundEarnings = async (userId, amount, reference = `WD-REF-${Date.
         const user = await User.findById(userId).session(session);
         if (!user) throw new Error("User not found");
 
-        const balanceBefore = user.earningsBalance || 0;
-        const balanceAfter = balanceBefore + numericAmount;
+        // 1. Update MongoDB atomically
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { earningsBalance: numericAmount } },
+            { new: true, session }
+        );
+        if (!updatedUser) throw new Error("User update failed");
 
-        // 1. Update MongoDB
-        user.earningsBalance = balanceAfter;
-        await user.save({ session });
+        const balanceAfter = updatedUser.earningsBalance || 0;
+        const balanceBefore = balanceAfter - numericAmount;
 
         // 2. Write to Supabase Ledger
         const supabase = getSupabaseClient();
@@ -535,11 +547,11 @@ export const refundEarnings = async (userId, amount, reference = `WD-REF-${Date.
         }
 
         socketService.emitWalletSync(userId, {
-            balance: user.balance1 + (user.balance2 || 0),
+            balance: updatedUser.balance1 + (updatedUser.balance2 || 0),
             earningsBalance: balanceAfter,
             message: `Refund: ₦${numericAmount} credited.`
         });
-        return user;
+        return updatedUser;
     } catch (err) {
         if (session) {
             await session.abortTransaction();

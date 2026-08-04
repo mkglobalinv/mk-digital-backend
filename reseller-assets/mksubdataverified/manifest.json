@@ -1,0 +1,55 @@
+{
+  "name": "Mksubdata Verified",
+  "short_name": "Mksubdata Verified",
+  "description": "Top up airtime, data, and pay bills easily with Mksubdata Verified.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "orientation": "portrait",
+  "theme_color": "#00ff00",
+  "background_color": "#ffffff",
+  "categories": [
+    "finance",
+    "business",
+    "utilities"
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Go to Dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "name": "Wallet",
+      "short_name": "Wallet",
+      "description": "View Wallet",
+      "url": "/dashboard/wallet"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/reseller-assets/mksubdataverified/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/reseller-assets/mksubdataverified/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/reseller-assets/mksubdataverified/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

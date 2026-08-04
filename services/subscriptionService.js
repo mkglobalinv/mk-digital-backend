@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import Transaction from "../models/Transaction.js";
 import Notification from "../models/Notification.js";
 import SystemSetting from "../models/SystemSetting.js";
-import { deductBalance } from "./walletService.js";
+import { deductBalance, deductEarnings, creditEarnings } from "./walletService.js";
 import socketService from "./socketService.js";
 
 /**
@@ -51,8 +51,9 @@ class SubscriptionService {
         let walletUsed = '';
         if (cost > 0) {
             if (user.earningsBalance >= cost) {
-                // Deduct from earnings manually (since deductBalance is mainly for normal wallet)
-                user.earningsBalance -= cost;
+                // Deduct from earnings securely and atomically via walletService
+                const deductSuccess = await deductEarnings(user._id, cost, `SUB-DED-${Date.now()}`, `Payment for ${description}`);
+                if (!deductSuccess) throw new Error("Earnings Wallet deduction failed. Please try again.");
                 walletUsed = 'Earnings Wallet';
             } else if (user.balance1 >= cost) {
                 // Deduct atomically from normal wallet
@@ -134,20 +135,12 @@ class SubscriptionService {
 
         // 4. PROCESS REFERRAL REWARD (Only executes if user.save() succeeded)
         if (willGiveReferralReward && referrer) {
-            referrer.earningsBalance = (referrer.earningsBalance || 0) + rewardAmount;
-            await referrer.save();
-            
-            // Record Transaction for Referrer
-            await Transaction.create({
-                userId: referrer._id,
-                resellerId: referrer.referredBy || referrer._id,
-                amount: rewardAmount,
-                type: 'credit',
-                status: 'success',
-                description: `Activation Reward for referring ${user.name || 'New User'}`,
-                provider: 'System',
-                reference: `REF-REWARD-${Date.now()}`
-            });
+            await creditEarnings(
+                referrer._id, 
+                rewardAmount, 
+                `REF-REWARD-${Date.now()}`, 
+                `Activation Reward for referring ${user.name || 'New User'}`
+            );
             
             await Notification.create({
                 userId: referrer._id,
