@@ -9,9 +9,9 @@ dotenv.config();
 // Helper to get siteName for emails
 const getBrandingForEmail = async (email) => {
     try {
-        const user = await User.findOne({ email }).populate('resellerId').lean();
-        if (user && user.resellerId && user.resellerId.branding) {
-            return user.resellerId.branding;
+        const user = await User.findOne({ email }).populate('tenantOwnerId').lean();
+        if (user && user.tenantOwnerId && user.tenantOwnerId.branding) {
+            return user.tenantOwnerId.branding;
         }
         if (user && user.branding) {
             return user.branding;
