@@ -49,39 +49,58 @@ import { io } from "socket.io-client";
 import AdminErrorBoundary from "./admin/components/AdminErrorBoundary";
 import { supabase } from "./supabaseClient";
 
-const AdminDashboard = React.lazy(() => import("./admin/pages/AdminDashboard"));
-const UserManager = React.lazy(() => import("./admin/pages/UserManager"));
-const BannerManager = React.lazy(() => import("./admin/pages/BannerManager"));
-const ServiceManager = React.lazy(() => import("./admin/pages/ServiceManager"));
-const DataCategoryRouteWrapper = React.lazy(() => import("./admin/pages/DataCategoryRouteWrapper"));
-const ProfitAnalytics = React.lazy(() => import("./admin/pages/ProfitAnalytics"));
-const AdminLogs = React.lazy(() => import("./admin/pages/AdminLogs"));
-const NotificationCenter = React.lazy(() => import("./admin/pages/NotificationCenter"));
-const ContentManager = React.lazy(() => import("./admin/pages/ContentManager"));
-const BlogManager = React.lazy(() => import("./admin/pages/BlogManager"));
-const WithdrawalManager = React.lazy(() => import("./admin/pages/WithdrawalManager"));
-const AdminTransactions = React.lazy(() => import("./admin/pages/AdminTransactions"));
-const KYCManager = React.lazy(() => import("./admin/pages/KYCManager"));
-const InternationalAnalytics = React.lazy(() => import("./admin/pages/InternationalAnalytics"));
-const AdminSettings = React.lazy(() => import("./admin/pages/AdminSettings"));
-const DataPlanPricing = React.lazy(() => import("./admin/pages/DataPlanPricing"));
-const PricingRules = React.lazy(() => import("./admin/pages/PricingRules"));
-const TierMargins = React.lazy(() => import("./admin/pages/TierMargins"));
-const ResellerManager = React.lazy(() => import("./admin/pages/ResellerManager"));
-const ResellerWalletManager = React.lazy(() => import("./admin/pages/ResellerWalletManager"));
-const CentralPricingManager = React.lazy(() => import("./admin/pages/CentralPricingManager"));
-const SaaSSettings = React.lazy(() => import("./admin/pages/SaaSSettings"));
-const MonitoringDashboard = React.lazy(() => import("./admin/pages/MonitoringDashboard"));
-const OperationsCenter = React.lazy(() => import("./admin/pages/OperationsCenter"));
-const AIAssistantControl = React.lazy(() => import("./admin/pages/AIAssistantControl"));
-const ReconciliationPanel = React.lazy(() => import("./admin/pages/ReconciliationPanel"));
-const AdminAppRequests = React.lazy(() => import("./admin/pages/AdminAppRequests"));
-const AdminDomainRequests = React.lazy(() => import("./admin/pages/AdminDomainRequests"));
-const PromoCampaignManager = React.lazy(() => import("./admin/pages/PromoCampaignManager"));
-const PromotionGridManager = React.lazy(() => import("./admin/pages/PromotionGridManager"));
-const UserAudit = React.lazy(() => import("./admin/pages/UserAudit"));
-const AdminReferrals = React.lazy(() => import("./admin/pages/AdminReferrals"));
-const AdminFuturePlatforms = React.lazy(() => import("./admin/pages/AdminFuturePlatforms"));
+
+const lazyWithRetry = (componentImport) =>
+  React.lazy(async () => {
+    const pageHasAlreadyBeenForceRefreshed = JSON.parse(
+      window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
+    );
+    try {
+      const component = await componentImport();
+      window.sessionStorage.setItem('page-has-been-force-refreshed', 'false');
+      return component;
+    } catch (error) {
+      if (!pageHasAlreadyBeenForceRefreshed) {
+        window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
+        return window.location.reload();
+      }
+      throw error;
+    }
+  });
+
+const AdminDashboard = lazyWithRetry(() => import("./admin/pages/AdminDashboard"));
+const UserManager = lazyWithRetry(() => import("./admin/pages/UserManager"));
+const BannerManager = lazyWithRetry(() => import("./admin/pages/BannerManager"));
+const ServiceManager = lazyWithRetry(() => import("./admin/pages/ServiceManager"));
+const DataCategoryRouteWrapper = lazyWithRetry(() => import("./admin/pages/DataCategoryRouteWrapper"));
+const ProfitAnalytics = lazyWithRetry(() => import("./admin/pages/ProfitAnalytics"));
+const AdminLogs = lazyWithRetry(() => import("./admin/pages/AdminLogs"));
+const NotificationCenter = lazyWithRetry(() => import("./admin/pages/NotificationCenter"));
+const ContentManager = lazyWithRetry(() => import("./admin/pages/ContentManager"));
+const BlogManager = lazyWithRetry(() => import("./admin/pages/BlogManager"));
+const WithdrawalManager = lazyWithRetry(() => import("./admin/pages/WithdrawalManager"));
+const AdminTransactions = lazyWithRetry(() => import("./admin/pages/AdminTransactions"));
+const KYCManager = lazyWithRetry(() => import("./admin/pages/KYCManager"));
+const InternationalAnalytics = lazyWithRetry(() => import("./admin/pages/InternationalAnalytics"));
+const AdminSettings = lazyWithRetry(() => import("./admin/pages/AdminSettings"));
+const DataPlanPricing = lazyWithRetry(() => import("./admin/pages/DataPlanPricing"));
+const PricingRules = lazyWithRetry(() => import("./admin/pages/PricingRules"));
+const TierMargins = lazyWithRetry(() => import("./admin/pages/TierMargins"));
+const ResellerManager = lazyWithRetry(() => import("./admin/pages/ResellerManager"));
+const ResellerWalletManager = lazyWithRetry(() => import("./admin/pages/ResellerWalletManager"));
+const CentralPricingManager = lazyWithRetry(() => import("./admin/pages/CentralPricingManager"));
+const SaaSSettings = lazyWithRetry(() => import("./admin/pages/SaaSSettings"));
+const MonitoringDashboard = lazyWithRetry(() => import("./admin/pages/MonitoringDashboard"));
+const OperationsCenter = lazyWithRetry(() => import("./admin/pages/OperationsCenter"));
+const AIAssistantControl = lazyWithRetry(() => import("./admin/pages/AIAssistantControl"));
+const ReconciliationPanel = lazyWithRetry(() => import("./admin/pages/ReconciliationPanel"));
+const AdminAppRequests = lazyWithRetry(() => import("./admin/pages/AdminAppRequests"));
+const AdminDomainRequests = lazyWithRetry(() => import("./admin/pages/AdminDomainRequests"));
+const PromoCampaignManager = lazyWithRetry(() => import("./admin/pages/PromoCampaignManager"));
+const PromotionGridManager = lazyWithRetry(() => import("./admin/pages/PromotionGridManager"));
+const UserAudit = lazyWithRetry(() => import("./admin/pages/UserAudit"));
+const AdminReferrals = lazyWithRetry(() => import("./admin/pages/AdminReferrals"));
+const AdminFuturePlatforms = lazyWithRetry(() => import("./admin/pages/AdminFuturePlatforms"));
 import MarketingLayout from './admin/pages/MarketingCenter/MarketingLayout';
 import CampaignManager from './admin/pages/MarketingCenter/CampaignManager';
 import AnnouncementManager from './admin/pages/MarketingCenter/AnnouncementManager';
@@ -89,21 +108,21 @@ import MarketingAnalytics from './admin/pages/MarketingCenter/MarketingAnalytics
 
 
 
-const ResellerDashboard = React.lazy(() => import("./reseller/pages/ResellerDashboard"));
-const ResellerCustomers = React.lazy(() => import("./reseller/pages/ResellerCustomers"));
-const ResellerPricing = React.lazy(() => import("./reseller/pages/ResellerPricing"));
-const ResellerBranding = React.lazy(() => import("./reseller/pages/ResellerBranding"));
-const ResellerSecurity = React.lazy(() => import("./reseller/pages/ResellerSecurity"));
-const ResellerWallet = React.lazy(() => import("./reseller/pages/ResellerWallet"));
-const ResellerSupport = React.lazy(() => import("./reseller/pages/ResellerSupport"));
-const ResellerApp = React.lazy(() => import("./reseller/pages/ResellerApp"));
-const ResellerPremium = React.lazy(() => import("./reseller/pages/ResellerPremium"));
-const ResellerDomain = React.lazy(() => import("./reseller/pages/ResellerDomain"));
-const ResellerContent = React.lazy(() => import("./reseller/pages/ResellerContent"));
-const ResellerTransactions = React.lazy(() => import("./reseller/pages/ResellerTransactions"));
-const ResellerNotificationCenter = React.lazy(() => import("./reseller/pages/ResellerNotificationCenter"));
-const ResellerPlatforms = React.lazy(() => import("./reseller/pages/ResellerPlatforms"));
-const ResellerEmailCampaign = React.lazy(() => import("./reseller/pages/ResellerEmailCampaign"));
+const ResellerDashboard = lazyWithRetry(() => import("./reseller/pages/ResellerDashboard"));
+const ResellerCustomers = lazyWithRetry(() => import("./reseller/pages/ResellerCustomers"));
+const ResellerPricing = lazyWithRetry(() => import("./reseller/pages/ResellerPricing"));
+const ResellerBranding = lazyWithRetry(() => import("./reseller/pages/ResellerBranding"));
+const ResellerSecurity = lazyWithRetry(() => import("./reseller/pages/ResellerSecurity"));
+const ResellerWallet = lazyWithRetry(() => import("./reseller/pages/ResellerWallet"));
+const ResellerSupport = lazyWithRetry(() => import("./reseller/pages/ResellerSupport"));
+const ResellerApp = lazyWithRetry(() => import("./reseller/pages/ResellerApp"));
+const ResellerPremium = lazyWithRetry(() => import("./reseller/pages/ResellerPremium"));
+const ResellerDomain = lazyWithRetry(() => import("./reseller/pages/ResellerDomain"));
+const ResellerContent = lazyWithRetry(() => import("./reseller/pages/ResellerContent"));
+const ResellerTransactions = lazyWithRetry(() => import("./reseller/pages/ResellerTransactions"));
+const ResellerNotificationCenter = lazyWithRetry(() => import("./reseller/pages/ResellerNotificationCenter"));
+const ResellerPlatforms = lazyWithRetry(() => import("./reseller/pages/ResellerPlatforms"));
+const ResellerEmailCampaign = lazyWithRetry(() => import("./reseller/pages/ResellerEmailCampaign"));
 
 import PremiumLoader from "./components/PremiumLoader";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
