@@ -56,9 +56,9 @@ const ResellerEmailCampaign = ({ user }) => {
             <div className="email-campaign-page">
                 <div className="upgrade-banner">
                     <Clock size={48} style={{ color: '#f59e0b', margin: '0 auto 16px' }} />
-                    <h3>Premium Feature Locked</h3>
-                    <p>Upgrade your Website Owner account to Premium to unlock Email Push Notifications.</p>
-                    <Link to="/website/premium" className="upgrade-btn">Upgrade to Premium</Link>
+                    <h3>Advanced Feature Locked</h3>
+                    <p>Pay the Website Hosting & Maintenance Fee to unlock Email Push Notifications.</p>
+                    <Link to="/website/premium" className="upgrade-btn">Activate Website Hosting & Maintenance</Link>
                 </div>
             </div>
         );
@@ -67,7 +67,7 @@ const ResellerEmailCampaign = ({ user }) => {
     return (
         <div className="email-campaign-page">
             <div className="campaign-header">
-                <h2>Premium Email Campaign</h2>
+                <h2>Advanced Email Campaign</h2>
                 <p>Send isolated push notifications to your own customers.</p>
             </div>
 

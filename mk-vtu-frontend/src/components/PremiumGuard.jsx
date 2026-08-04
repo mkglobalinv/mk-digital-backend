@@ -7,7 +7,7 @@ const PremiumGuard = ({ user, children }) => {
     if (!isPremium) {
         return <Navigate 
             to="/website/premium" 
-            state={{ error: "This feature requires a Premium Website subscription. Please upgrade your website to continue." }} 
+            state={{ error: "This feature requires an active Website Hosting & Maintenance Fee. Please activate to continue." }} 
             replace 
         />;
     }

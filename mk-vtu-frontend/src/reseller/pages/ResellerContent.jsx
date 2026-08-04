@@ -72,10 +72,10 @@ const ResellerContent = ({ user }) => {
                     <div className="lock-icon-box">
                         <Lock size={48} />
                     </div>
-                    <h2>Premium Branding Required</h2>
-                    <p>Custom banners and marquees are only available to Premium Resellers.</p>
+                    <h2>Advanced Branding Required</h2>
+                    <p>Custom banners and marquees are only available with Active Hosting & Maintenance.</p>
                     <button className="upgrade-btn" onClick={() => window.location.href='/reseller/premium'}>
-                        Upgrade to Premium
+                        Activate Hosting & Maintenance
                     </button>
                 </div>
             </div>

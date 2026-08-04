@@ -879,7 +879,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
                   </div>
                   {isPremiumReseller(user) && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', padding: '4px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold' }}>
-                      <Zap size={10} /> PREMIUM
+                      <Zap size={10} /> HOSTED
                     </div>
                   )}
                 </div>

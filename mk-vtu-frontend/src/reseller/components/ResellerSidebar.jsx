@@ -42,7 +42,7 @@ const ResellerSidebar = ({ user, logout, isOpen, onClose }) => {
                 { id: 'content', label: 'Banners & Marquee', icon: <Bell size={20} />, path: '/reseller/content', premium: true },
                 { id: 'mobile-app', label: 'Mobile App', icon: <Smartphone size={20} />, path: '/website/mobile-app', premium: true },
                 { id: 'email-campaign', label: 'Push Notifications', icon: <Bell size={20} />, path: '/reseller/email-campaigns', premium: true },
-                { id: 'premium', label: 'Premium Features', icon: <Zap size={20} />, path: '/website/premium' },
+                { id: 'premium', label: 'Hosting & Maintenance', icon: <Zap size={20} />, path: '/website/premium' },
                 { id: 'platforms', label: 'Website Addons', icon: <LayoutDashboard size={20} />, path: '/reseller/platforms' },
                 { id: 'settings', label: 'Website Settings', icon: <Settings size={20} />, path: '/reseller/settings' },
                 { id: 'domain', label: 'Domain Management', icon: <Globe size={20} />, path: '/reseller/domain', premium: true },

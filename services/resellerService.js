@@ -26,7 +26,7 @@ export const startResellerMaintenanceWorker = () => {
                 await Notification.create({
                     userId: user._id,
                     title: 'Trial Expired',
-                    message: 'Your 7-day free trial has expired. Please pay the ₦5,000 activation fee to keep your website active.',
+                    message: 'Your 7-day free trial has expired. Please pay the ₦5,000 Website Setup & Activation Fee to keep your website active.',
                     type: 'system'
                 });
             }
@@ -64,7 +64,7 @@ export const startResellerMaintenanceWorker = () => {
             const warningPeriods = [
                 { days: 30, message: 'Your Website Hosting & Maintenance Fee expires in 30 days. Renew now for uninterrupted access to custom domains and APK tools.' },
                 { days: 7, message: 'Warning: Your Website Hosting & Maintenance Fee expires in 7 days. Your custom domain may pause if not renewed.' },
-                { days: 1, message: 'CRITICAL: Your Website Hosting & Maintenance Fee expires tomorrow! Renew now to keep your premium features active.' }
+                { days: 1, message: 'CRITICAL: Your Website Hosting & Maintenance Fee expires tomorrow! Renew now to keep your advanced features active.' }
             ];
 
             for (const period of warningPeriods) {

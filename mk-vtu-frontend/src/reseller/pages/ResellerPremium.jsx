@@ -57,7 +57,7 @@ const ResellerPremium = ({ user, refreshUser }) => {
         { icon: <Globe size={20} />, title: 'Custom Domain Support', desc: 'Use your own .com or .com.ng domain instead of a subdomain.' },
         { icon: <Smartphone size={20} />, title: 'Android APK Generation', desc: 'Get a custom mobile app for your brand to list on Play Store.' },
         { icon: <ShieldCheck size={20} />, title: 'Advanced Branding', desc: 'Remove all platform watermarks and use custom CSS/Themes.' },
-        { icon: <BarChart size={20} />, title: 'Premium Analytics', desc: 'Detailed website insights and daily exportable reports.' },
+        { icon: <BarChart size={20} />, title: 'Advanced Analytics', desc: 'Detailed website insights and daily exportable reports.' },
         { icon: <Bell size={20} />, title: 'Push Notifications', desc: 'Send unlimited push alerts directly to your customers devices.' },
         { icon: <Zap size={20} />, title: 'Priority Support', desc: 'Direct access to our senior engineering team for assistance.' }
     ];
@@ -92,7 +92,7 @@ const ResellerPremium = ({ user, refreshUser }) => {
                 
                 {/* 6 MONTHS PLAN */}
                 <div className="pricing-card" style={{ background: 'white', borderRadius: '32px', padding: '40px', border: '1px solid #f1f5f9', position: 'relative' }}>
-                    <h3>Standard Premium</h3>
+                    <h3>Website Hosting & Maintenance</h3>
                     <div className="price" style={{ margin: '24px 0' }}>
                         <span style={{ fontSize: '52.8px', fontWeight: 900 }}>₦{pricing.sixMonths.toLocaleString()}</span>
                         <span style={{ color: '#64748b', fontSize: '17.6px' }}> / 6 Months</span>
@@ -116,14 +116,14 @@ const ResellerPremium = ({ user, refreshUser }) => {
                         <span style={{ fontSize: '52.8px', fontWeight: 900 }}>₦{pricing.yearly.toLocaleString()}</span>
                         <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '17.6px' }}> / Year</span>
                     </div>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '15.4px', marginBottom: '32px' }}>Maximum value for serious entrepreneurs. Includes premium onboarding.</p>
+                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '15.4px', marginBottom: '32px' }}>Maximum value for serious entrepreneurs. Includes priority onboarding.</p>
                     <button className="auth-btn" style={{ width: '100%', background: 'white', color: '#1e1b4b' }} onClick={() => triggerUpgrade('12months')} disabled={loading}>
                         {(user?.resellerTier === 'premium' || user?.resellerTier === 'vip') ? (loading ? 'Processing...' : 'Renew Subscription') : (loading ? 'Processing...' : 'Upgrade Now')}
                     </button>
                     <div style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '15.4px', color: 'rgba(255,255,255,0.8)' }}><CheckCircle size={16} color="#fbbf24" /> Everything in Standard</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '15.4px', color: 'rgba(255,255,255,0.8)' }}><CheckCircle size={16} color="#fbbf24" /> Free Custom Domain Setup</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '15.4px', color: 'rgba(255,255,255,0.8)' }}><CheckCircle size={16} color="#fbbf24" /> Priority Premium Onboarding</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '15.4px', color: 'rgba(255,255,255,0.8)' }}><CheckCircle size={16} color="#fbbf24" /> Priority Onboarding</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '15.4px', color: 'rgba(255,255,255,0.8)' }}><CheckCircle size={16} color="#fbbf24" /> Best Value — Save ₦5,000 with the Yearly Plan</div>
                     </div>
                 </div>
@@ -132,7 +132,7 @@ const ResellerPremium = ({ user, refreshUser }) => {
 
             {/* Premium Benefits Grid */}
             <div style={{ marginTop: '80px' }}>
-                <h2 style={{ textAlign: 'center', fontSize: '26.4px', fontWeight: 800, marginBottom: '40px' }}>What you get with Premium</h2>
+                <h2 style={{ textAlign: 'center', fontSize: '26.4px', fontWeight: 800, marginBottom: '40px' }}>What you get with Active Hosting & Maintenance</h2>
                 <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
                     {features.map((f, i) => (
                         <div key={i} style={{ padding: '32px', background: 'white', borderRadius: '24px', border: '1px solid #f1f5f9' }}>

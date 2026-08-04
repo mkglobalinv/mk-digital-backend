@@ -127,7 +127,7 @@ const ResellerDomain = ({ user, refreshUser }) => {
                         </div>
                         {domainOption === 'custom_domain' && <CheckCircle size={20} color="#f59e0b" />}
                     </div>
-                    <h3 style={{ fontSize: '19.8px', fontWeight: 800, color: '#1e293b', margin: '0 0 8px' }}>Domain Setup Included with Premium</h3>
+                    <h3 style={{ fontSize: '19.8px', fontWeight: 800, color: '#1e293b', margin: '0 0 8px' }}>Domain Setup Included with Hosting & Maintenance</h3>
                     <p style={{ fontSize: '14.3px', color: '#64748b', lineHeight: '1.5' }}>
                         Submit your preferred domain name and our team will handle everything for you. If your preferred domain is unavailable, we'll contact you via WhatsApp with the best alternatives.
                     </p>
@@ -166,7 +166,7 @@ const ResellerDomain = ({ user, refreshUser }) => {
                     <>
                         <div style={{ background: '#eff6ff', padding: '16px', borderRadius: '12px', marginBottom: '24px', border: '1px solid #bfdbfe' }}>
                             <h4 style={{ margin: '0 0 12px', color: '#1e40af', fontSize: '14.3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Shield size={16} /> Premium Service Includes
+                                <Shield size={16} /> Hosting Service Includes
                             </h4>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1e3a8a', fontSize: '13.2px' }}><CheckCircle size={14} color="#3b82f6" /> Domain availability check</div>

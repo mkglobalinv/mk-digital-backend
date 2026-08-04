@@ -959,7 +959,7 @@ export const upgradeToPremium = async (req, res) => {
         const result = await SubscriptionService.processSubscription(req.user.id, 'premium', months);
 
         res.json({ 
-            message: "Successfully upgraded to Premium!", 
+            message: "Successfully activated Website Hosting & Maintenance!", 
             tier: result.tier, 
             expiresAt: result.expiresAt,
             user: await User.findById(req.user.id).select("-password")
@@ -978,7 +978,7 @@ export const payActivation = async (req, res) => {
         await User.findByIdAndUpdate(req.user.id, { welcomeBannerSeen: true });
 
         res.json({
-            message: "Basic Activation successful!",
+            message: "Website Setup & Activation successful!",
             tier: result.tier,
             user: await User.findById(req.user.id).select("-password")
         });
@@ -994,7 +994,7 @@ export const saveAppSettings = async (req, res) => {
         
         // Feature gate
         if (!user.features?.apk_generation && user.role !== 'admin') {
-            return res.status(403).json({ message: "APK generation is a premium feature. Please upgrade." });
+            return res.status(403).json({ message: "APK generation is an advanced feature. Please activate Website Hosting & Maintenance." });
         }
 
         // Clean and update settings
@@ -1147,7 +1147,7 @@ export const submitAppRequest = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         if (!user.features?.apk_generation && user.role !== 'admin') {
-            return res.status(403).json({ message: "Mobile App generation is a Premium Business feature. Please upgrade your store plan." });
+            return res.status(403).json({ message: "Mobile App generation is an Advanced Business feature. Please activate Website Hosting & Maintenance." });
         }
 
         const { appName, logo, primaryColor, accentColor, splashScreen, supportEmail, notes } = req.body;
@@ -1307,7 +1307,7 @@ export const submitDomainRequest = async (req, res) => {
         }
 
         if (domainOption === 'custom_domain' && !user.features?.custom_domain && user.role !== 'admin') {
-            return res.status(403).json({ message: "Custom Domain integration is a Premium Business feature. Please upgrade your store plan." });
+            return res.status(403).json({ message: "Custom Domain integration is an Advanced Business feature. Please activate Website Hosting & Maintenance." });
         }
 
         let request = await CustomDomainRequest.findOne({ resellerId: user._id });

@@ -119,7 +119,7 @@ const ResellerPricing = () => {
                 <p>Set custom selling prices for your customers</p>
                 {!loading && !isPremium && (
                     <div style={{ background: '#fef3c7', color: '#d97706', padding: '12px 16px', borderRadius: '8px', marginTop: '16px', border: '1px solid #fde68a', fontSize: '14px' }}>
-                        <strong>Basic Tier:</strong> You are currently using the global reseller prices. Upgrade to Premium to set your own custom pricing and increase your margins.
+                        <strong>Standard Mode:</strong> You are currently using global prices. Activate Website Hosting & Maintenance to set your own custom pricing and increase your margins.
                     </div>
                 )}
             </header>

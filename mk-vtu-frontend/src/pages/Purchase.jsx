@@ -920,8 +920,8 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                   <h4 style={{ margin: 0, fontSize: '14.3px', fontWeight: 800 }}>Reseller Business Console</h4>
                   <p style={{ margin: 0, fontSize: '11.0px', opacity: 0.9 }}>
                     {isPremiumReseller(user)
-                      ? "Premium Mode Active • Adjust customer pricing overrides"
-                      : "Basic Reseller Console • Review sales analytics & metrics"}
+                      ? "Hosting Mode Active • Adjust customer pricing overrides"
+                      : "Standard Reseller Console • Review sales analytics & metrics"}
                   </p>
                 </div>
              </div>

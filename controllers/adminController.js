@@ -2220,11 +2220,11 @@ export const upgradeReseller = async (req, res) => {
 
         socketService.emitActivity({
             type: 'premium_upgrade',
-            message: `Partner brand '${user.branding?.siteName || user.name}' upgraded to PREMIUM status!`,
+            message: `Partner brand '${user.branding?.siteName || user.name}' activated Hosting & Maintenance!`,
             details: { name: user.name, siteName: user.branding?.siteName }
         });
 
-        res.json({ status: 'success', message: 'Reseller upgraded to Premium', user });
+        res.json({ status: 'success', message: 'Reseller activated Hosting & Maintenance', user });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

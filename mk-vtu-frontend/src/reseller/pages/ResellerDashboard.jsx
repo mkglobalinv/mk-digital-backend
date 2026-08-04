@@ -189,7 +189,7 @@ const ResellerDashboard = ({ user }) => {
     const isTrialExpired = !isUserActivated && daysRemaining <= 0;
 
     const handlePayActivation = async () => {
-        const confirmText = `Confirm Website Activation\n\nYou are about to activate your Basic Website Owner Plan.\n₦5,000 will be deducted from your balance.\n\nDo you want to continue?`;
+        const confirmText = `Confirm Website Activation\n\nYou are about to activate your Website. A Website Setup & Activation Fee of ₦5,000 will be deducted from your balance.\n\nDo you want to continue?`;
         
         if (window.confirm(confirmText)) {
             try {
@@ -321,7 +321,7 @@ const ResellerDashboard = ({ user }) => {
                     ) : user?.resellerTier === 'premium' ? (
                         <div className="badge-premium">
                             <ShieldCheck size={14} style={{ marginRight: '6px' }} />
-                            Premium Website
+                            Hosted Website
                         </div>
                     ) : user?.resellerTier === 'vip' ? (
                         <div className="badge-premium" style={{ background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)' }}>
@@ -329,7 +329,7 @@ const ResellerDashboard = ({ user }) => {
                             VIP Website
                         </div>
                     ) : (
-                        <div className="badge-starter">Basic Website</div>
+                        <div className="badge-starter">Website Setup & Activation</div>
                     )}
                 </div>
             </div>
@@ -342,9 +342,9 @@ const ResellerDashboard = ({ user }) => {
                     </div>
                     <div className="banner-text">
                         <h3>{isTrialActive ? `Free Trial: ${daysRemaining} Days Remaining` : 'Trial Expired'}</h3>
-                        <p>{isTrialActive ? 'Activate your website now to ensure uninterrupted service after the trial ends.' : 'Your website is currently in a grace period/suspended. Pay activation fee to restore services.'}</p>
+                        <p>{isTrialActive ? 'Activate your website now to ensure uninterrupted service after the trial ends.' : 'Your website is currently in a grace period/suspended. Pay the Website Setup & Activation Fee to restore services.'}</p>
                     </div>
-                    <button className="banner-btn" onClick={handlePayActivation}>Activate Website (₦5,000)</button>
+                    <button className="banner-btn" onClick={handlePayActivation}>Pay Setup & Activation (₦5,000)</button>
                 </div>
             )}
 
@@ -517,14 +517,14 @@ const ResellerDashboard = ({ user }) => {
                                         <div style={{ background: 'rgba(16,185,129,0.2)', color: '#34d399', padding: '6px', borderRadius: '8px' }}><Settings size={18} /></div>
                                         <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}>Default Pricing</h4>
                                     </div>
-                                    <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: '1.5' }}>As a Basic Website Owner, default prices are already configured so you can start selling immediately.</p>
+                                    <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: '1.5' }}>With the Standard Setup, default prices are already configured so you can start selling immediately.</p>
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                                         <div style={{ background: 'rgba(139,92,246,0.2)', color: '#a78bfa', padding: '6px', borderRadius: '8px' }}><TrendingUp size={18} /></div>
-                                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}>Premium Control</h4>
+                                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}>Advanced Control</h4>
                                     </div>
-                                    <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: '1.5' }}>After upgrading to Premium, you can customize your own selling prices and build your own pricing strategy.</p>
+                                    <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: '1.5' }}>After paying the Website Hosting & Maintenance Fee, you can customize your own selling prices and build your own pricing strategy.</p>
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>

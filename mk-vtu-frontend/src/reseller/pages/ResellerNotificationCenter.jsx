@@ -80,9 +80,9 @@ const ResellerNotificationCenter = ({ user }) => {
             <div className="notif-center-page">
                 <div className="notif-upgrade-banner">
                     <Clock size={48} style={{ color: '#f59e0b', margin: '0 auto 16px' }} />
-                    <h3>Premium Feature Locked</h3>
-                    <p>Upgrade your Website Owner account to Premium to unlock the Notification Center.</p>
-                    <Link to="/website/premium" className="notif-upgrade-btn">Upgrade to Premium</Link>
+                    <h3>Advanced Feature Locked</h3>
+                    <p>Pay the Website Hosting & Maintenance Fee to unlock the Notification Center.</p>
+                    <Link to="/website/premium" className="notif-upgrade-btn">Activate Website Hosting & Maintenance</Link>
                 </div>
             </div>
         );
@@ -91,7 +91,7 @@ const ResellerNotificationCenter = ({ user }) => {
     return (
         <div className="notif-center-page">
             <div className="notif-header">
-                <h2>Premium Notification Center</h2>
+                <h2>Advanced Notification Center</h2>
                 <p>Dispatch real-time in-app alerts and targeted emails to your customers.</p>
             </div>
 
