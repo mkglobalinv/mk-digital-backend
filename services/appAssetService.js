@@ -289,9 +289,9 @@ export const generateAppAssets = async (user, jobId = null) => {
                 };
 
                 try {
-                    let buildCmd = "gradle assembleRelease";
+                    const isWindows = process.platform === 'win32';
                     const customGradlePath = "C:\\gradle-8.5\\bin\\gradle.bat";
-                    if (fs.existsSync(customGradlePath)) buildCmd = `"${customGradlePath}" assembleRelease`;
+                    let buildCmd = isWindows ? `"${customGradlePath}" assembleRelease --console=plain --no-daemon` : `./gradlew assembleRelease --console=plain --no-daemon`;
                     
                     if (!fs.existsSync(customGradlePath)) {
                         console.log(`[AssetGen] Native runtime absent. Fallback...`);

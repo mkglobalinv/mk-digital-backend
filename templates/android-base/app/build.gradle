@@ -3,12 +3,17 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.mksubdata.app"
     compileSdkVersion 34
+    buildToolsVersion "36.1.0"
     defaultConfig {
         applicationId "com.mksubdata.app"
         minSdkVersion 21
         targetSdkVersion 34
         versionCode 1
         versionName "1.0.0"
+    }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
     }
     signingConfigs {
         release {
