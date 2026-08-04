@@ -1,0 +1,44 @@
+{
+  "buildId": null,
+  "resellerId": "userA123",
+  "appName": "Brand A App",
+  "packageName": "com.mksubdata.branda",
+  "generatedAt": "2026-08-04T12:24:19.207Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1785846238969-458615627-brandaapp-release.apk",
+    "iconUrl": "/reseller-assets/brandaapp/icon.png",
+    "splashUrl": "/reseller-assets/brandaapp/splash.png",
+    "featureGraphicUrl": "/reseller-assets/brandaapp/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/brandaapp/screenshot_login.png",
+      "/reseller-assets/brandaapp/screenshot_dashboard.png",
+      "/reseller-assets/brandaapp/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-08-04T12:24:19.206Z",
+    "pwaUrl": "https://branda.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Brand A App.",
+    "fullDescription": "Brand A App is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "testA@reseller.com",
+    "privacyPolicyUrl": "https://branda.9jasub.com/privacy-policy",
+    "websiteUrl": "https://branda.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 253870,
+    "memoryUsageMb": 25,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/brandaapp"
+  },
+  "infrastructure": {
+    "signature": "9f65983f2db5fe943a959de525f165b9a913debca4df4d24bacb018e00bfeca8",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

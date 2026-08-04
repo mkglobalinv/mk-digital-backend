@@ -1,0 +1,44 @@
+{
+  "buildId": null,
+  "resellerId": "userA123",
+  "appName": "Brand A Modified",
+  "packageName": "com.mksubdata.branda",
+  "generatedAt": "2026-08-04T12:34:01.795Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1785846824769-246928921-brandamodified-release.apk",
+    "iconUrl": "/reseller-assets/brandamodified/icon.png",
+    "splashUrl": "/reseller-assets/brandamodified/splash.png",
+    "featureGraphicUrl": "/reseller-assets/brandamodified/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/brandamodified/screenshot_login.png",
+      "/reseller-assets/brandamodified/screenshot_dashboard.png",
+      "/reseller-assets/brandamodified/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-08-04T12:34:01.795Z",
+    "pwaUrl": "https://branda.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Brand A Modified.",
+    "fullDescription": "Brand A Modified is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "testA@reseller.com",
+    "privacyPolicyUrl": "https://branda.9jasub.com/privacy-policy",
+    "websiteUrl": "https://branda.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 351609,
+    "memoryUsageMb": 25,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/brandamodified"
+  },
+  "infrastructure": {
+    "signature": "dd9e00879151eb9c3fedd7370acd6931ebb30cce6f9e6225dc0286271c4cfd07",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

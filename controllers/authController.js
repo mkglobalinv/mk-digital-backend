@@ -740,23 +740,186 @@ export const requestPinOTP = async (req, res) => {
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
         await OTP.deleteMany({ userId: user._id });
+    // Security Tracking & Alert
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const isSuspicious = user.lastLoginIp && user.lastLoginIp !== ip;
+    const loginAlertStatus = isSuspicious ? "suspicious" : "success";
+
+    user.lastLoginIp = ip;
+    await user.save();
+
+    setImmediate(async () => {
+        try {
+            await Notification.create({
+                userId: user._id,
+                title: isSuspicious ? "Suspicious Login Detected" : "New Login Detected",
+                message: isSuspicious 
+                    ? `A suspicious login was detected on your account during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`
+                    : `A new login was detected successfully during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`,
+                type: isSuspicious ? "warning" : "success"
+            });
+            await sendLoginAlertEmail(user.email, { timestamp: new Date(), device, ip, role: user.role });
+        } catch (alertErr) {
+            console.error("Failed to send login alerts on verification:", alertErr.message);
+        }
+    });
+
+    res.json({ 
+        success: true, 
+        message: "Email verified successfully. Welcome to 9JASUB!", 
+        token, 
+        user: { name: user.name, email: user.email, totalBalance: user.totalBalance, role: tokenRole },
+        loginAlertStatus
+    });
+  } catch (err) {
+    console.error("VERIFY EMAIL ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const verifySecurityQuestions = async (req, res) => {
+    try {
+        const { email, answers } = req.body; // answers: [{question, answer}]
+        const resellerId = req.reseller?._id || null;
+        const user = await User.findByTenant(email, resellerId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (!user.securityQuestions || user.securityQuestions.length < 2) {
+            return res.status(400).json({ message: "Security questions not set up for this account." });
+        }
+
+        let correctCount = 0;
+        for (const provided of answers) {
+            const sq = user.securityQuestions.find(q => q.question === provided.question);
+            if (sq) {
+                const isMatch = await bcrypt.compare(provided.answer.toLowerCase().trim(), sq.answer);
+                if (isMatch) correctCount++;
+            }
+        }
+
+        if (correctCount < 2) {
+            return res.status(400).json({ message: "Security answers are incorrect." });
+        }
+
+        // Generate OTP for PIN reset
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedOtp = await bcrypt.hash(otp, 10);
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        
+        await OTP.deleteMany({ userId: user._id });
+        await OTP.create({ userId: user._id, hashedOtp, expiresAt });
+        
+        console.log(`Generating OTP for security question verification: ${user.email}`);
+        
+        setImmediate(async () => {
+            try {
+                await sendPinResetAlertEmail(user.email);
+                console.log(`[AUTH] Dispatching security question OTP to ${user.email}`);
+                await dispatchOTP(user.email, otp);
+            } catch (err) {
+                console.error("[VerifySecurityQuestions] Background email error:", err.message);
+            }
+        });
+
+        res.json({ success: true, message: "Security answers correct. OTP sent to email." });
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const resetTransactionPin = async (req, res) => {
+    try {
+        const { email, newPin, resetToken } = req.body;
+        const resellerId = req.reseller?._id || null;
+        
+        try {
+            const decoded = jwt.verify(resetToken, process.env.JWT_SECRET || "mk_sub_data_secret_2024_premium");
+            if (decoded.email.toLowerCase() !== email.toLowerCase()) return res.status(400).json({ message: "Invalid reset token" });
+        } catch(err) {
+            return res.status(400).json({ message: "Reset token expired or invalid" });
+        }
+
+        if (!newPin || newPin.length !== 4) {
+            return res.status(400).json({ message: "New PIN must be 4 digits" });
+        }
+
+        const hashedPin = await bcrypt.hash(newPin, 10);
+        
+        let userCheck = await User.findByTenant(email, resellerId);
+        if (!userCheck) return res.status(404).json({ message: "User not found" });
+        if (!userCheck.isEmailVerified) return res.status(403).json({ message: "Email verification required before performing this action." });
+
+        userCheck.transactionPin = hashedPin;
+        userCheck.failedPinAttempts = 0;
+        userCheck.pinLockoutUntil = null;
+        const user = await userCheck.save();
+        
+        if (user) {
+            auditLogService.logAdminAction(req, 'PIN_RESET', 'pin_reset', user._id, 'Previous PIN existed', 'New PIN reset via token', { email });
+        }
+        res.json({ success: true, message: "Transaction PIN reset successfully." });
+    } catch (err) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+export const changeTransactionPin = async (req, res) => {
+    try {
+        const { oldPin, newPin, confirmPin } = req.body;
+        if (!oldPin || !newPin || !confirmPin) return res.status(400).json({ message: "All fields are required" });
+        if (newPin !== confirmPin) return res.status(400).json({ message: "New PINs do not match" });
+        if (newPin.length !== 4) return res.status(400).json({ message: "PIN must be 4 digits" });
+
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        if (!user.isEmailVerified) return res.status(403).json({ message: "Email verification required before performing this action." });
+        const isMatch = await bcrypt.compare(oldPin, user.transactionPin);
+        if (!isMatch) return res.status(400).json({ message: "Incorrect PIN" });
+
+        const hashedPin = await bcrypt.hash(newPin, 10);
+        user.transactionPin = hashedPin;
+        user.failedPinAttempts = 0;
+        user.pinLockoutUntil = null;
+        await user.save();
+
+        auditLogService.logAdminAction(req, 'PIN_CHANGED', 'pin_reset', user._id, 'Previous PIN existed', 'New PIN changed', { email: user.email });
+        res.json({ success: true, message: "Transaction PIN updated successfully" });
+    } catch (err) {
+        console.error("CHANGE PIN ERROR:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const requestPinOTP = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        if (!user.isEmailVerified) return res.status(403).json({ message: "Email verification required before performing this action." });
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedOtp = await bcrypt.hash(otp, 10);
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+        await OTP.deleteMany({ userId: user._id });
         await OTP.create({ userId: user._id, hashedOtp, expiresAt });
 
         console.log(`Generating PIN reset OTP for: ${user.email}`);
     
-    setImmediate(async () => {
-        try {
-            const startTime = Date.now();
-         console.log('[ADMIN LOGIN] Recipient email:', user.email, 'OTP generated:', otp);
-         console.log(`[AUTH] Dispatching pin reset OTP to ${user.email}`);
-        const sent = await dispatchOTP(user.email, otp);
-        if (!sent) {
-            console.error("[Security] Admin OTP dispatch reported failure");
-        }
-        console.log(`[Telemetry] PIN reset OTP email processed in ${Date.now() - startTime}ms`);
-    } catch (error) {
-        console.error("[SECURITY] Unhandled SMTP exception caught during dispatch:", error);
-    }    res.json({ success: true, message: "OTP sent to your email" });
+        setImmediate(async () => {
+            try {
+                const startTime = Date.now();
+                console.log('[ADMIN LOGIN] Recipient email:', user.email, 'OTP generated:', otp);
+                console.log(`[AUTH] Dispatching pin reset OTP to ${user.email}`);
+                const sent = await dispatchOTP(user.email, otp);
+                if (!sent) {
+                    console.error("[Security] Admin OTP dispatch reported failure");
+                }
+                console.log(`[Telemetry] PIN reset OTP email processed in ${Date.now() - startTime}ms`);
+            } catch (error) {
+                console.error("[SECURITY] Unhandled SMTP exception caught during dispatch:", error);
+            }
+        });
+
+        res.json({ success: true, message: "OTP sent to your email" });
     } catch (err) {
         console.error("REQUEST PIN OTP ERROR:", err);
         res.status(500).json({ message: "Server error" });

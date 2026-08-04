@@ -1,0 +1,44 @@
+{
+  "buildId": null,
+  "resellerId": "userB123",
+  "appName": "Brand B App",
+  "packageName": "com.mksubdata.brandb",
+  "generatedAt": "2026-08-04T12:28:10.159Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1785846462449-654059188-brandbapp-release.apk",
+    "iconUrl": "/reseller-assets/brandbapp/icon.png",
+    "splashUrl": "/reseller-assets/brandbapp/splash.png",
+    "featureGraphicUrl": "/reseller-assets/brandbapp/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/brandbapp/screenshot_login.png",
+      "/reseller-assets/brandbapp/screenshot_dashboard.png",
+      "/reseller-assets/brandbapp/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-08-04T12:28:10.159Z",
+    "pwaUrl": "https://brandb.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Brand B App.",
+    "fullDescription": "Brand B App is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "testB@reseller.com",
+    "privacyPolicyUrl": "https://brandb.9jasub.com/privacy-policy",
+    "websiteUrl": "https://brandb.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 230911,
+    "memoryUsageMb": 25,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/brandbapp"
+  },
+  "infrastructure": {
+    "signature": "5a30c717245ad8e17b75b1313febf012b95169224afea8ee59cee2b44c0332e8",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}
