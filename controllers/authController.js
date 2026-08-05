@@ -584,41 +584,6 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const resendEmailOTP = async (req, res) => {
-  try {
-    const { email } = req.body;
-    const resellerId = req.reseller?._id || null;
-    const user = await User.findByTenant(email, resellerId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (user.isEmailVerified) return res.status(400).json({ message: "Email is already verified." });
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const hashedOtp = await bcrypt.hash(otp, 10);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-    await OTP.deleteMany({ userId: user._id });
-    await OTP.create({ userId: user._id, hashedOtp, expiresAt });
-
-    console.log(`Resending OTP for email verification: ${user.email}`);
-    
-    setImmediate(async () => {
-        try {
-            console.log(`[AUTH] Dispatching resend OTP to ${user.email}`);
-            await dispatchOTP(user.email, otp);
-        } catch (err) {
-            console.error("[ResendOTP] Background email error:", err.message);
-        }
-    });
-
-    res.json({ success: true, message: "A new OTP has been sent to your email" });
-  } catch (err) {
-    console.error("RESEND EMAIL OTP ERROR:", err);
-    res.status(500).json({ message: "Failed to send OTP. Please try again" });
-  }
-};
-
-export const verifySecurityQuestions = async (req, res) => {
-    try {
         const { email, answers } = req.body; // answers: [{question, answer}]
         const resellerId = req.reseller?._id || null;
         const user = await User.findByTenant(email, resellerId);
@@ -750,12 +715,14 @@ export const requestPinOTP = async (req, res) => {
 
     setImmediate(async () => {
         try {
+            const title = isSuspicious ? "Suspicious Login Detected" : "New Login Detected";
+            const message = isSuspicious
+                ? `A suspicious login was detected on your account during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`
+                : `A new login was detected successfully during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`;
             await Notification.create({
                 userId: user._id,
-                title: isSuspicious ? "Suspicious Login Detected" : "New Login Detected",
-                message: isSuspicious 
-                    ? `A suspicious login was detected on your account during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`
-                    : `A new login was detected successfully during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`,
+                title,
+                message,
                 type: isSuspicious ? "warning" : "success"
             });
             await sendLoginAlertEmail(user.email, { timestamp: new Date(), device, ip, role: user.role });
@@ -771,61 +738,93 @@ export const requestPinOTP = async (req, res) => {
         user: { name: user.name, email: user.email, totalBalance: user.totalBalance, role: tokenRole },
         loginAlertStatus
     });
-  } catch (err) {
     console.error("VERIFY EMAIL ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+export const resendEmailOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const resellerId = req.reseller?._id || null;
+    const user = await User.findByTenant(email, resellerId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.isEmailVerified) return res.status(400).json({ message: "Email is already verified." });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    await OTP.deleteMany({ userId: user._id });
+    await OTP.create({ userId: user._id, hashedOtp, expiresAt });
+
+    console.log(`Resending OTP for email verification: ${user.email}`);
+
+    setImmediate(async () => {
+        try {
+            console.log(`[AUTH] Dispatching resend OTP to ${user.email}`);
+            await dispatchOTP(user.email, otp);
+        } catch (err) {
+            console.error("[ResendOTP] Background email error:", err.message);
+        }
+    });
+
+    res.json({ success: true, message: "A new OTP has been sent to your email" });
+  } catch (err) {
+    console.error("RESEND EMAIL OTP ERROR:", err);
+    res.status(500).json({ message: "Failed to send OTP. Please try again" });
+  }
+};
+
 export const verifySecurityQuestions = async (req, res) => {
-    try {
-        const { email, answers } = req.body; // answers: [{question, answer}]
-        const resellerId = req.reseller?._id || null;
-        const user = await User.findByTenant(email, resellerId);
-        if (!user) return res.status(404).json({ message: "User not found" });
+  try {
+    const { email, answers } = req.body; // answers: [{question, answer}]
+    const resellerId = req.reseller?._id || null;
+    const user = await User.findByTenant(email, resellerId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-        if (!user.securityQuestions || user.securityQuestions.length < 2) {
-            return res.status(400).json({ message: "Security questions not set up for this account." });
-        }
-
-        let correctCount = 0;
-        for (const provided of answers) {
-            const sq = user.securityQuestions.find(q => q.question === provided.question);
-            if (sq) {
-                const isMatch = await bcrypt.compare(provided.answer.toLowerCase().trim(), sq.answer);
-                if (isMatch) correctCount++;
-            }
-        }
-
-        if (correctCount < 2) {
-            return res.status(400).json({ message: "Security answers are incorrect." });
-        }
-
-        // Generate OTP for PIN reset
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const hashedOtp = await bcrypt.hash(otp, 10);
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-        
-        await OTP.deleteMany({ userId: user._id });
-        await OTP.create({ userId: user._id, hashedOtp, expiresAt });
-        
-        console.log(`Generating OTP for security question verification: ${user.email}`);
-        
-        setImmediate(async () => {
-            try {
-                await sendPinResetAlertEmail(user.email);
-                console.log(`[AUTH] Dispatching security question OTP to ${user.email}`);
-                await dispatchOTP(user.email, otp);
-            } catch (err) {
-                console.error("[VerifySecurityQuestions] Background email error:", err.message);
-            }
-        });
-
-        res.json({ success: true, message: "Security answers correct. OTP sent to email." });
-    } catch(err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error" });
+    if (!user.securityQuestions || user.securityQuestions.length < 2) {
+      return res.status(400).json({ message: "Security questions not set up for this account." });
     }
+
+    let correctCount = 0;
+    for (const provided of answers) {
+      const sq = user.securityQuestions.find(q => q.question === provided.question);
+      if (sq) {
+        const isMatch = await bcrypt.compare(provided.answer.toLowerCase().trim(), sq.answer);
+        if (isMatch) correctCount++;
+      }
+    }
+
+    if (correctCount < 2) {
+      return res.status(400).json({ message: "Security answers are incorrect." });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await OTP.deleteMany({ userId: user._id });
+    await OTP.create({ userId: user._id, hashedOtp, expiresAt });
+
+    console.log(`Generating OTP for security question verification: ${user.email}`);
+
+    setImmediate(async () => {
+      try {
+        await sendPinResetAlertEmail(user.email);
+        console.log(`[AUTH] Dispatching security question OTP to ${user.email}`);
+        await dispatchOTP(user.email, otp);
+      } catch (err) {
+        console.error("[VerifySecurityQuestions] Background email error:", err.message);
+      }
+    });
+
+    res.json({ success: true, message: "Security answers correct. OTP sent to email." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 export const resetTransactionPin = async (req, res) => {
