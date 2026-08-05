@@ -111,25 +111,26 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Hero Right Content: Team Photo overlaid with Floating Tech Cards */}
+          {/* Hero Right Content: Premium 9JASUB Office Photo */}
           <div className="lg:col-span-6 relative flex justify-center items-center z-10 animate-fade-in delay-200">
-            <div className="relative w-full max-w-md md:max-w-lg aspect-square">
-              {/* Connected glow ring */}
-              <div className="absolute -inset-4 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full blur-[40px] opacity-25 animate-pulse-slow" />
-              
-              {/* African professional team photo */}
-              <div className="w-full h-full rounded-[40px] overflow-hidden border-4 border-slate-800/80 shadow-2xl relative">
-                <img 
-                  src="/african_team.png" 
-                  alt="African Fintech Professional Team" 
-                  className="w-full h-full object-cover grayscale-[10%] contrast-[105%]" 
+            <div className="relative w-full">
+              {/* Glow ring behind image */}
+              <div className="absolute -inset-3 bg-gradient-to-tr from-blue-500/40 to-emerald-500/20 rounded-[32px] blur-[30px] opacity-50 animate-pulse-slow" />
+
+              {/* Premium office photo — 9JASUB HQ */}
+              <div className="w-full rounded-[28px] overflow-hidden border border-slate-700/60 shadow-2xl relative">
+                <img
+                  src="/hero_office.png"
+                  alt="9JASUB Headquarters — Nigerian Fintech Professionals"
+                  className="w-full h-auto object-cover object-center"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                {/* Subtle bottom vignette to blend into hero bg */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 via-transparent to-transparent" />
               </div>
 
               {/* Floating Fintech Icon Cards */}
               {/* Card 1: Data */}
-              <div className="absolute -top-4 -left-6 glass-dark px-4 py-3 rounded-2xl flex items-center gap-3 shadow-xl animate-float">
+              <div className="absolute -top-4 -left-4 glass-dark px-4 py-3 rounded-2xl flex items-center gap-3 shadow-xl animate-float">
                 <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
                   <Smartphone size={20} />
                 </div>
@@ -140,7 +141,7 @@ export default function Home() {
               </div>
 
               {/* Card 2: Wallet */}
-              <div className="absolute top-1/2 -right-8 glass-dark px-4 py-3 rounded-2xl flex items-center gap-3 shadow-xl animate-float-delayed">
+              <div className="absolute top-1/2 -right-6 glass-dark px-4 py-3 rounded-2xl flex items-center gap-3 shadow-xl animate-float-delayed">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
                   <Wallet size={20} />
                 </div>
@@ -151,7 +152,7 @@ export default function Home() {
               </div>
 
               {/* Card 3: Utility Bills */}
-              <div className="absolute -bottom-6 left-10 glass-dark px-4 py-3 rounded-2xl flex items-center gap-3 shadow-xl animate-float">
+              <div className="absolute -bottom-4 left-6 glass-dark px-4 py-3 rounded-2xl flex items-center gap-3 shadow-xl animate-float">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
                   <Zap size={20} />
                 </div>
@@ -165,30 +166,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ==================== DASHBOARD PREVIEW ==================== */}
-      <section className="relative -mt-16 pb-20 px-6 z-20">
+      {/* ==================== STATS / TRUST BAR ==================== */}
+      <section className="relative bg-white border-y border-slate-100 py-10 px-6 z-20">
         <div className="max-w-5xl mx-auto">
-          {/* Premium Browser Mockup Wrapper with float animation */}
-          <div className="animate-float-delayed rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-2xl shadow-slate-900/10">
-            {/* Browser Header Bar */}
-            <div className="flex items-center gap-3 px-6 py-4 bg-slate-50 border-b border-slate-200">
-              <div className="flex gap-2">
-                <div className="w-3.5 h-3.5 rounded-full bg-rose-400"></div>
-                <div className="w-3.5 h-3.5 rounded-full bg-amber-400"></div>
-                <div className="w-3.5 h-3.5 rounded-full bg-emerald-400"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x divide-slate-100">
+            {[
+              { value: "10,000+", label: "Active Resellers", color: "text-blue-600" },
+              { value: "₦2B+",    label: "Transactions Processed", color: "text-emerald-600" },
+              { value: "99.9%",   label: "Platform Uptime", color: "text-indigo-600" },
+              { value: "4 Networks", label: "MTN · Airtel · Glo · 9mobile", color: "text-amber-600" }
+            ].map((s, i) => (
+              <div key={i} className="flex flex-col items-center text-center px-6 py-2">
+                <span className={`text-3xl md:text-4xl font-black tracking-tight ${s.color}`}>{s.value}</span>
+                <span className="text-xs text-slate-500 font-semibold mt-1 leading-snug">{s.label}</span>
               </div>
-              <div className="flex-1 max-w-lg mx-auto h-7 bg-slate-200/50 rounded-lg text-xs text-slate-400 flex items-center justify-center font-medium select-none">
-                9jasub.com/admin/dashboard
-              </div>
-            </div>
-            {/* Browser Content Frame - Cropped actual dashboard screenshot, no black borders */}
-            <div className="relative aspect-[1024/448] bg-white overflow-hidden">
-              <img 
-                src="/dashboard_screenshot.png" 
-                alt="9JASUB Dashboard Interface" 
-                className="w-full h-full object-cover object-top" 
-              />
-            </div>
+            ))}
           </div>
         </div>
       </section>
