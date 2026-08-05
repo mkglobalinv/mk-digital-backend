@@ -18,31 +18,47 @@ export const smartBuyAirtime = async (network, amount, phone, countryCode = 'NG'
     
     try {
         const pStatus = await ProviderStatus.findOne({ providerName: pName });
-        if (pStatus && (!pStatus.isAvailable || pStatus.apiStatus === 'disconnected' || pStatus.isUnderMaintenance)) {
-            const msg = `Provider ${pName} is currently offline.`;
-            console.warn(`[Switcher] [${transactionId}] ${msg}`);
-            return { status: "failed", message: msg };
-        }
+        const primaryOffline = pStatus && (!pStatus.isAvailable || pStatus.apiStatus === 'disconnected' || pStatus.isUnderMaintenance);
 
         let result;
         let finalProvider = pName;
-        console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
-        
-        if (pName === 'clubkonnect') {
-            result = await buyAirtimeWithClubkonnect(network, amount, phone);
-            if (result && result.status === "failed") {
-                const reason = result.message || "Unknown Provider Error";
-                console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: peyflex...`);
+
+        if (primaryOffline) {
+            const secondaryName = pName === 'clubkonnect' ? 'peyflex' : 'clubkonnect';
+            const secStatus = await ProviderStatus.findOne({ providerName: secondaryName });
+            const secondaryOffline = secStatus && (!secStatus.isAvailable || secStatus.apiStatus === 'disconnected' || secStatus.isUnderMaintenance);
+
+            if (secondaryOffline) {
+                const msg = `Both primary (${pName}) and failover (${secondaryName}) providers are offline.`;
+                console.warn(`[Switcher] [${transactionId}] ${msg}`);
+                return { status: "failed", message: msg };
+            }
+
+            console.log(`[Switcher] [${transactionId}] Primary provider ${pName} is offline. Routing directly to failover: ${secondaryName}`);
+            finalProvider = secondaryName;
+            if (secondaryName === 'clubkonnect') {
+                result = await buyAirtimeWithClubkonnect(network, amount, phone);
+            } else {
                 result = await buyAirtimeWithPeyflex(network, amount, phone);
-                finalProvider = 'peyflex';
             }
         } else {
-            result = await buyAirtimeWithPeyflex(network, amount, phone);
-            if (result && result.status === "failed") {
-                const reason = result.message || "Unknown Provider Error";
-                console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: clubkonnect...`);
+            console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
+            if (pName === 'clubkonnect') {
                 result = await buyAirtimeWithClubkonnect(network, amount, phone);
-                finalProvider = 'clubkonnect';
+                if (result && result.status === "failed") {
+                    const reason = result.message || "Unknown Provider Error";
+                    console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: peyflex...`);
+                    result = await buyAirtimeWithPeyflex(network, amount, phone);
+                    finalProvider = 'peyflex';
+                }
+            } else {
+                result = await buyAirtimeWithPeyflex(network, amount, phone);
+                if (result && result.status === "failed") {
+                    const reason = result.message || "Unknown Provider Error";
+                    console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: clubkonnect...`);
+                    result = await buyAirtimeWithClubkonnect(network, amount, phone);
+                    finalProvider = 'clubkonnect';
+                }
             }
         }
 
@@ -50,7 +66,7 @@ export const smartBuyAirtime = async (network, amount, phone, countryCode = 'NG'
         console.log(`[Switcher] [${transactionId}] Final provider selected: ${finalProvider} | Request duration: ${duration}ms`);
 
         if (result && result.status === "success") {
-            await handleProviderTransactionSuccess(pName);
+            await handleProviderTransactionSuccess(finalProvider);
             return { status: "success", provider_used: finalProvider, reference: result.reference, data: result.data };
         }
         if (result && result.status === "unknown") {
@@ -80,29 +96,45 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
         
         const pName = planRecord.provider;
         const pStatus = await ProviderStatus.findOne({ providerName: pName });
-        if (pStatus && (!pStatus.isAvailable || pStatus.apiStatus === 'disconnected' || pStatus.isUnderMaintenance)) {
-            return { status: "failed", message: `Assigned provider ${pName} is offline.` };
-        }
+        const primaryOffline = pStatus && (!pStatus.isAvailable || pStatus.apiStatus === 'disconnected' || pStatus.isUnderMaintenance);
 
         let result;
         let finalProvider = pName;
-        console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
-        
-        if (pName === 'clubkonnect') {
-            result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
-            if (result && result.status === "failed") {
-                const reason = result.message || "Unknown Provider Error";
-                console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: peyflex...`);
+
+        if (primaryOffline) {
+            const secondaryName = pName === 'clubkonnect' ? 'peyflex' : 'clubkonnect';
+            const secStatus = await ProviderStatus.findOne({ providerName: secondaryName });
+            const secondaryOffline = secStatus && (!secStatus.isAvailable || secStatus.apiStatus === 'disconnected' || secStatus.isUnderMaintenance);
+
+            if (secondaryOffline) {
+                return { status: "failed", message: `Both primary (${pName}) and failover (${secondaryName}) providers are offline.` };
+            }
+
+            console.log(`[Switcher] [${transactionId}] Primary provider ${pName} is offline. Routing directly to failover: ${secondaryName}`);
+            finalProvider = secondaryName;
+            if (secondaryName === 'clubkonnect') {
+                result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
+            } else {
                 result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
-                finalProvider = 'peyflex';
             }
         } else {
-            result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
-            if (result && result.status === "failed") {
-                const reason = result.message || "Unknown Provider Error";
-                console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: clubkonnect...`);
+            console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
+            if (pName === 'clubkonnect') {
                 result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
-                finalProvider = 'clubkonnect';
+                if (result && result.status === "failed") {
+                    const reason = result.message || "Unknown Provider Error";
+                    console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: peyflex...`);
+                    result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
+                    finalProvider = 'peyflex';
+                }
+            } else {
+                result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
+                if (result && result.status === "failed") {
+                    const reason = result.message || "Unknown Provider Error";
+                    console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: clubkonnect...`);
+                    result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
+                    finalProvider = 'clubkonnect';
+                }
             }
         }
 
@@ -110,7 +142,7 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
         console.log(`[Switcher] [${transactionId}] Final provider selected: ${finalProvider} | Request duration: ${duration}ms`);
 
         if (result && (result.success || result.status === "success")) {
-            await handleProviderTransactionSuccess(pName);
+            await handleProviderTransactionSuccess(finalProvider);
             return { status: "success", provider_used: finalProvider, reference: result.reference, data: result.data };
         }
         if (result && result.status === "unknown") return { status: "unknown", provider_used: finalProvider, reference: result.reference };
