@@ -1267,6 +1267,11 @@ export const initiateWalletAction = async (req, res) => {
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         await OTP.deleteMany({ userId: admin._id });
         const hashedOtp = await bcrypt.hash(otpCode, 10);
+        await OTP.create({ 
+            userId: admin._id, 
+            hashedOtp, 
+            expiresAt: new Date(Date.now() + 10 * 60000) 
+        });
         // Awaited OTP dispatch to ensure delivery outcome
         let emailSent = true;
         try {
