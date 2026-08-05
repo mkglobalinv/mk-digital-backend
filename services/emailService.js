@@ -113,7 +113,7 @@ export const sendEmail = async (to, subject, html) => {
 // --- 3. Transport Usage (Unchanged Business Logic) ---
 
 export const sendOTPEmail = async (email, otp) => {
-    console.log(`Preparing to send OTP email to ${email} (OTP: ${otp})`);
+    console.log(`[DIAGNOSTICS] sendOTPEmail() entered for ${email} (OTP: ${otp})`);
     const branding = await getBrandingForEmail(email);
     const siteName = branding.siteName || "9JASUB";
     const primaryColor = branding.primaryColor || "#4CAF50";
@@ -131,16 +131,17 @@ export const sendOTPEmail = async (email, otp) => {
         </div>
     `;
     try {
+        console.log(`[DIAGNOSTICS] Calling transporter.sendMail via sendEmail for ${email}...`);
         const result = await sendEmail(email, subject, html);
         if (result) {
-            console.log(`Successfully sent OTP email to ${email}`);
+            console.log(`[DIAGNOSTICS] Successfully sent OTP email to ${email}. Brevo accepted.`);
             return true;
         } else {
-            console.error(`Failed to send OTP email to ${email}.`);
+            console.error(`[DIAGNOSTICS] Failed to send OTP email to ${email}. Brevo rejected or transport failed.`);
             return false;
         }
     } catch (error) {
-        console.error(`Exception while sending OTP email to ${email}:`, error);
+        console.error(`[DIAGNOSTICS] Exception while sending OTP email to ${email}:`, error);
         return false;
     }
 };

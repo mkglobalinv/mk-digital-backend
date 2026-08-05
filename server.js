@@ -835,7 +835,7 @@ app.post("/api/register", async (req, res) => {
         try {
             await sendOTPEmail(user.email, otp);
         } catch (err) {
-            console.error("[Signup] Background OTP Email Error:", err.message);
+            console.error("[Signup] Background OTP Email Error:", err);
         }
     });
     res.json({ message: "Registered. Verify email.", email: user.email });

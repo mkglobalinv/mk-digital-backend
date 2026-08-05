@@ -190,6 +190,52 @@ export const requestOTP = async (req, res) => {
   }
 };
 
+export const resendEmailOTP = async (req, res) => {
+  try {
+    console.log('[RESEND EMAIL OTP] Controller entered');
+    const { email } = req.body;
+    const resellerId = req.reseller?._id || null;
+    console.log(`[RESEND EMAIL OTP] Recipient: ${email}`);
+
+    const user = await User.findByTenant(email, resellerId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Rate limit: no resend within 60 seconds
+    const latestLog = await OTPAuditLog.findOne({ email, action: { $in: ["request", "resend"] } }).sort({ createdAt: -1 });
+    if (latestLog && (Date.now() - new Date(latestLog.createdAt).getTime() < 60000)) {
+      const waitSecs = Math.ceil((60000 - (Date.now() - new Date(latestLog.createdAt).getTime())) / 1000);
+      return res.status(429).json({ message: `Please wait ${waitSecs} seconds before requesting another OTP.`, rateLimit: true, waitSecs });
+    }
+
+    // Generate new OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await OTP.deleteMany({ userId: user._id });
+    await OTP.create({ userId: user._id, hashedOtp, expiresAt });
+
+    console.log(`[RESEND EMAIL OTP] OTP generated for ${email}. Dispatching...`);
+    const emailSent = await dispatchOTP(user.email, otp);
+    console.log(`[RESEND EMAIL OTP] Dispatch result for ${email}: ${emailSent ? 'SUCCESS' : 'FAILED'}`);
+
+    const attemptsCount = await OTPAuditLog.countDocuments({ email, action: 'resend' });
+    await OTPAuditLog.create({
+      email,
+      action: 'resend',
+      deliveryStatus: emailSent ? 'sent' : 'failed',
+      attempts: attemptsCount + 1,
+      details: emailSent ? 'OTP resent successfully' : 'SMTP transport failure on resend'
+    });
+
+    res.json({ success: true, message: "OTP resent to your email." });
+  } catch (err) {
+    console.error('[RESEND EMAIL OTP] ERROR:', err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -613,54 +659,7 @@ export const changeTransactionPin = async (req, res) => {
     }
 };
 
-export const requestPinOTP = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: "User not found" });
-        if (!user.isEmailVerified) return res.status(403).json({ message: "Email verification required before performing this action." });
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const hashedOtp = await bcrypt.hash(otp, 10);
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-        await OTP.deleteMany({ userId: user._id });
-    // Security Tracking & Alert
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const isSuspicious = user.lastLoginIp && user.lastLoginIp !== ip;
-    const loginAlertStatus = isSuspicious ? "suspicious" : "success";
-
-    user.lastLoginIp = ip;
-    await user.save();
-
-    setImmediate(async () => {
-        try {
-            const title = isSuspicious ? "Suspicious Login Detected" : "New Login Detected";
-            const message = isSuspicious
-                ? `A suspicious login was detected on your account during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`
-                : `A new login was detected successfully during email verification. Time: ${new Date().toLocaleString()}, Device: ${device}, IP: ${ip}.`;
-            await Notification.create({
-                userId: user._id,
-                title,
-                message,
-                type: isSuspicious ? "warning" : "success"
-            });
-            await sendLoginAlertEmail(user.email, { timestamp: new Date(), device, ip, role: user.role });
-        } catch (alertErr) {
-            console.error("Failed to send login alerts on verification:", alertErr.message);
-        }
-    });
-
-    res.json({ 
-        success: true, 
-        message: "Email verified successfully. Welcome to 9JASUB!", 
-        token, 
-        user: { name: user.name, email: user.email, totalBalance: user.totalBalance, role: tokenRole },
-        loginAlertStatus
-    });
-  } catch (err) {
-    console.error("VERIFY EMAIL ERROR:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
 
 export const verifySecurityQuestions = async (req, res) => {
   try {
@@ -757,32 +756,6 @@ export const requestPinOTP = async (req, res) => {
         res.json({ success: true, message: "OTP sent to your email for PIN reset." });
     } catch (err) {
         console.error("REQUEST PIN OTP ERROR:", err);
-        res.status(500).json({ message: "Server error" });
-    }
-};
-export const changeTransactionPin = async (req, res) => {
-    try {
-        const { oldPin, newPin, confirmPin } = req.body;
-        if (!oldPin || !newPin || !confirmPin) return res.status(400).json({ message: "All fields are required" });
-        if (newPin !== confirmPin) return res.status(400).json({ message: "New PINs do not match" });
-        if (newPin.length !== 4) return res.status(400).json({ message: "PIN must be 4 digits" });
-
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: "User not found" });
-        if (!user.isEmailVerified) return res.status(403).json({ message: "Email verification required before performing this action." });
-        const isMatch = await bcrypt.compare(oldPin, user.transactionPin);
-        if (!isMatch) return res.status(400).json({ message: "Incorrect PIN" });
-
-        const hashedPin = await bcrypt.hash(newPin, 10);
-        user.transactionPin = hashedPin;
-        user.failedPinAttempts = 0;
-        user.pinLockoutUntil = null;
-        await user.save();
-
-        auditLogService.logAdminAction(req, 'PIN_CHANGED', 'pin_reset', user._id, 'Previous PIN existed', 'New PIN changed', { email: user.email });
-        res.json({ success: true, message: "Transaction PIN updated successfully" });
-    } catch (err) {
-        console.error("CHANGE PIN ERROR:", err);
         res.status(500).json({ message: "Server error" });
     }
 };
