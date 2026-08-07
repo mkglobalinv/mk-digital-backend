@@ -87,7 +87,7 @@ export const processIdentityService = async (req, res) => {
         // 3. Create Transaction (Pending)
         const transaction = await Transaction.create({
             userId: userId,
-            reference: idempotencyKey,
+            reference: `${idempotencyKey}-${Date.now()}`,
             amount: cost,
             type: 'debit',
             description: plan.plan_name,

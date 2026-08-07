@@ -71,32 +71,51 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Initial Data Fetch
+  // Initial Data Fetch & WebSocket Live Updates
   useEffect(() => {
-    if (token) {
-       setIsLoadingTx(true);
-       API.get('/api/transactions', { headers: { Authorization: token } })
-         .then(res => {
-            if (res.data && Array.isArray(res.data)) setTransactions(res.data);
-            setIsLoadingTx(false);
-         }).catch(err => {
-            console.error(err);
-            setIsLoadingTx(false);
-         });
+    const fetchDashboardData = () => {
+      if (token) {
+         setIsLoadingTx(true);
+         API.get('/api/transactions', { headers: { Authorization: token } })
+           .then(res => {
+              if (res.data && Array.isArray(res.data)) setTransactions(res.data);
+              setIsLoadingTx(false);
+           }).catch(err => {
+              console.error(err);
+              setIsLoadingTx(false);
+           });
 
-       API.get('/api/notifications/unread-count', { headers: { Authorization: token } })
-         .then(res => {
-            if (res.data) setUnreadCount(res.data.count);
-         }).catch(() => {});
+         API.get('/api/notifications/unread-count', { headers: { Authorization: token } })
+           .then(res => {
+              if (res.data) setUnreadCount(res.data.count);
+           }).catch(() => {});
 
-       API.get('/api/user/referral-analytics', { headers: { Authorization: token } })
-         .then(res => {
-            if (res.data && res.data.status === 'success') {
-                setReferralAnalytics(res.data.data);
-            }
-         }).catch(() => {});
-    }
-  }, [token]);
+         API.get('/api/user/referral-analytics', { headers: { Authorization: token } })
+           .then(res => {
+              if (res.data && res.data.status === 'success') {
+                  setReferralAnalytics(res.data.data);
+              }
+           }).catch(() => {});
+           
+         // If a refresh is triggered via WebSocket, fetch latest user balance
+         if (refreshUser && typeof refreshUser === 'function') {
+            refreshUser();
+         }
+      }
+    };
+
+    fetchDashboardData();
+
+    // Listen to real-time wallet sync events from the global App socket
+    const handleWalletEvent = () => fetchDashboardData();
+    window.addEventListener('wallet:refresh', handleWalletEvent);
+    window.addEventListener('wallet:funded', handleWalletEvent);
+
+    return () => {
+      window.removeEventListener('wallet:refresh', handleWalletEvent);
+      window.removeEventListener('wallet:funded', handleWalletEvent);
+    };
+  }, [token, refreshUser]);
 
   // Dynamic Mini Activity Summary metrics helper
   const getMiniSummaryMetrics = () => {

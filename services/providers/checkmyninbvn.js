@@ -67,7 +67,7 @@ const makeRequest = async (endpoint, method, payload = null, customApiKey = null
         const response = await axiosWithRetry(config);
         return {
             status: 'success',
-            ...response.data
+            data: response.data
         };
     } catch (error) {
         let errorMsg = 'Unknown error occurred';
