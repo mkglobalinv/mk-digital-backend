@@ -17,7 +17,7 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('C:/Users/userpc/mk-digital-backend/certs/reseller-apps.jks')
+            storeFile file('KEYSTORE_PATH_PLACEHOLDER')
             storePassword 'mksubdata2024'
             keyAlias 'reseller_alias'
             keyPassword 'mksubdata2024'

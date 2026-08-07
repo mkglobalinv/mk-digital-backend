@@ -60,9 +60,11 @@ export const generateAppAssets = async (user, jobId = null) => {
         const brandName = appName.toLowerCase().replace(/[^a-z0-9]/g, '');
         const userAssetsDir = path.join(ASSETS_DIR, brandName);
 
-        if (!fs.existsSync(userAssetsDir)) {
-            fs.mkdirSync(userAssetsDir, { recursive: true });
+        // ALWAYS START CLEAN: Ensure no stale assets from previous runs exist.
+        if (fs.existsSync(userAssetsDir)) {
+            fs.rmSync(userAssetsDir, { recursive: true, force: true });
         }
+        fs.mkdirSync(userAssetsDir, { recursive: true });
 
         const primaryColor = appColors?.primary || '#3b82f6';
         const hexColor = parseInt(primaryColor.replace('#', 'FF'), 16); // Convert hex to Jimp color (ARGB)
@@ -261,12 +263,28 @@ export const generateAppAssets = async (user, jobId = null) => {
                 
                 const stringsPath = path.join(buildDir, 'app', 'src', 'main', 'res', 'values', 'strings.xml');
                 let stringsContent = fs.readFileSync(stringsPath, 'utf8');
-                stringsContent = stringsContent.replace('Mksubdata App', appName);
+                
+                // XML Escape appName to prevent syntax-driven compilation failures
+                const safeAppName = appName
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '\\\''); // Android strings.xml specifically requires escaped apostrophes
+                    
+                stringsContent = stringsContent.replace('Mksubdata App', safeAppName);
                 fs.writeFileSync(stringsPath, stringsContent);
                 
                 const gradlePath = path.join(buildDir, 'app', 'build.gradle');
                 let gradleContent = fs.readFileSync(gradlePath, 'utf8');
                 gradleContent = gradleContent.replace('applicationId "com.mksubdata.app"', `applicationId "${packageName || `com.mksubdata.${brandName}`}"`);
+                
+                // Inject dynamic keystore path (OS independent) to avoid breaking on Linux/macOS or different directories
+                const keystorePath = path.join(process.cwd(), 'certs', 'reseller-apps.jks').replace(/\\/g, '/');
+                gradleContent = gradleContent.replace(
+                    /storeFile file\('.*KEYSTORE_PATH_PLACEHOLDER.*'\)/, 
+                    `storeFile file('${keystorePath}')`
+                );
                 fs.writeFileSync(gradlePath, gradleContent);
                 
                 const mainActivityPath = path.join(buildDir, 'app', 'src', 'main', 'java', 'com', 'mksubdata', 'app', 'MainActivity.java');
@@ -291,37 +309,44 @@ export const generateAppAssets = async (user, jobId = null) => {
 
                 try {
                     const isWindows = process.platform === 'win32';
-                    const customGradlePath = "C:\\gradle-8.5\\bin\\gradle.bat";
-                    let buildCmd = isWindows ? `"${customGradlePath}" assembleRelease --console=plain --no-daemon` : `./gradlew assembleRelease --console=plain --no-daemon`;
                     
-                    if (!fs.existsSync(customGradlePath)) {
-                        console.log(`[AssetGen] Native runtime absent. Fallback...`);
-                        const fallbackApk = path.join(ASSETS_DIR, 'testbrandedapp', 'app-release.apk');
-                        const targetApk = path.join(userAssetsDir, 'app-release.apk');
-                        if (fs.existsSync(fallbackApk)) {
-                            fs.copyFileSync(fallbackApk, targetApk);
-                        }
+                    // Resolve gradle executable
+                    const customGradlePath = "C:\\gradle-8.5\\bin\\gradle.bat";
+                    let gradleCmd = 'gradle';
+                    if (isWindows && fs.existsSync(customGradlePath)) {
+                        gradleCmd = `"${customGradlePath}"`;
+                    } else if (isWindows) {
+                        gradleCmd = 'gradle.bat';
+                    }
+                    
+                    const buildCmd = `${gradleCmd} assembleRelease --console=plain --no-daemon`;
+                    console.log(`[AssetGen] Executing dynamic native build: ${buildCmd}`);
+                    
+                    // Execute Gradle and DO NOT swallow errors. A failed build must stop the pipeline.
+                    await runExecAsync(buildCmd, { cwd: buildDir, env: { ...process.env, JAVA_OPTS: '-Xmx1024m' } });
+                    
+                    let sourceApk = path.join(buildDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk');
+                    if (!fs.existsSync(sourceApk)) sourceApk = path.join(buildDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release-unsigned.apk');
+                    
+                    if (fs.existsSync(sourceApk)) {
+                        fs.copyFileSync(sourceApk, path.join(userAssetsDir, 'app-release.apk'));
+                        console.log(`[AssetGen] Native build succeeded and APK moved securely.`);
                     } else {
-                        await runExecAsync(buildCmd, { cwd: buildDir, env: { ...process.env, JAVA_OPTS: '-Xmx1024m' } });
-                        let sourceApk = path.join(buildDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk');
-                        if (!fs.existsSync(sourceApk)) sourceApk = path.join(buildDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release-unsigned.apk');
-                        if (fs.existsSync(sourceApk)) fs.copyFileSync(sourceApk, path.join(userAssetsDir, 'app-release.apk'));
+                        throw new Error("Gradle compilation succeeded but no APK artifact was found in the output directory.");
                     }
                 } catch (gradleExecErr) {
-                    console.error("[AssetGen] Native compilation fallback pass error:", gradleExecErr.message);
+                    console.error("[AssetGen] NATIVE COMPILATION FAILED:", gradleExecErr.message);
+                    if (gradleExecErr.stdout) console.error("STDOUT:", gradleExecErr.stdout);
+                    if (gradleExecErr.stderr) console.error("STDERR:", gradleExecErr.stderr);
+                    throw new Error("Native APK Compilation Failed: " + gradleExecErr.message);
                 }
             } catch (setupErr) {
-                console.error("[AssetGen] Native project template config err:", setupErr.message);
+                console.error("[AssetGen] Native project setup failure:", setupErr.message);
+                throw setupErr; // Ensure pipeline stops
             }
         } else {
-            // PWA Asset Mode Integration bypasses volatile binary execution seamlessly
+            // PWA Asset Mode Integration - ONLY generate web assets, no fallback APKs!
             await updateJob("Generating PWABuilder Production Package", 80, "Optimizing PWA app artifacts and manifest assets...");
-            // Ensure fallback container APK is accessible if traditional raw download is forced
-            const fallbackApk = path.join(ASSETS_DIR, 'testbrandedapp', 'app-release.apk');
-            const targetApk = path.join(userAssetsDir, 'app-release.apk');
-            if (fs.existsSync(fallbackApk) && !fs.existsSync(targetApk)) {
-                try { fs.copyFileSync(fallbackApk, targetApk); } catch(e){}
-            }
             await new Promise(r => setTimeout(r, 200));
         }
 

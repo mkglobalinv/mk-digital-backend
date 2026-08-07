@@ -1,0 +1,44 @@
+{
+  "buildId": null,
+  "resellerId": "customer_a_id",
+  "appName": "Customer A App",
+  "packageName": "com.customer.a",
+  "generatedAt": "2026-08-07T22:47:02.842Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1786142803261-822294476-customeraapp-release.apk",
+    "iconUrl": "/reseller-assets/customeraapp/icon.png",
+    "splashUrl": "/reseller-assets/customeraapp/splash.png",
+    "featureGraphicUrl": "/reseller-assets/customeraapp/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/customeraapp/screenshot_login.png",
+      "/reseller-assets/customeraapp/screenshot_dashboard.png",
+      "/reseller-assets/customeraapp/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-08-07T22:47:02.842Z",
+    "pwaUrl": "https://customera.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Customer A App.",
+    "fullDescription": "Customer A App is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "a@verified.com",
+    "privacyPolicyUrl": "https://customera.9jasub.com/privacy-policy",
+    "websiteUrl": "https://customera.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 351966,
+    "memoryUsageMb": 25,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/customeraapp"
+  },
+  "infrastructure": {
+    "signature": "f10b2c8448c42cd56f193453bef024dbc8c10dbfb5d3c6425c2f2be767d9fc7b",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}
