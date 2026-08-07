@@ -5,13 +5,22 @@ import { login, register, requestOTP, verifyOTP, resetPassword, verifyEmail, res
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5,
-    message: { message: "Too many login attempts. Please try again after 15 minutes." }
+    message: { message: "Too many login attempts. Please try again after 15 minutes." },
+    keyGenerator: (req) => {
+        // Support email-based limiting to handle multiple users behind the same network/NAT
+        const email = req.body?.email?.toLowerCase().trim();
+        return email ? `login_email_${email}` : `login_ip_${req.ip}`;
+    }
 });
 
 const otpLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 2,
-    message: { message: "Too many OTP requests. Please wait a minute before requesting another." }
+    message: { message: "Too many OTP requests. Please wait a minute before requesting another." },
+    keyGenerator: (req) => {
+        const email = req.body?.email?.toLowerCase().trim();
+        return email ? `otp_email_${email}` : `otp_ip_${req.ip}`;
+    }
 });
 
 const router = express.Router();

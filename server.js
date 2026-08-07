@@ -139,7 +139,7 @@ import reconciliationService from './services/reconciliationService.js';
 import domainMonitor from './services/domainMonitor.js';
 
 const app = express();
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // DEBUG LOGGING MIDDLEWARE
 app.use((req, res, next) => {
@@ -325,7 +325,13 @@ const limiter = rateLimit({
   skip: (req) => req.ip === '::1' || req.ip === '127.0.0.1' || req.ip === 'localhost'
 });
 app.use("/api", limiter);
-app.use("/auth", limiter);
+app.use("/auth", (req, res, next) => {
+    // Skip global limiter for routes that have their own specific limiters (login/register)
+    if (req.path === '/login' || req.path === '/register') {
+        return next();
+    }
+    limiter(req, res, next);
+});
 
 // --- PUBLIC GUARANTEED BINARY APK STREAMING ROUTE ---
 // DEPRECATED: Reseller APK delivery has migrated entirely to Supabase Storage.
