@@ -689,3 +689,49 @@ body.dark-theme .fintech-outline-btn:hover {
   background: rgba(255,255,255,0.04);
   border-color: rgba(255,255,255,0.2);
 }
+
+
+/* -----------------------------------------------------------
+   ISSUE 1 FIX: DAY MODE OVERRIDES
+   ----------------------------------------------------------- */
+body.day-mode {
+  --bg-color: #F3F4F6 !important;
+  background-color: #F3F4F6 !important;
+}
+
+body.day-mode .fintech-dashboard-wrapper {
+  color: #111827 !important;
+}
+
+body.day-mode .greeting-text {
+  color: #4B5563 !important;
+  font-weight: 700 !important;
+}
+
+body.day-mode .user-name {
+  color: #111827 !important;
+  font-weight: 900 !important;
+}
+
+body.day-mode .section-header h3 {
+  color: #111827 !important;
+  font-weight: 900 !important;
+}
+
+body.day-mode .section-header p {
+  color: #4B5563 !important;
+  font-weight: 600 !important;
+}
+
+body.day-mode .icon-btn {
+  background: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+}
+
+body.day-mode .nav-avatar {
+  background: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+  color: #111827 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+}

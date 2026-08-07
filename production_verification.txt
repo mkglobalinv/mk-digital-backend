@@ -1,0 +1,187 @@
+# Identity Services Production Verification Report
+
+
+==========================================
+Service: NIN Verification
+Endpoint URL: https://checkmyninbvn.com.ng/api/nin-verification
+HTTP Method: POST
+Headers: 
+  Content-Type: application/json
+  x-api-key: [HIDDEN]
+JSON Payload: {
+  "nin": "44276673858",
+  "consent": true
+}
+
+--- Response ---
+HTTP Status: 400
+Response Body: 
+{
+  "status": "error",
+  "message": "Verification failed",
+  "code": 400
+}
+Provider Error Message: Verification failed
+
+==========================================
+Service: BVN Verification
+Endpoint URL: https://checkmyninbvn.com.ng/api/bvn-verification
+HTTP Method: POST
+Headers: 
+  Content-Type: application/json
+  x-api-key: [HIDDEN]
+JSON Payload: {
+  "bvn": "22345678901",
+  "consent": true
+}
+
+--- Response ---
+HTTP Status: 400
+Response Body: 
+{
+  "status": "error",
+  "message": "No record found/Invalid Input. Check your details and try again later",
+  "code": 400
+}
+Provider Error Message: No record found/Invalid Input. Check your details and try again later
+
+==========================================
+Service: NIN by Phone
+Endpoint URL: https://checkmyninbvn.com.ng/api/nin-phone
+HTTP Method: POST
+Headers: 
+  Content-Type: application/json
+  x-api-key: [HIDDEN]
+JSON Payload: {
+  "phone": "08012345678",
+  "consent": true
+}
+
+--- Response ---
+HTTP Status: 400
+Response Body: 
+{
+  "status": "error",
+  "message": "Recent verification Found. Please try again in 1 minute",
+  "code": 400
+}
+Provider Error Message: Recent verification Found. Please try again in 1 minute
+
+==========================================
+Service: BVN by Phone
+Endpoint URL: https://checkmyninbvn.com.ng/api/bvn-phone
+HTTP Method: POST
+Headers: 
+  Content-Type: application/json
+  x-api-key: [HIDDEN]
+JSON Payload: {
+  "phone": "08012345678",
+  "consent": true
+}
+
+--- Response ---
+HTTP Status: 503
+Response Body: 
+{
+  "status": "error",
+  "message": "BVN phone search service is currently unavailable",
+  "code": 503
+}
+Provider Error Message: BVN phone search service is currently unavailable
+
+==========================================
+Service: NIN by Tracking ID
+Endpoint URL: https://checkmyninbvn.com.ng/api/nin-tracking
+HTTP Method: POST
+Headers: 
+  Content-Type: application/json
+  x-api-key: [HIDDEN]
+JSON Payload: {
+  "tracking_id": "TRK123456",
+  "consent": true
+}
+
+--- Response ---
+HTTP Status: 400
+Response Body: 
+{
+  "status": "error",
+  "message": "Invalid tracking ID format",
+  "code": 400
+}
+Provider Error Message: Invalid tracking ID format
+
+==========================================
+Service: NIN by Demographics
+Endpoint URL: https://checkmyninbvn.com.ng/api/nin-demography
+HTTP Method: POST
+Headers: 
+  Content-Type: application/json
+  x-api-key: [HIDDEN]
+JSON Payload: {
+  "firstname": "John",
+  "lastname": "Doe",
+  "gender": "male",
+  "dob": "1990-01-01",
+  "consent": true
+}
+
+--- Response ---
+HTTP Status: 400
+Response Body: 
+{
+  "status": "error",
+  "message": "Invalid request data. Please check your input and try again",
+  "code": 400
+}
+Provider Error Message: Invalid request data. Please check your input and try again
+
+==========================================
+Service: NIN Modification
+Endpoint URL: https://checkmyninbvn.com.ng/api/nin-modification
+HTTP Method: POST
+Headers: 
+  Content-Type: application/json
+  x-api-key: [HIDDEN]
+JSON Payload: {
+  "service_type": "nin_name_modification",
+  "firstname": "John",
+  "lastname": "Doe",
+  "consent": true
+}
+
+--- Response ---
+HTTP Status: 400
+Response Body: 
+{
+  "status": "error",
+  "message": "Insufficient wallet balance. Please fund your wallet.",
+  "code": 400
+}
+Provider Error Message: Insufficient wallet balance. Please fund your wallet.
+
+==========================================
+Service: Account Balance / API Quota Status
+Endpoint URL: https://checkmyninbvn.com.ng/api/balance
+HTTP Method: GET
+Headers: 
+  x-api-key: [HIDDEN]
+JSON Payload: null
+
+--- Response ---
+HTTP Status: 200
+Response Body: 
+{
+  "status": "success",
+  "reportID": null,
+  "message": "Balance retrieved successfully",
+  "data": {
+    "user_id": 66978,
+    "username": "9jasub",
+    "balance": 812.65,
+    "formatted_balance": "₦812.65",
+    "user_type": "regular",
+    "api_requests_today": 1014,
+    "api_limit": 1000
+  }
+}

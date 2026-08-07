@@ -31,7 +31,7 @@ const seedProvidersAndCategories = async () => {
     console.log('Connected to MongoDB successfully.');
 
     // 1. Seed ProviderStatus records if they don't exist
-    const providers = ['peyflex', 'clubkonnect', 'connectbridge'];
+    const providers = ['peyflex', 'clubkonnect', 'connectbridge', 'reloadly', 'billsplash'];
     for (const name of providers) {
       await ProviderStatus.findOneAndUpdate(
         { providerName: name },
@@ -64,8 +64,8 @@ const seedProvidersAndCategories = async () => {
     console.log('Seeding CategoryRouting records...');
     const routingDocs = DEFAULT_CATEGORIES.map(cat => ({
       global_category_name: cat,
-      primary_provider: 'peyflex',
-      fallback_provider: 'clubkonnect',
+      primary_provider: 'billsplash',
+      fallback_provider: 'peyflex',
       backup_provider: 'connectbridge',
       status: 'ACTIVE'
     }));

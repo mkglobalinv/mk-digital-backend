@@ -7,12 +7,11 @@ import {
   Globe, CheckCircle2, Wallet, Users, 
   Phone, Mail, MapPin, Briefcase, 
   Check, ChevronDown, ChevronUp, Zap, Activity, Award,
-  Percent, Server, BarChart3, Database, Tv, MessageSquare, Play, Sparkles, ExternalLink
+  Percent, Server, BarChart3, Database, Tv, MessageSquare, Play, Sparkles
 } from 'lucide-react';
 
 export default function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [activeShowcase, setActiveShowcase] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -20,12 +19,6 @@ export default function Home() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const showcaseItems = [
-    { id: 0, title: "Admin Dashboard", icon: <Briefcase size={16}/> },
-    { id: 1, title: "Customer Portal", icon: <Users size={16}/> },
-    { id: 2, title: "Mobile App", icon: <Smartphone size={16}/> }
-  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FAFC] selection:bg-blue-100 selection:text-blue-900 font-sans antialiased text-slate-800">
@@ -117,11 +110,11 @@ export default function Home() {
               {/* Glow ring behind image */}
               <div className="absolute -inset-3 bg-gradient-to-tr from-blue-500/40 to-emerald-500/20 rounded-[32px] blur-[30px] opacity-50 animate-pulse-slow" />
 
-              {/* Premium office photo — 9JASUB HQ */}
+              {/* Premium office photo — diverse Nigerian professionals */}
               <div className="w-full rounded-[28px] overflow-hidden border border-slate-700/60 shadow-2xl relative">
                 <img
-                  src="/hero_office.png"
-                  alt="9JASUB Headquarters — Nigerian Fintech Professionals"
+                  src="/nigeria_team.png"
+                  alt="Nigerian Fintech Professionals — 9JASUB Team"
                   className="w-full h-auto object-cover object-center"
                 />
                 {/* Subtle bottom vignette to blend into hero bg */}
@@ -218,71 +211,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ==================== PLATFORM SHOWCASE ==================== */}
-      <section id="showcase" className="py-24 bg-white px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight font-sans">Brand Control & Portals</h2>
-            <p className="text-lg text-slate-500 font-medium max-w-xl mx-auto">
-              Choose what interface your users interact with. Fully optimized and brand-customized.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
-            {showcaseItems.map((item) => (
-              <button 
-                key={item.id}
-                onClick={() => setActiveShowcase(item.id)}
-                className={`px-6 py-3 rounded-full font-bold text-sm flex items-center gap-2 transition-all cursor-pointer ${
-                  activeShowcase === item.id 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/10 scale-105' 
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60'
-                }`}
-              >
-                {item.icon} {item.title}
-              </button>
-            ))}
-          </div>
-
-          <div className="bg-slate-50 rounded-[32px] p-6 md:p-10 border border-slate-200/50 max-w-5xl mx-auto shadow-inner">
-            {activeShowcase === 2 ? (
-              /* Mobile App Showcase Frame */
-              <div className="w-[300px] h-[600px] mx-auto bg-slate-900 rounded-[50px] p-4 shadow-2xl border-4 border-slate-800 relative flex flex-col items-center">
-                {/* Speaker Grill & Camera */}
-                <div className="w-32 h-6 bg-slate-950 rounded-b-2xl absolute top-0 z-20 flex justify-center items-center">
-                  <div className="w-12 h-1 bg-slate-800 rounded-full mb-1"></div>
-                </div>
-                <div className="flex-1 w-full bg-[#1E293B] rounded-[36px] overflow-hidden relative shadow-inner">
-                  <img 
-                    src="/vtu_home_screenshot.png" 
-                    alt="VTU Mobile App" 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-              </div>
-            ) : (
-              /* Browser Mockup Showcase Frame */
-              <div className="bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-200 h-[480px] relative flex flex-col">
-                <div className="bg-slate-50 px-4 py-3 flex items-center gap-3 border-b border-slate-200">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-rose-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
-                  </div>
-                </div>
-                <div className="flex-1 bg-white overflow-hidden">
-                  <img 
-                    src="/dashboard_screenshot.png" 
-                    alt="Platform Preview" 
-                    className="w-full h-full object-cover object-top" 
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* ==================== FEATURES SECTION ==================== */}
       <section id="features" className="py-24 bg-slate-900 text-white px-6 relative overflow-hidden">
         {/* Backdrop outlines */}
@@ -313,6 +241,44 @@ export default function Home() {
                 <p className="text-slate-400 text-sm font-semibold leading-relaxed">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== DASHBOARD SHOWCASE ==================== */}
+      <section className="py-20 bg-slate-50 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12 space-y-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black tracking-wider border border-blue-100">
+              <Sparkles size={12} /> Your Platform. Your Brand.
+            </div>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">See the Dashboard in Action</h2>
+            <p className="text-slate-500 font-medium max-w-xl mx-auto">
+              A fully-featured admin panel to manage customers, transactions, pricing and more — all under your own brand.
+            </p>
+          </div>
+
+          {/* Dashboard screenshot in clean browser frame */}
+          <div className="rounded-[24px] overflow-hidden border border-slate-200 shadow-2xl shadow-slate-900/10 bg-white">
+            {/* Browser chrome bar */}
+            <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-rose-400" />
+                <div className="w-3 h-3 rounded-full bg-amber-400" />
+                <div className="w-3 h-3 rounded-full bg-emerald-400" />
+              </div>
+              <div className="flex-1 max-w-sm mx-auto h-6 bg-slate-100 rounded-md text-[11px] text-slate-400 flex items-center justify-center font-semibold select-none">
+                yourbrand.9jasub.com/dashboard
+              </div>
+            </div>
+            {/* Actual dashboard screenshot */}
+            <div className="w-full">
+              <img
+                src="/dashboard_screenshot.png"
+                alt="9JASUB Admin Dashboard"
+                className="w-full h-auto object-cover object-top"
+              />
+            </div>
           </div>
         </div>
       </section>

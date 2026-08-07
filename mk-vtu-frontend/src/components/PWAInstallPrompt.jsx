@@ -7,17 +7,6 @@ const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt, hasBottomNav }) =
   const siteInfo = useBranding() || {};
 
   useEffect(() => {
-    if (showPrompt) {
-      document.body.style.paddingBottom = hasBottomNav ? 'calc(env(safe-area-inset-bottom, 16px) + 160px)' : 'calc(env(safe-area-inset-bottom, 16px) + 90px)';
-    } else {
-      document.body.style.paddingBottom = '';
-    }
-    return () => {
-      document.body.style.paddingBottom = '';
-    };
-  }, [showPrompt, hasBottomNav]);
-
-  useEffect(() => {
     // Only show if we have a prompt and haven't dismissed it this session
     if (deferredPrompt && !sessionStorage.getItem('pwa_prompt_dismissed')) {
       // Delay showing it so it's not too aggressive

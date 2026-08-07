@@ -1052,7 +1052,6 @@ function App() {
                 <div className="branding-footer" style={{ textAlign: 'center', padding: '4px 8px 60px', fontSize: '8.5px', letterSpacing: '0.1px', opacity: 0.6, color: '#888', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
                   <span>© {siteInfo?.branding?.siteName || (isWhiteLabelSite(siteInfo) ? 'VTU Portal' : '9JASUB')} {!isWhiteLabelSite(siteInfo) && ' Powered by MK GLOBAL INVESTMENT LTD.'}</span>
                 </div>
-                <BottomNav />
               </>
             )}
 
@@ -1088,6 +1087,9 @@ function App() {
             )}
           </div>
         </div>
+        {token && !loadingUser && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/reseller') && !location.pathname.startsWith('/website') && (
+          <BottomNav />
+        )}
         </BrandingProvider>
       </ToastProvider>
     </ThemeProvider>
