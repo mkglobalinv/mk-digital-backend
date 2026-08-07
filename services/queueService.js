@@ -5,6 +5,7 @@ import { refundBalance } from './walletService.js';
 import socketService from './socketService.js';
 import { applyResellerProfit } from './resellerProfitService.js';
 import { requeryClubkonnect } from './providers/clubkonnect.js';
+import { requeryBillsplash } from './providers/billsplash.js';
 import { sendTransactionNotification } from './emailService.js';
 import { processLifetimeReferralCashback } from './referralCashbackEngine.js';
 
@@ -131,28 +132,39 @@ class QueueService {
                 if (check && check.status === 'success') {
                     console.log(`[Queue] Overriding failure for ${tx.reference}. Provider reports SUCCESS.`);
                     tx.status = 'success';
-                    tx.description = tx.description.replace(/\(Failed.*?\)|\(Processing\)|\(Pending\)|\(Manual Verification Required\)/g, '').trim();
+                    tx.description = tx.description.replace(/(\(Failed.*?\)|\(Processing\)|\(Pending\)|\(Manual Verification Required\))/g, '').trim();
                     tx.description = tx.description.replace('[REFUND ON HOLD]', '').trim();
                     tx.api_response = check.data || tx.api_response;
-                    
-                    // Apply reseller profit logic correctly
                     await applyResellerProfit(tx, user);
-                    
-                    // Phase 13: Process Lifetime Referral Cashback
                     await processLifetimeReferralCashback(tx, user);
-                    
                     await tx.save();
-                    
                     sendTransactionNotification(tx);
-                    socketService.emitActivity({
-                        type: 'vtu_success',
-                        message: `${tx.description} was successful!`,
-                        userId: tx.userId
-                    });
-                    return; // Abort failure
+                    socketService.emitActivity({ type: 'vtu_success', message: `${tx.description} was successful!`, userId: tx.userId });
+                    return;
                 }
             } catch (err) {
                 console.error(`[Queue] Failed to verify provider status before failing:`, err.message);
+            }
+        }
+
+        if (tx.provider_used === 'billsplash') {
+            try {
+                const check = await requeryBillsplash(tx.reference);
+                if (check && check.status === 'success') {
+                    console.log(`[Queue] Billsplash: Overriding failure for ${tx.reference}. Provider reports SUCCESS.`);
+                    tx.status = 'success';
+                    tx.description = tx.description.replace(/(\(Failed.*?\)|\(Processing\)|\(Pending\)|\(Manual Verification Required\))/g, '').trim();
+                    tx.description = tx.description.replace('[REFUND ON HOLD]', '').trim();
+                    tx.api_response = check.data || tx.api_response;
+                    await applyResellerProfit(tx, user);
+                    await processLifetimeReferralCashback(tx, user);
+                    await tx.save();
+                    sendTransactionNotification(tx);
+                    socketService.emitActivity({ type: 'vtu_success', message: `${tx.description} was successful!`, userId: tx.userId });
+                    return;
+                }
+            } catch (err) {
+                console.error(`[Queue] Billsplash: Failed to verify provider status before failing:`, err.message);
             }
         }
 

@@ -5,6 +5,7 @@ import { sendTransactionNotification } from "./emailService.js";
 import { requeryClubkonnect } from "./providers/clubkonnect.js";
 // import { requeryVTPass } from "./providers/vtpass.js";
 import { requeryPeyflex } from "./providers/peyflex.js";
+import { requeryBillsplash, pollIPEStatus } from "./providers/billsplash.js";
 import { applyResellerProfit } from "./resellerProfitService.js";
 import { processLifetimeReferralCashback } from "./referralCashbackEngine.js";
 
@@ -44,12 +45,24 @@ export const resolvePendingTransaction = async (transaction) => {
     const provider = transaction.provider_used;
 
     try {
-        if (provider.includes('value') || provider === 'clubkonnect') {
+        if (provider.includes('value') || provider === 'billsplash') {
+            result = await requeryBillsplash(transaction.reference);
+        } else if (provider === 'clubkonnect') {
             result = await requeryClubkonnect(transaction.reference);
         } else if (provider === 'vtpass') {
             result = { status: 'failed', message: 'VTPass module missing' };
         } else if (provider.includes('smart') || provider === 'peyflex') {
             result = await requeryPeyflex(transaction.reference);
+        } else if (provider === 'billsplash') {
+            // For IPE clearance transactions, use trackingID polling (done=true → success)
+            if (transaction.api_response && transaction.api_response.trackingID) {
+                const poll = await pollIPEStatus(transaction.api_response.trackingID);
+                result = poll.done === true
+                    ? { status: 'success', data: poll }
+                    : { status: 'pending',  data: poll };
+            } else {
+                result = await requeryBillsplash(transaction.reference);
+            }
         }
 
         if (result.status === 'success') {

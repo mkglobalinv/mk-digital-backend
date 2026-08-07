@@ -301,7 +301,11 @@ router.post('/airtime', transactionIdempotency, async (req, res) => {
  */
 router.get('/data/plans', async (req, res) => {
     try {
-        const plans = await DataPlan.find({ status: true }).sort({ network: 1, selling_price: 1 });
+        const query = { status: true };
+        if (req.query.network) {
+            query.network = req.query.network.toUpperCase();
+        }
+        const plans = await DataPlan.find(query).sort({ network: 1, selling_price: 1 });
         const bulkPrices = await calculateBulkDataPrices(req.user._id, plans);
 
         res.json({
