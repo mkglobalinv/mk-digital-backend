@@ -166,6 +166,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
         />
 
         <PromoBanners 
+          user={user}
           referralAnalytics={referralAnalytics} 
           siteInfo={siteInfo} 
         />

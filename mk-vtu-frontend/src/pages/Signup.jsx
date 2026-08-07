@@ -229,19 +229,21 @@ const Signup = ({ setToken, siteInfo }) => {
             </div>
           </div>
 
-          <div className="auth-input-group">
-            <label>Referral Code (Optional)</label>
-            <div className="input-wrapper">
-              <Users size={18} className="auth-input-icon" />
-              <input 
-                type="text" 
-                placeholder="Enter referral code if you have one" 
-                className="auth-input"
-                value={referralCodeInput}
-                onChange={(e) => setReferralCodeInput(e.target.value.toUpperCase().trim())}
-              />
+          {!isWhiteLabelSite(siteInfo) && (
+            <div className="auth-input-group">
+              <label>Referral Code (Optional)</label>
+              <div className="input-wrapper">
+                <Users size={18} className="auth-input-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Enter referral code if you have one" 
+                  className="auth-input"
+                  value={referralCodeInput}
+                  onChange={(e) => setReferralCodeInput(e.target.value.toUpperCase().trim())}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <button type="submit" className="auth-btn" disabled={loading}>
             {loading ? (

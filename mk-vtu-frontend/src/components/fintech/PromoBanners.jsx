@@ -12,16 +12,28 @@ import './FintechComponents.css';
  * (when siteInfo is a truthy object coming from the whiteLabelHelper).
  * If siteInfo is undefined/null/false it is shown.
  */
-const PromoBanners = ({ referralAnalytics, siteInfo }) => {
+const PromoBanners = ({ user, referralAnalytics, siteInfo }) => {
   const navigate = useNavigate();
 
-  // Guard: only suppress referral on real white-label tenants
-  const hideReferral = siteInfo && typeof siteInfo === 'object' && siteInfo !== null;
+  // Guard: suppress referral on real white-label tenants
+  const isWhiteLabel = siteInfo && typeof siteInfo === 'object' && Object.keys(siteInfo).length > 0;
+  
+  // A reseller who already owns a website/store should not see a "Create Website" promotion again.
+  // Also, sub-customers on a reseller store should not see the website builder.
+  const isReseller = user?.isReseller || user?.role === 'reseller';
+  const showWebsiteBuilder = !isReseller && !isWhiteLabel;
+
+  // The referral program is for the main retail platform only, not for reseller storefronts.
+  const showReferral = !isWhiteLabel;
+
+  // If both are hidden, don't render the container at all to save space
+  if (!showWebsiteBuilder && !showReferral) return null;
 
   return (
     <div className="promo-cards-container">
 
       {/* ── Card 1: Website Builder ── */}
+      {showWebsiteBuilder && (
       <div
         className="promo-card promo-card-website"
         onClick={() => navigate('/reseller/onboarding')}
@@ -43,8 +55,10 @@ const PromoBanners = ({ referralAnalytics, siteInfo }) => {
         </div>
       </div>
 
+      )}
+
       {/* ── Card 2: Referral Program ── */}
-      {!hideReferral && (
+      {showReferral && (
         <div
           className="promo-card promo-card-referral"
           onClick={() => navigate('/referrals')}

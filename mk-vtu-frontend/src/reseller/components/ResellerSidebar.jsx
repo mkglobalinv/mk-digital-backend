@@ -52,8 +52,7 @@ const ResellerSidebar = ({ user, logout, isOpen, onClose }) => {
             label: "Financials",
             items: [
                 { id: 'wallet', label: 'Wallet & Profit', icon: <BarChart2 size={20} />, path: '/reseller/wallet' },
-                { id: 'analytics', label: 'Website Analytics', icon: <BarChart2 size={20} />, path: '/reseller/analytics' },
-                { id: 'referrals', label: 'Referral Center', icon: <Gift size={20} />, path: '/reseller/referrals' },
+                { id: 'analytics', label: 'Website Analytics', icon: <BarChart2 size={20} />, path: '/reseller/analytics' }
             ]
         },
         {
