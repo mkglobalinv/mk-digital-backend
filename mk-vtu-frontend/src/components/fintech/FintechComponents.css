@@ -42,6 +42,8 @@ body.dark-theme .fintech-glow { opacity: 0.12; }
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -332,6 +334,8 @@ body.dark-theme .explore-more-icon-wrap { color: #F4B400; }
   border-radius: 16px;
   cursor: pointer; position: relative; overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 .promo-card:hover { transform: translateY(-2px); }
 
@@ -369,6 +373,7 @@ body.dark-theme .promo-card-glow { opacity: 1; }
 
 .promo-card-left {
   display: flex; align-items: center; gap: 11px; z-index: 1; flex: 1;
+  min-width: 0;
 }
 .promo-card-icon-wrap {
   width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
@@ -383,13 +388,15 @@ body.dark-theme .promo-card-glow { opacity: 1; }
   border: 1px solid rgba(244,180,0,0.28);
 }
 
-.promo-card-text { display: flex; flex-direction: column; gap: 2px; }
+.promo-card-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .promo-card-text h4 {
   font-size: 12px; font-weight: 800;
   color: var(--text-dark); margin: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .promo-card-text p {
   font-size: 10px; color: var(--text-gray); margin: 0; line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .promo-card-cta {
