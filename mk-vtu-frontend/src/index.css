@@ -5,57 +5,92 @@ html {
 }
 
 :root {
-  /* Core Palette - Modern Fintech SaaS Tones (Blue/Purple gradient style) */
-  --primary: #4F46E5;
-  --primary-hover: #4338CA;
-  --primary-light: #E0E7FF;
-  --primary-glow: rgba(79, 70, 229, 0.25);
-  --primary-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
-  --secondary: #8B5CF6;
-  
-  --bg-color: #F4F7FE; /* Soft cool gray for modern feel */
+  /* Premium Digital Finance Theme (Light Mode) */
+  --bg-color: #F8FAFC; 
   --bg-card: #FFFFFF;
-  --bg-sidebar: #0B1120;
-  --border-color: #E2E8F0;
-  --border-light: #F8FAFC;
+  --bg-sidebar: #FFFFFF;
+  --bg-surface: #FFFFFF;
   
-  /* Text System */
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: rgba(37, 99, 235, 0.1);
+  --primary-glow: rgba(37, 99, 235, 0.2);
+  --primary-gradient: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+  
+  --secondary: #F4B400;
+  --secondary-gradient: linear-gradient(135deg, #F4B400 0%, #D4AF37 100%);
+  
+  --border-color: #E2E8F0;
+  --border-light: #F1F5F9;
+  
+  /* Text System (Light Mode) */
   --text-dark: #0F172A;
-  --text-gray: #475569;
-  --text-light: #64748B;
-  --text-muted: #94A3B8;
+  --text-gray: #64748B;
+  --text-light: #94A3B8;
+  --text-muted: #CBD5E1;
   
   /* Semantic Colors */
-  --danger: #F43F5E;
-  --danger-light: #FFE4E6;
+  --danger: #EF4444;
+  --danger-light: rgba(239, 68, 68, 0.1);
   --success: #10B981;
-  --success-light: #D1FAE5;
+  --success-light: rgba(16, 185, 129, 0.1);
   --warning: #F59E0B;
-  --warning-light: #FEF3C7;
-  --info: #3B82F6;
-  --info-light: #DBEAFE;
+  --warning-light: rgba(245, 158, 11, 0.1);
   
   /* Typography & Layout */
   --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
-  --radius-sm: 10px;
-  --radius-md: 16px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
   --radius-lg: 20px;
   --radius-xl: 28px;
   --radius-full: 9999px;
   
-  /* Modern Depth & Glassmorphism */
-  --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
-  --premium-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.08), 0 8px 15px -6px rgba(0, 0, 0, 0.04);
-  --soft-shadow: 0 8px 20px -3px rgba(79, 70, 229, 0.08);
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.8);
+  /* Premium Fintech Elevation */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --card-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.05);
+  --premium-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.05);
   
-  /* Animation Durations */
+  /* Animations */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --spring: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+body.dark-theme {
+  /* Premium Digital Finance Theme (Dark Mode) */
+  --bg-color: #121212; /* Dark Grey Background (changed from #0B0B0B) */
+  --bg-card: #1A1A1A; /* Charcoal Surface */
+  --bg-sidebar: #151515;
+  --bg-surface: #1A1A1A;
+  
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: rgba(37, 99, 235, 0.1);
+  --primary-glow: rgba(37, 99, 235, 0.35);
+  --primary-gradient: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+  
+  --secondary: #F4B400;
+  --secondary-gradient: linear-gradient(135deg, #F4B400 0%, #D4AF37 100%);
+  
+  --border-color: #262626;
+  --border-light: #1A1A1A;
+  
+  /* Text System (Dark Mode) */
+  --text-dark: #FFFFFF;
+  --text-gray: #A3A3A3;
+  --text-light: #737373;
+  --text-muted: #525252;
+  
+  /* Elevation */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --card-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
+  --premium-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+  --glass-bg: rgba(17, 17, 17, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+}
 
 * {
   margin: 0;
@@ -155,44 +190,34 @@ body {
 .badge-warning { background: var(--warning-light); color: #92400E; }
 .badge-info { background: var(--info-light); color: #1E40AF; }
 
-/* Dark Theme Overrides */
-body.dark-theme {
-  --bg-color: #0F111A;
-  --bg-card: #181C27;
-  --bg-sidebar: #0B0E14;
-  --border-color: #262B3D;
-  --border-light: #1E2332;
-  
-  --text-dark: #F8FAFC;
-  --text-gray: #94A3B8;
-  --text-light: #64748B;
-  
-  --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
-  --glass-bg: rgba(24, 28, 39, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.08);
-}
+
 
 /* Animations */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.97); }
+  from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 @keyframes pulse-subtle {
   0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
+  50% { transform: scale(1.02); opacity: 0.8; }
   100% { transform: scale(1); opacity: 1; }
 }
 
 .animate-fade-in { animation: fadeInUp var(--transition-base) forwards; }
 .animate-scale-in { animation: fadeInScale var(--transition-base) forwards; }
+.animate-slide-up { animation: slideUpSheet var(--spring) forwards; }
 .animate-pulse-slow { animation: pulse-subtle 3s infinite ease-in-out; }
-.animate-slide-down { animation: slideDown var(--transition-base) forwards; }
 
 @keyframes slideDown {
   from { opacity: 0; transform: translate(-50%, -20px); }

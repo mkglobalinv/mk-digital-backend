@@ -970,3 +970,5 @@
     padding: 16px;
   }
 }
+
+@media (min-width: 1024px) { .reseller-mobile-nav { display: none; } }

@@ -1,0 +1,684 @@
+/* =====================================================
+   FINTECH COMPONENTS — PREMIUM DESIGN SYSTEM v4
+   9JASUB · Navy Blue / Honey Gold
+   Light Mode: #F5F7FA bg · White cards · Ink text
+   Dark Mode : #121212 bg · #1A1A1A cards · White text
+   ===================================================== */
+
+/* -----------------------------------------------------------
+   0. WRAPPER & PAGE LAYOUT
+   ----------------------------------------------------------- */
+.fintech-dashboard-wrapper {
+  position: relative;
+  min-height: 100vh;
+  /* Light mode default – pulled from global --bg-color */
+  background-color: var(--bg-color);
+  color: var(--text-dark);
+  font-family: var(--font-family);
+  overflow-x: hidden;
+  padding-bottom: 120px;
+  box-sizing: border-box;
+}
+
+/* Subtle ambient glows – visible only in dark mode */
+.fintech-glow {
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  filter: blur(110px);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;                   /* hidden in light mode */
+  transition: opacity 0.4s ease;
+}
+body.dark-theme .fintech-glow { opacity: 0.12; }
+.glow-top-right   { top: -60px;  right: -60px; background: rgba(37,99,235,0.6); }
+.glow-bottom-left { top: 45%;   left:  -60px; background: rgba(244,180,0,0.35); }
+
+.fintech-content-area {
+  position: relative;
+  z-index: 1;
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* -----------------------------------------------------------
+   1. HEADER / NAV
+   ----------------------------------------------------------- */
+.fintech-top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6px;
+}
+
+.nav-profile-group { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+
+.nav-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(18,60,115,0.12);
+  border: 1.5px solid rgba(18,60,115,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px;
+  color: #123C73;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+body.dark-theme .nav-avatar {
+  background: rgba(244,180,0,0.1);
+  border-color: rgba(244,180,0,0.3);
+  color: #F4B400;
+}
+
+.nav-greeting  { display: flex; flex-direction: column; }
+.greeting-text { font-size: 10px; color: var(--text-gray); font-weight: 500; }
+.user-name     { font-size: 14px; font-weight: 800; color: var(--text-dark); }
+
+.nav-actions   { display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-dark);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.icon-btn:hover { background: var(--border-color); }
+.icon-btn .badge {
+  position: absolute; top: -2px; right: -2px;
+  background: #EF4444; color: white;
+  font-size: 9px; font-weight: 800; padding: 2px 4px;
+  border-radius: 10px; border: 2px solid var(--bg-color);
+}
+
+/* -----------------------------------------------------------
+   2. PREMIUM WALLET CARD  — Compact (~40% shorter)
+   ----------------------------------------------------------- */
+.fintech-wallet-card {
+  background: linear-gradient(135deg, #0B1F3A 0%, #123C73 55%, #0e2d5c 100%);
+  border-radius: 18px;
+  padding: 7px 10px 8px;            /* 50% of previous */
+  border: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 10px 28px rgba(11,31,58,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.fintech-wallet-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 0%, rgba(37,99,235,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.fintech-wallet-card::after {
+  content: '';
+  position: absolute; top: -50%; right: -25%;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(244,180,0,0.05);
+  pointer-events: none;
+}
+
+/* Header row */
+.wallet-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 2px; position: relative; z-index: 1;
+}
+.wallet-label      { display: flex; align-items: center; gap: 5px; }
+.wallet-label-text {
+  font-size: 12px; font-weight: 800;    /* +2px, bold */
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.6px; text-transform: uppercase;
+}
+.wallet-badge {
+  background: rgba(16,185,129,0.15); color: #34D399;
+  padding: 2px 6px; border-radius: 10px;
+  font-size: 11px; font-weight: 800;    /* +2px */
+  display: flex; align-items: center; gap: 3px;
+  border: 1px solid rgba(52,211,153,0.25);
+}
+.eye-btn {
+  background: transparent; border: none;
+  color: rgba(255,255,255,0.38); cursor: pointer;
+  padding: 2px; display: flex; align-items: center;
+  transition: color 0.2s;
+}
+.eye-btn:hover { color: rgba(255,255,255,0.75); }
+
+/* Balance */
+.wallet-balance-row {
+  display: flex; align-items: baseline; gap: 3px;
+  margin-bottom: 7px; position: relative; z-index: 1;
+}
+.wallet-balance {
+  font-size: 36px;          /* +2px */
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  color: #FFFFFF;
+  line-height: 1.1;
+}
+.wallet-balance.blurred { filter: blur(10px); user-select: none; }
+
+/* Action buttons */
+.wallet-actions {
+  display: flex; gap: 8px;
+  position: relative; z-index: 1;
+  padding-top: 6px;             /* 50% of 12px */
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.action-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; flex: 1;
+  transition: all 0.2s ease;
+}
+.action-icon-wrap {
+  width: 32px; height: 32px; border-radius: 10px;  /* 50% smaller */
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.9);
+  transition: all 0.2s ease;
+}
+.action-item:hover .action-icon-wrap {
+  background: rgba(255,255,255,0.12); transform: translateY(-2px);
+}
+.action-item.primary .action-icon-wrap {
+  background: #F4B400; border-color: #F4B400;
+  color: #0B0B0B;
+  box-shadow: 0 4px 12px rgba(244,180,0,0.4);
+}
+.action-item.primary:hover .action-icon-wrap { background: #e0a600; }
+.action-item span {
+  font-size: 12px; font-weight: 800;  /* +2px, bold */
+  color: rgba(255,255,255,0.6);
+}
+
+/* -----------------------------------------------------------
+   3. SECTION HEADER
+   ----------------------------------------------------------- */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px; margin-top: 2px;
+}
+.section-header h3 {
+  font-size: 14px; font-weight: 800;
+  color: var(--text-dark); margin: 0;
+  letter-spacing: -0.2px;
+}
+.section-header span {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-gray); cursor: pointer;
+}
+
+/* -----------------------------------------------------------
+   4. QUICK SERVICES
+   ----------------------------------------------------------- */
+.qs-section { display: flex; flex-direction: column; }
+
+.services-grid    { display: grid; gap: 10px 8px; }
+.primary-grid     { grid-template-columns: repeat(4, 1fr); }
+.secondary-grid   { grid-template-columns: repeat(4, 1fr); }
+
+.service-card {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  cursor: pointer; transition: transform 0.2s ease;
+}
+.service-card:hover { transform: translateY(-3px); }
+
+.service-icon-wrap {
+  width: 42px; height: 42px; border-radius: 13px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+.service-card:hover .service-icon-wrap {
+  border-color: rgba(18,60,115,0.25);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+body.dark-theme .service-card:hover .service-icon-wrap {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.service-card span {
+  font-size: 9.5px; font-weight: 700;
+  color: var(--text-gray); text-align: center; line-height: 1.2;
+}
+
+/* Service colour tokens */
+.srv-gold   .service-icon-wrap { color: #D97706; background: rgba(245,158,11,0.1);   border-color: rgba(245,158,11,0.2); }
+.srv-navy   .service-icon-wrap { color: #2563EB; background: rgba(37,99,235,0.08);   border-color: rgba(37,99,235,0.15); }
+.srv-blue   .service-icon-wrap { color: #3B82F6; background: rgba(59,130,246,0.08);  border-color: rgba(59,130,246,0.15); }
+.srv-teal   .service-icon-wrap { color: #0D9488; background: rgba(13,148,136,0.08);  border-color: rgba(13,148,136,0.15); }
+.srv-purple .service-icon-wrap { color: #7C3AED; background: rgba(124,58,237,0.08);  border-color: rgba(124,58,237,0.15); }
+.srv-amber  .service-icon-wrap { color: #B45309; background: rgba(180,83,9,0.08);    border-color: rgba(180,83,9,0.15); }
+.srv-green  .service-icon-wrap { color: #059669; background: rgba(5,150,105,0.08);   border-color: rgba(5,150,105,0.15); }
+.srv-gray   .service-icon-wrap { color: #6B7280; background: rgba(107,114,128,0.08); border-color: rgba(107,114,128,0.15); }
+
+/* Explore-More pill button (shared by Quick Services & Identity) */
+.explore-more-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 10px;
+  width: 100%; padding: 10px 18px;
+  border-radius: 50px;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  color: var(--text-dark);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1px;
+  cursor: pointer; outline: none;
+  transition: all 0.22s ease;
+  box-shadow: var(--shadow-sm);
+}
+.explore-more-btn:hover {
+  border-color: #123C73;
+  color: #123C73;
+  box-shadow: 0 4px 14px rgba(18,60,115,0.12);
+  transform: translateY(-1px);
+}
+body.dark-theme .explore-more-btn {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
+}
+body.dark-theme .explore-more-btn:hover {
+  border-color: rgba(37,99,235,0.4);
+  color: #93C5FD;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+.explore-more-btn.expanded {
+  border-color: #F4B400;
+  color: #B45309;
+}
+body.dark-theme .explore-more-btn.expanded {
+  border-color: rgba(244,180,0,0.4);
+  color: #F4B400;
+}
+
+.explore-more-icon-wrap {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(244,180,0,0.1); border: 1px solid rgba(244,180,0,0.25);
+  display: flex; align-items: center; justify-content: center;
+  color: #D97706;
+}
+body.dark-theme .explore-more-icon-wrap { color: #F4B400; }
+.explore-more-label { flex: 1; text-align: center; }
+.explore-chevron    { display: flex; align-items: center; transition: transform 0.3s ease; }
+.explore-chevron.rotated { transform: rotate(180deg); }
+
+/* Animated expand panel */
+.more-services-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
+  opacity: 0;
+}
+.more-services-panel.open { max-height: 200px; opacity: 1; }
+.more-services-panel .services-grid { padding-top: 10px; }
+
+/* -----------------------------------------------------------
+   5. PROMO CARDS (Website Builder + Referral)
+   ----------------------------------------------------------- */
+.promo-cards-container { display: flex; flex-direction: column; gap: 10px; }
+
+.promo-card {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 15px;
+  border-radius: 16px;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.promo-card:hover { transform: translateY(-2px); }
+
+/* Light-mode card surfaces */
+.promo-card-website {
+  background: #EEF3FD;
+  border: 1px solid rgba(37,99,235,0.18);
+  box-shadow: 0 3px 14px rgba(37,99,235,0.08);
+}
+.promo-card-referral {
+  background: #FFF9E6;
+  border: 1px solid rgba(244,180,0,0.25);
+  box-shadow: 0 3px 14px rgba(244,180,0,0.08);
+}
+
+/* Dark-mode overrides */
+body.dark-theme .promo-card-website {
+  background: linear-gradient(135deg, rgba(11,31,58,0.95) 0%, rgba(18,60,115,0.65) 100%);
+  border-color: rgba(37,99,235,0.22);
+}
+body.dark-theme .promo-card-referral {
+  background: linear-gradient(135deg, rgba(40,28,0,0.95) 0%, rgba(82,55,0,0.55) 100%);
+  border-color: rgba(244,180,0,0.22);
+}
+
+/* Ambient glow blob (dark only) */
+.promo-card-glow {
+  position: absolute; width: 100px; height: 100px; border-radius: 50%;
+  filter: blur(36px); pointer-events: none; right: -15px; top: -25px;
+  opacity: 0;
+}
+body.dark-theme .promo-card-glow { opacity: 1; }
+.website-glow  { background: rgba(37,99,235,0.35); }
+.referral-glow { background: rgba(244,180,0,0.35); }
+
+.promo-card-left {
+  display: flex; align-items: center; gap: 11px; z-index: 1; flex: 1;
+}
+.promo-card-icon-wrap {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.website-icon-wrap  {
+  background: rgba(37,99,235,0.12);
+  border: 1px solid rgba(37,99,235,0.22);
+}
+.referral-icon-wrap {
+  background: rgba(244,180,0,0.12);
+  border: 1px solid rgba(244,180,0,0.28);
+}
+
+.promo-card-text { display: flex; flex-direction: column; gap: 2px; }
+.promo-card-text h4 {
+  font-size: 12px; font-weight: 800;
+  color: var(--text-dark); margin: 0;
+}
+.promo-card-text p {
+  font-size: 10px; color: var(--text-gray); margin: 0; line-height: 1.4;
+}
+
+.promo-card-cta {
+  z-index: 1; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.website-cta  { background: rgba(37,99,235,0.1);  color: #2563EB; border: 1px solid rgba(37,99,235,0.2); }
+.referral-cta { background: rgba(244,180,0,0.12); color: #B45309; border: 1px solid rgba(244,180,0,0.28); }
+body.dark-theme .website-cta  { color: #93C5FD; background: rgba(37,99,235,0.15); }
+body.dark-theme .referral-cta { color: #F4B400; background: rgba(244,180,0,0.12); }
+
+/* -----------------------------------------------------------
+   6. IDENTITY SERVICES GRID
+   ----------------------------------------------------------- */
+.identity-section { display: flex; flex-direction: column; }
+
+.identity-header {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 800;
+  color: var(--text-dark) !important;
+}
+.identity-header svg { color: #F4B400 !important; }
+
+.identity-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px 8px;
+}
+.identity-card {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  cursor: pointer; transition: transform 0.2s ease;
+}
+.identity-card:hover { transform: translateY(-3px); }
+.identity-icon-wrap {
+  width: 42px; height: 42px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+.identity-card:hover .identity-icon-wrap { filter: brightness(1.12); transform: scale(1.05); }
+.identity-label {
+  font-size: 9.5px; font-weight: 700;
+  color: var(--text-gray); text-align: center; line-height: 1.2;
+}
+
+/* -----------------------------------------------------------
+   7. TRANSACTION HISTORY
+   ----------------------------------------------------------- */
+.activity-list { display: flex; flex-direction: column; gap: 6px; }
+
+.activity-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-surface);
+  padding: 11px 13px; border-radius: 14px;
+  border: 1px solid var(--border-color);
+  cursor: pointer; transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+.activity-item:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  border-color: rgba(18,60,115,0.15);
+  transform: translateY(-1px);
+}
+body.dark-theme .activity-item:hover {
+  border-color: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+}
+
+.activity-left   { display: flex; align-items: center; gap: 10px; }
+.activity-icon   { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.icon-credit  { background: rgba(16,185,129,0.1);  color: #10B981; border: 1px solid rgba(16,185,129,0.2); }
+.icon-debit   { background: rgba(18,60,115,0.08);  color: #123C73; border: 1px solid rgba(18,60,115,0.15); }
+.icon-pending { background: rgba(244,180,0,0.1);   color: #D97706; border: 1px solid rgba(244,180,0,0.2); }
+.icon-failed  { background: rgba(239,68,68,0.1);   color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
+body.dark-theme .icon-debit { background: rgba(255,255,255,0.06); color: #D1D5DB; border-color: rgba(255,255,255,0.1); }
+
+.activity-details h5 { font-size: 12px; font-weight: 700; margin: 0 0 2px 0; color: var(--text-dark); }
+.activity-details p  { font-size: 10px; color: var(--text-gray); margin: 0; }
+.activity-right  { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.activity-amt    { font-size: 12px; font-weight: 800; margin: 0; }
+.amt-credit  { color: #10B981; }
+.amt-debit   { color: var(--text-dark); }
+.amt-failed  { color: var(--text-gray); text-decoration: line-through; }
+.activity-status {
+  font-size: 9px; font-weight: 800; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 6px;
+}
+.status-success { background: rgba(16,185,129,0.1);  color: #10B981; }
+.status-pending { background: rgba(244,180,0,0.1);   color: #D97706; }
+.status-failed  { background: rgba(239,68,68,0.1);   color: #EF4444; }
+
+/* Empty state */
+.empty-activity-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 28px 16px;
+  background: var(--bg-surface);
+  border-radius: 16px; border: 1px dashed var(--border-color); text-align: center;
+}
+.empty-activity-icon {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-gray); margin-bottom: 10px;
+}
+.empty-activity-card h4 { font-size: 13px; font-weight: 700; color: var(--text-dark); margin: 0 0 4px; }
+.empty-activity-card p  { font-size: 10px; color: var(--text-gray); margin: 0 0 14px; }
+.empty-activity-btn {
+  background: #123C73; color: white; border: none;
+  padding: 8px 18px; border-radius: 10px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(18,60,115,0.25);
+}
+
+/* -----------------------------------------------------------
+   8. BOTTOM SHEET / MORE MENU
+   ----------------------------------------------------------- */
+.bottom-sheet-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+  z-index: 2000; display: flex; flex-direction: column; justify-content: flex-end;
+  opacity: 0; animation: fadeIn 0.2s forwards;
+}
+.bottom-sheet-content {
+  background: var(--bg-surface);
+  border-radius: 24px 24px 0 0; padding: 22px;
+  border-top: 1px solid var(--border-color);
+  transform: translateY(100%); animation: slideUpSheet 0.32s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+  max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.15);
+}
+body.dark-theme .bottom-sheet-content { box-shadow: 0 -8px 40px rgba(0,0,0,0.55); }
+.bottom-sheet-drag-handle {
+  width: 36px; height: 4px; background: var(--border-color);
+  border-radius: 4px; margin: 0 auto 18px;
+}
+.bottom-sheet-menu  { display: flex; flex-direction: column; gap: 4px; }
+.sheet-menu-item {
+  display: flex; align-items: center; gap: 13px; padding: 11px 13px;
+  border-radius: 13px; cursor: pointer; background: transparent;
+  border: 1px solid transparent; transition: all 0.18s ease; text-decoration: none;
+}
+.sheet-menu-item:hover {
+  background: rgba(18,60,115,0.04);
+  border-color: rgba(18,60,115,0.1);
+}
+body.dark-theme .sheet-menu-item:hover {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.06);
+}
+.sheet-menu-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dark); border: 1px solid var(--border-color);
+}
+.sheet-menu-text h4 { font-size: 13px; font-weight: 700; margin: 0; color: var(--text-dark); }
+.sheet-menu-text p  { font-size: 10px; color: var(--text-gray); margin: 0; }
+
+/* -----------------------------------------------------------
+   9. INLINE BOTTOM SHEET (BottomSheet.jsx component)
+   ----------------------------------------------------------- */
+.fintech-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 999; backdrop-filter: blur(3px);
+}
+.fintech-bottom-sheet {
+  position: fixed; bottom: -100%; left: 0; width: 100%;
+  background: var(--bg-surface);
+  border-radius: 24px 24px 0 0; z-index: 1000; padding: 22px;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+  transition: bottom 0.32s cubic-bezier(0.175,0.885,0.32,1.275);
+  display: flex; flex-direction: column;
+}
+body.dark-theme .fintech-bottom-sheet { box-shadow: 0 -4px 24px rgba(0,0,0,0.5); }
+.fintech-bottom-sheet.open { bottom: 0; }
+.sheet-handle { width: 38px; height: 4px; background: var(--border-color); border-radius: 4px; margin: 0 auto 14px; }
+.sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.sheet-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-dark); }
+.sheet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+.sheet-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+.sheet-icon { width: 42px; height: 42px; border-radius: 13px; display: flex; align-items: center; justify-content: center; }
+.sheet-item span { font-size: 10px; font-weight: 600; color: var(--text-dark); text-align: center; }
+.sheet-list { display: flex; flex-direction: column; gap: 5px; }
+.sheet-list-item {
+  display: flex; align-items: center; gap: 13px; padding: 12px 13px;
+  background: rgba(18,60,115,0.04); border-radius: 13px;
+  cursor: pointer; font-weight: 700; font-size: 13px; color: var(--text-dark);
+}
+body.dark-theme .sheet-list-item { background: rgba(255,255,255,0.03); }
+.sheet-list-item .list-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-gray);
+}
+.sheet-list-item.danger { color: #EF4444; }
+.sheet-list-item.danger .list-icon { color: #EF4444; background: rgba(239,68,68,0.08); }
+
+/* -----------------------------------------------------------
+   10. STATS CARD (Reseller Dashboard)
+   ----------------------------------------------------------- */
+.fintech-stats-card {
+  padding: 13px; border-radius: 15px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: 9px;
+  transition: transform 0.2s ease; cursor: pointer;
+}
+.fintech-stats-card:hover { transform: translateY(-2px); box-shadow: var(--card-shadow); }
+.stats-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.stats-icon-wrap { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; }
+.stats-trend { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 10px; background: var(--border-color); color: var(--text-gray); }
+.stats-body  { display: flex; flex-direction: column; gap: 3px; }
+.stats-title { font-size: 11px; color: var(--text-gray); margin: 0; font-weight: 600; }
+.stats-value { font-size: 18px; font-weight: 800; color: var(--text-dark); margin: 0; letter-spacing: -0.5px; }
+
+/* -----------------------------------------------------------
+   11. FLOATING BOTTOM NAV
+   ----------------------------------------------------------- */
+.fintech-floating-nav {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  width: 90%; max-width: 400px; z-index: 900;
+}
+.fintech-nav-glass {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  padding: 10px 20px; border-radius: 32px;
+  border: 1px solid rgba(18,60,115,0.12);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+body.dark-theme .fintech-nav-glass {
+  background: rgba(18,18,22,0.9);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+.fintech-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  text-decoration: none; color: var(--text-gray); transition: all 0.25s ease;
+}
+.fintech-nav-item .nav-icon {
+  width: 36px; height: 36px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s ease;
+}
+.fintech-nav-item span { font-size: 10px; font-weight: 700; opacity: 0.75; transition: all 0.25s ease; }
+.fintech-nav-item.active .nav-icon {
+  background: #F4B400; color: #0B0B0B;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 14px rgba(244,180,0,0.35);
+}
+.fintech-nav-item.active span { color: #123C73; opacity: 1; transform: translateY(-2px); }
+body.dark-theme .fintech-nav-item.active span { color: #F4B400; }
+
+/* -----------------------------------------------------------
+   12. UTILITY CLASSES & ANIMATIONS
+   ----------------------------------------------------------- */
+.animate-fade-in  { animation: fadeIn 0.3s ease forwards; }
+.animate-scale-in { animation: scaleIn 0.25s ease forwards; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1);   }
+}
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
+
+/* Generic outline button */
+.fintech-outline-btn {
+  width: 100%; padding: 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-dark); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s ease;
+}
+.fintech-outline-btn:hover {
+  background: rgba(18,60,115,0.04);
+  border-color: rgba(18,60,115,0.25);
+}
+body.dark-theme .fintech-outline-btn:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.2);
+}

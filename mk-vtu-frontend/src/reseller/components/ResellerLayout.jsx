@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ResellerSidebar from './ResellerSidebar';
 import ResellerHeader from './ResellerHeader';
 import { ToastProvider } from './ResellerToast';
+import FloatingBottomNav from '../../components/fintech/FloatingBottomNav';
 import '../pages/ResellerDashboard.css';
 
 const ResellerLayout = ({ children, user, logout, siteInfo }) => {
@@ -43,6 +44,9 @@ const ResellerLayout = ({ children, user, logout, siteInfo }) => {
                         {children}
                     </div>
                 </main>
+                <div className="reseller-mobile-nav">
+                    <FloatingBottomNav isReseller={true} />
+                </div>
             </div>
         </ToastProvider>
     );

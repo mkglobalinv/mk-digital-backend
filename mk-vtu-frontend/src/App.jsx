@@ -28,9 +28,11 @@ import Onboarding from "./pages/Onboarding";
 import OfflineData from "./pages/OfflineData";
 import ResellerOnboarding from "./pages/ResellerOnboarding";
 import DeveloperApi from "./pages/DeveloperApi";
+
+import IdentityPurchase from "./pages/identity/IdentityPurchase";
 import ReferralCenter from "./pages/ReferralCenter";
 import Sidebar from "./components/Sidebar";
-import BottomNav from "./components/BottomNav";
+import BottomNav from "./components/fintech/FloatingBottomNav";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
 import { BrandingProvider } from "./context/BrandingContext";
@@ -925,6 +927,8 @@ function App() {
                 <Route path="/kyc" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <KYC user={user} refreshUser={fetchUserInfo} />) : <Navigate to="/login" />} />
                 <Route path="/developer" element={token ? <DeveloperApi user={user} /> : <Navigate to="/login" />} />
                 <Route path="/transactions" element={token ? (isResellerUser ? <Navigate to="/reseller/transactions" replace /> : <Transactions token={token} />) : <Navigate to="/login" />} />
+
+                <Route path="/identity/:serviceId" element={token ? <IdentityPurchase user={user} /> : <Navigate to="/login" />} />
                 <Route path="/notifications" element={token ? (isResellerUser ? <Navigate to="/reseller/notifications" replace /> : <Notifications token={token} />) : <Navigate to="/login" />} />
                 <Route path="/referrals" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <ReferralCenter user={user} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
                 

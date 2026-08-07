@@ -11,8 +11,8 @@ export const ThemeProvider = ({ children }) => {
     if (savedTheme) {
       return savedTheme === 'light';
     }
-    // Default to day mode as per business requirements
-    return true;
+    // Default to dark/night mode as preferred theme
+    return false;
   });
 
   useEffect(() => {

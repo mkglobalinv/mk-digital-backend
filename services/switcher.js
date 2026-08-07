@@ -1,19 +1,28 @@
 import { buyAirtimeWithClubkonnect, buyDataWithClubkonnect, fetchDataPlansFromClubkonnect, buyElectricityWithClubkonnect, buyCableTVWithClubkonnect } from "./providers/clubkonnect.js";
 import { buyAirtimeWithReloadly, buyDataWithReloadly } from "./providers/reloadly.js";
 import { buyAirtimeWithPeyflex, buyDataWithPeyflex, buyElectricityWithPeyflex, buyCableTVWithPeyflex } from "./providers/peyflexV2.js";
+import {
+    verifyNIN,
+    verifyNINByPhone,
+    verifyNINByTracking,
+    verifyNINByDemography,
+    verifyBVN,
+    verifyBVNByPhone,
+    submitNINModification
+} from "./providers/checkmyninbvn.js";
 import ProviderStatus from "../models/ProviderStatus.js";
 import DataPlan from "../models/DataPlan.js";
 import { handleProviderTransactionSuccess, handleProviderTransactionFailure } from "./providerMonitoringService.js";
-import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js"; // Keep using old one just for plan fetching if V2 doesn't have it
+import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js"; 
 
 const dataPlanCache = { smart: {}, value: {} };
 const CACHE_TTL = 5 * 60 * 1000;
-
 
 export const smartBuyAirtime = async (network, amount, phone, countryCode = 'NG', operatorId = null, option = 'smart') => {
     const startTime = Date.now();
     const transactionId = 'TXN-' + Date.now();
     console.log(`[Switcher] [${transactionId}] Attempting Airtime via ${option.toUpperCase()} for ${phone}...`);
+
     const pName = option === 'value' ? 'clubkonnect' : 'peyflex';
     
     try {
@@ -84,7 +93,6 @@ export const smartBuyAirtime = async (network, amount, phone, countryCode = 'NG'
     }
 };
 
-
 export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, countryCode = 'NG', operatorId = null, networkId = null, option = 'smart', category = null) => {
     const startTime = Date.now();
     const transactionId = 'TXN-' + Date.now();
@@ -94,7 +102,8 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
         const planRecord = await DataPlan.findOne({ api_plan_id: String(dataPlan) });
         if (!planRecord) return { status: "failed", message: `Data plan ${dataPlan} not found.` };
         
-        const pName = planRecord.provider;
+        // Ensure provider doesn't fallback to legacy decommissioned provider
+        const pName = planRecord.provider === 'billsplash' ? 'clubkonnect' : planRecord.provider;
         const pStatus = await ProviderStatus.findOne({ providerName: pName });
         const primaryOffline = pStatus && (!pStatus.isAvailable || pStatus.apiStatus === 'disconnected' || pStatus.isUnderMaintenance);
 
@@ -247,4 +256,46 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
         return allPlans;
     }
     throw new Error(`No data plans available for this network on the ${option} option.`);
+};
+
+/**
+ * Route identity verification requests to CheckMyNINBVN.
+ * Identity services do not failover to VTU providers.
+ */
+export const smartBuyIdentity = async (service, params) => {
+    const transactionId = 'TXN-' + Date.now();
+    console.log(`[Switcher] [${transactionId}] Identity service: ${service}`);
+
+    try {
+        const checkMyNINBVNParams = { ...params, consent: true };
+
+        switch (service) {
+            case 'nin-verify':
+            case 'nin':
+                return await verifyNIN(checkMyNINBVNParams.nin);
+            case 'bvn-verify':
+            case 'bvn':
+                return await verifyBVN(checkMyNINBVNParams.bvn);
+            case 'nin-phone':
+                return await verifyNINByPhone(checkMyNINBVNParams.phone);
+            case 'nin-tracking':
+                return await verifyNINByTracking(checkMyNINBVNParams.tracking_id);
+            case 'nin-demographics':
+                return await verifyNINByDemography(
+                    checkMyNINBVNParams.firstname, 
+                    checkMyNINBVNParams.lastname, 
+                    checkMyNINBVNParams.gender, 
+                    checkMyNINBVNParams.dob
+                );
+            case 'bvn-phone':
+                return await verifyBVNByPhone(checkMyNINBVNParams.phone);
+            case 'nin-modification':
+                return await submitNINModification(checkMyNINBVNParams);
+            default:
+                return { status: 'failed', message: `Unknown identity service: ${service}` };
+        }
+    } catch (err) {
+        console.error(`[Switcher] [${transactionId}] Identity service error:`, err.message);
+        return { status: 'failed', message: err.message };
+    }
 };

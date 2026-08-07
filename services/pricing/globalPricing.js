@@ -20,7 +20,7 @@ export const getGlobalPrice = async (planId, serviceType = 'data') => {
         }
         
         // Fallback to MongoDB if Supabase table is empty/unmigrated
-        if (serviceType === 'data') {
+        if (serviceType === 'data' || serviceType === 'identity') {
             const plan = await DataPlan.findOne({ api_plan_id: planId }).lean();
             if (plan) {
                 return {
