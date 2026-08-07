@@ -2,9 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
 import { useBranding } from '../context/BrandingContext';
 
-const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt }) => {
+const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt, hasBottomNav }) => {
   const [showPrompt, setShowPrompt] = useState(false);
   const siteInfo = useBranding() || {};
+
+  useEffect(() => {
+    if (showPrompt) {
+      document.body.style.paddingBottom = hasBottomNav ? 'calc(env(safe-area-inset-bottom, 16px) + 160px)' : 'calc(env(safe-area-inset-bottom, 16px) + 90px)';
+    } else {
+      document.body.style.paddingBottom = '';
+    }
+    return () => {
+      document.body.style.paddingBottom = '';
+    };
+  }, [showPrompt, hasBottomNav]);
 
   useEffect(() => {
     // Only show if we have a prompt and haven't dismissed it this session
@@ -54,7 +65,7 @@ const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt }) => {
   return (
     <div style={{
       position: 'fixed',
-      bottom: '24px',
+      bottom: hasBottomNav ? 'calc(env(safe-area-inset-bottom, 16px) + 85px)' : 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
       left: '50%',
       transform: 'translateX(-50%)',
       zIndex: 99999,
