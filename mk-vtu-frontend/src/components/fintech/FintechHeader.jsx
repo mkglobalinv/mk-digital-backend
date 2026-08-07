@@ -1,12 +1,10 @@
 import React from 'react';
-import { Bell, Moon, Sun } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
 import './FintechComponents.css';
 
 const FintechHeader = ({ user, greeting: propGreeting, unreadCount = 0 }) => {
   const navigate = useNavigate();
-  const { isLightMode, toggleTheme } = useTheme();
 
   const greeting = propGreeting || (() => {
     const hr = new Date().getHours();
@@ -30,9 +28,6 @@ const FintechHeader = ({ user, greeting: propGreeting, unreadCount = 0 }) => {
         </div>
       </div>
       <div className="nav-actions">
-        <button className="icon-btn" onClick={toggleTheme} title="Toggle Theme">
-          {isLightMode ? <Moon size={16} /> : <Sun size={16} />}
-        </button>
         <button className="icon-btn" onClick={() => navigate('/notifications')}>
           <Bell size={16} />
           {unreadCount > 0 && <span className="badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}

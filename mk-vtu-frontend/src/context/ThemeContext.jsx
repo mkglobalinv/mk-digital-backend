@@ -1,36 +1,19 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
-export const useTheme = () => useContext(ThemeContext) || { theme: "light", toggleTheme: () => {} };
+// Night mode is permanent — no toggle, no light mode.
+export const useTheme = () => useContext(ThemeContext) || { isLightMode: false, toggleTheme: () => {} };
 
 export const ThemeProvider = ({ children }) => {
-  const [isLightMode, setIsLightMode] = useState(() => {
-    // Check local storage first
-    const savedTheme = localStorage.getItem('theme') || localStorage.getItem('dashboardTheme');
-    if (savedTheme) {
-      return savedTheme === 'light';
-    }
-    // Default to dark/night mode as preferred theme
-    return false;
-  });
-
   useEffect(() => {
-    if (isLightMode) {
-      document.body.classList.remove('dark-theme');
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.body.classList.add('dark-theme');
-      localStorage.setItem('theme', 'dark');
-    }
-  }, [isLightMode]);
-
-  const toggleTheme = () => {
-    setIsLightMode(prev => !prev);
-  };
+    // Always force dark/night mode. Clear any saved light preference.
+    document.body.classList.add('dark-theme');
+    localStorage.setItem('theme', 'dark');
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ isLightMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ isLightMode: false, toggleTheme: () => {} }}>
       {children}
     </ThemeContext.Provider>
   );
