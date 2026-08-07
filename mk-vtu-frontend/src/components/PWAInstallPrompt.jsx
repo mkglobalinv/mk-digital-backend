@@ -77,48 +77,48 @@ const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt, hasBottomNav }) =
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(16px)',
         border: '1px solid rgba(0, 0, 0, 0.05)',
-        borderRadius: '24px',
-        padding: '20px',
-        boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)',
+        borderRadius: '16px',
+        padding: '12px 14px',
+        boxShadow: '0 10px 30px -10px rgba(0,0,0,0.15)',
         display: 'flex',
         alignItems: 'center',
-        gap: '16px'
+        gap: '10px'
       }}>
         {logoUrl ? (
-          <img src={logoUrl} alt={appName} style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'contain', background: '#f8fafc', border: '1px solid #e2e8f0' }} />
+          <img src={logoUrl} alt={appName} style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'contain', background: '#f8fafc', border: '1px solid #e2e8f0', flexShrink: 0 }} />
         ) : (
-          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '14px', flexShrink: 0 }}>
             {appName.charAt(0)}
           </div>
         )}
         
-        <div style={{ flex: 1 }}>
-          <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>Install {appName}</h4>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.4 }}>Add to home screen for quick access & offline support.</p>
+        <div style={{ flex: 1, minWidth: 0, paddingRight: '12px' }}>
+          <h4 style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '700', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Install {appName}</h4>
+          <p style={{ margin: 0, fontSize: '11px', color: '#64748b', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Add to home screen for offline support.</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <button onClick={handleDismiss} style={{ background: 'transparent', border: 'none', position: 'absolute', top: '8px', right: '8px', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}>
-            <X size={16} />
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <button 
             onClick={handleInstall} 
             style={{ 
               background: primaryColor, 
               color: 'white', 
               border: 'none', 
-              padding: '10px 16px', 
-              borderRadius: '12px', 
+              padding: '6px 12px', 
+              borderRadius: '8px', 
               fontWeight: '600', 
-              fontSize: '14px', 
+              fontSize: '12px', 
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              gap: '4px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}
           >
-            <Download size={16} /> Install
+            <Download size={14} /> Install
+          </button>
+          <button onClick={handleDismiss} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%', cursor: 'pointer', color: '#64748b', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={14} />
           </button>
         </div>
       </div>

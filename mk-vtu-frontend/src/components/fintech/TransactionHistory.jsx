@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, Clock, XCircle, Search } from 'lucide-react';
 import './FintechComponents.css';
 
 const TransactionHistory = ({ transactions = [], isLoading, isReseller = false }) => {
   const navigate = useNavigate();
+  const [initialLoaded, setInitialLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setInitialLoaded(true);
+    }
+  }, [isLoading]);
+
+  const showSkeleton = isLoading && !initialLoaded;
 
   const getStatusIcon = (status, type) => {
     if (status === 'success') {
@@ -24,7 +33,7 @@ const TransactionHistory = ({ transactions = [], isLoading, isReseller = false }
       </div>
 
       <div className="activity-list animate-fade-in">
-        {isLoading ? (
+        {showSkeleton ? (
           [1,2,3].map(i => (
             <div key={i} className="activity-item skeleton-shimmer" style={{ height: '60px' }}></div>
           ))
