@@ -5,7 +5,9 @@ import { sendTransactionNotification } from "./emailService.js";
 import { requeryClubkonnect } from "./providers/clubkonnect.js";
 // import { requeryVTPass } from "./providers/vtpass.js";
 import { requeryPeyflex } from "./providers/peyflex.js";
-import { requeryBillsplash, pollIPEStatus } from "./providers/billsplash.js";
+// billsplash provider decommissioned — stubs preserve requery logic without crashing
+const requeryBillsplash = async () => ({ status: 'pending', message: 'Billsplash decommissioned' });
+const pollIPEStatus    = async () => ({ done: false,       message: 'Billsplash decommissioned' });
 import { applyResellerProfit } from "./resellerProfitService.js";
 import { processLifetimeReferralCashback } from "./referralCashbackEngine.js";
 

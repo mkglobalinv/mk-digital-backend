@@ -5,7 +5,8 @@ import { refundBalance } from './walletService.js';
 import socketService from './socketService.js';
 import { applyResellerProfit } from './resellerProfitService.js';
 import { requeryClubkonnect } from './providers/clubkonnect.js';
-import { requeryBillsplash } from './providers/billsplash.js';
+// billsplash provider decommissioned — stubs preserve queue logic without crashing
+const requeryBillsplash = async () => ({ status: 'pending', message: 'Billsplash decommissioned' });
 import { sendTransactionNotification } from './emailService.js';
 import { processLifetimeReferralCashback } from './referralCashbackEngine.js';
 
