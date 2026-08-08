@@ -18,7 +18,7 @@ export default function Pricing() {
             viewport={{ once: true }}
             className="text-3xl md:text-5xl font-bold text-white mb-6"
           >
-            Simple, Transparent <span className="text-blue-400">Pricing</span>
+            Choose Your <span className="text-blue-400">Plan</span>
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -27,7 +27,7 @@ export default function Pricing() {
             transition={{ delay: 0.1 }}
             className="text-lg text-slate-400"
           >
-            Start your VTU business today. No hidden fees, no complicated tiers. Just pure value designed to help you scale.
+            Transparent pricing tailored for individuals and entrepreneurs.
           </motion.p>
         </div>
 
@@ -41,30 +41,27 @@ export default function Pricing() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-sm"
           >
-            <h3 className="text-2xl font-bold text-white mb-2">Basic Reseller</h3>
-            <p className="text-slate-400 mb-6">Perfect for individuals who just want to buy and sell manually.</p>
+            <h3 className="text-2xl font-bold text-white mb-2">Personal Account</h3>
+            <p className="text-slate-400 mb-6 font-medium">For personal daily usage.</p>
             <div className="mb-8 flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold text-white">Free</span>
-              <span className="text-slate-500 font-medium">forever</span>
+              <span className="text-4xl font-extrabold text-white">FREE</span>
             </div>
             <ul className="space-y-4 mb-8">
               {[
-                "Access to reseller dashboard",
-                "Fund wallet manually",
-                "Buy Data & Airtime at discount",
-                "Pay Bills & Cable TV",
-                "Standard API Routing",
-                "Email Support"
+                "Account Registration",
+                "Data Purchase",
+                "Airtime Purchase",
+                "Bill Payments"
               ].map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-3 text-slate-300">
+                <li key={idx} className="flex items-center gap-3 text-slate-300 font-bold">
                   <Check className="w-5 h-5 text-slate-500" />
                   {feature}
                 </li>
               ))}
             </ul>
-            <Link href="/register">
-              <button className="w-full py-4 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-colors">
-                Create Free Account
+            <Link href="/get-started">
+              <button className="w-full py-4 rounded-xl font-bold text-lg bg-slate-800 hover:bg-slate-700 text-white transition-colors">
+                Get Started
               </button>
             </Link>
           </motion.div>
@@ -83,31 +80,25 @@ export default function Pricing() {
               </span>
             </div>
 
-            <h3 className="text-2xl font-bold text-white mb-2">Website Hosting & Maintenance</h3>
-            <p className="text-blue-200/70 mb-6">Own a fully branded, automated VTU website under your own name.</p>
+            <h3 className="text-2xl font-bold text-white mb-2 uppercase tracking-wide">WEBSITE STARTER</h3>
+            <p className="text-blue-200/70 mb-6 font-medium">Launch your own brand today.</p>
             
             <div className="mb-8">
               <div className="flex items-baseline gap-2">
                 <span className="text-5xl font-extrabold text-white">₦5,000</span>
-                <span className="text-slate-400 font-medium">/ 30 Days</span>
-              </div>
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-blue-400">
-                <Info className="w-4 h-4" />
-                <span>Billed from wallet balance</span>
+                <span className="text-slate-400 font-medium">/setup</span>
               </div>
             </div>
 
             <ul className="space-y-4 mb-8">
               {[
-                "Everything in Basic, plus:",
-                "Your Own Custom Subdomain/Domain",
-                "Fully Automated Reseller Website",
-                "Set Your Own Profit Margins",
-                "Auto-Funding via Monnify/Paystack",
-                "Manage Your Own Users",
-                "Priority Technical Support"
+                "Personal VTU Website",
+                "Mobile App Access",
+                "Business Dashboard",
+                "Business Owner Features",
+                "Technical Support"
               ].map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-3 text-slate-100">
+                <li key={idx} className="flex items-center gap-3 text-slate-100 font-bold">
                   <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
                     <Check className="w-3.5 h-3.5 text-blue-400" />
                   </div>
@@ -115,9 +106,9 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <Link href="/register">
-              <button className="w-full py-4 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]">
-                Start Your Website Now
+            <Link href="/get-started">
+              <button className="w-full py-4 rounded-xl font-black text-lg bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]">
+                Own Your Website
               </button>
             </Link>
           </motion.div>

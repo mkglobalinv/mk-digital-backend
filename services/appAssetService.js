@@ -52,8 +52,18 @@ export const generateAppAssets = async (user, jobId = null) => {
         }
 
         const appSettings = user.appSettings || {};
-        const appName = appSettings.appName || job?.appName || user.branding?.siteName || "Mksubdata App";
-        const packageName = appSettings.packageName || job?.packageName || "com.mksubdata.app";
+        
+        // Use job data first, fallback to user settings, but NEVER fall back to 'Mksubdata App'
+        const appName = job?.appName || appSettings.appName || user.branding?.siteName;
+        if (!appName || appName === "Mksubdata App") {
+            throw new Error("Missing required customer configuration: 'appName'. Cannot build a generic application.");
+        }
+        
+        const packageName = job?.packageName || appSettings.packageName;
+        if (!packageName || packageName === "com.mksubdata.app") {
+            throw new Error("Missing required customer configuration: 'packageName'. Cannot build with default application ID.");
+        }
+
         const appLogo = appSettings.appLogo || user.branding?.logo;
         const appColors = appSettings.appColors || { primary: user.branding?.primaryColor || '#3b82f6' };
         

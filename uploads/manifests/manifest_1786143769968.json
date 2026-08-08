@@ -1,0 +1,44 @@
+{
+  "buildId": null,
+  "resellerId": "customer_b_id",
+  "appName": "Customer B App",
+  "packageName": "com.customer.b",
+  "generatedAt": "2026-08-07T23:02:49.965Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1786143756904-226088873-customerbapp-release.apk",
+    "iconUrl": "/reseller-assets/customerbapp/icon.png",
+    "splashUrl": "/reseller-assets/customerbapp/splash.png",
+    "featureGraphicUrl": "/reseller-assets/customerbapp/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/customerbapp/screenshot_login.png",
+      "/reseller-assets/customerbapp/screenshot_dashboard.png",
+      "/reseller-assets/customerbapp/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-08-07T23:02:49.965Z",
+    "pwaUrl": "https://customerb.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Customer B App.",
+    "fullDescription": "Customer B App is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "b@verified.com",
+    "privacyPolicyUrl": "https://customerb.9jasub.com/privacy-policy",
+    "websiteUrl": "https://customerb.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 947104,
+    "memoryUsageMb": 25,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/customerbapp"
+  },
+  "infrastructure": {
+    "signature": "d237dcf2ef9b10b55f1d6a3e51efc742032fed229f1cbe136b23c29d1a627838",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "buildId": null,
+  "resellerId": "mega_vtu_id",
+  "appName": "Mega VTU Services",
+  "packageName": "com.mega.vtu.services",
+  "generatedAt": "2026-08-08T12:00:26.606Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1786190372823-41827902-megavtuservices-release.apk",
+    "iconUrl": "/reseller-assets/megavtuservices/icon.png",
+    "splashUrl": "/reseller-assets/megavtuservices/splash.png",
+    "featureGraphicUrl": "/reseller-assets/megavtuservices/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/megavtuservices/screenshot_login.png",
+      "/reseller-assets/megavtuservices/screenshot_dashboard.png",
+      "/reseller-assets/megavtuservices/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-08-08T12:00:26.605Z",
+    "pwaUrl": "https://megavtu.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Mega VTU Services.",
+    "fullDescription": "Mega VTU Services is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "supportEmail": "mega@vtu.com",
+    "privacyPolicyUrl": "https://megavtu.9jasub.com/privacy-policy",
+    "websiteUrl": "https://megavtu.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 431707,
+    "memoryUsageMb": 25,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/megavtuservices"
+  },
+  "infrastructure": {
+    "signature": "4f2f9c9b2a6becf7e22be529c908d1fab9f49a899b008dc8dd4d3c434d8ad9ab",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

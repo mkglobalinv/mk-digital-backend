@@ -165,16 +165,8 @@ app.get("/reseller-assets/:brandName/:filename", async (req, res, next) => {
     }
 
     const targetPath = path.join(process.cwd(), "reseller-assets", brandName, filename);
-    const universalPath = path.join(process.cwd(), "reseller-assets", "testbrandedapp", "app-release.apk");
     
-    let finalApkPath = null;
-    if (fs.existsSync(targetPath)) {
-        finalApkPath = targetPath;
-    } else if (fs.existsSync(universalPath)) {
-        finalApkPath = universalPath;
-    }
-
-    if (!finalApkPath) {
+    if (!fs.existsSync(targetPath)) {
         return res.status(404).json({ 
             status: "error", 
             message: "Requested APK file is not found or build generation is currently in progress." 
@@ -182,8 +174,7 @@ app.get("/reseller-assets/:brandName/:filename", async (req, res, next) => {
     }
 
     try {
-        const relativePath = `reseller-assets/${brandName}/${filename}`;
-        const stats = await storage.getStats(relativePath);
+        const stats = await storage.getStats(`reseller-assets/${brandName}/${filename}`);
         
         if (!stats || stats.size < 1024 * 1024) {
             return res.status(404).json({ 
@@ -198,8 +189,7 @@ app.get("/reseller-assets/:brandName/:filename", async (req, res, next) => {
         res.setHeader("Content-Length", stats.size);
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
         
-        const absolutePath = path.join(process.cwd(), relativePath);
-        const fileStream = fs.createReadStream(absolutePath);
+        const fileStream = fs.createReadStream(targetPath);
         fileStream.pipe(res);
         
         logger.info(`APK Downloaded: ${filename}`, { brandName, size: stats.sizeMb });

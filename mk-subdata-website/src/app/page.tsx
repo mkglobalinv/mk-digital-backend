@@ -5,7 +5,9 @@ import HowItWorks from '@/components/HowItWorks';
 import Features from '@/components/Features';
 import Pricing from '@/components/Pricing';
 import Security from '@/components/Security';
-import Testimonials from '@/components/Testimonials';
+import MobileApp from '@/components/MobileApp';
+import Referrals from '@/components/Referrals';
+import FaqAndAbout from '@/components/FaqAndAbout';
 import Footer from '@/components/Footer';
 
 export const metadata = {
@@ -23,8 +25,10 @@ export default function Home() {
         <HowItWorks />
         <Features />
         <Pricing />
+        <Referrals />
+        <MobileApp />
         <Security />
-        <Testimonials />
+        <FaqAndAbout />
       </main>
       <Footer />
     </div>

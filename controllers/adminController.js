@@ -2356,7 +2356,7 @@ export const updateAppRequestStatus = async (req, res) => {
             if (isReadyMilestone) {
                 user.appSettings.generatedAssets = {
                     isReady: true,
-                    apkUrl: request.apkUrl || `https://${user.subdomain || 'app'}.9jasub.com/reseller-assets/app-release.apk`,
+                    apkUrl: request.apkUrl || undefined,
                     aabUrl: request.aabUrl || '',
                     screenshots: request.playStoreAssets?.screenshots || [],
                     lastGeneratedAt: new Date()

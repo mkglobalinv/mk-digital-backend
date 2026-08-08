@@ -11,12 +11,12 @@ export default function Footer() {
           
           {/* Brand & About */}
           <div>
-            <Link href="/" className="text-2xl font-bold text-white mb-6 block">
-              9JA<span className="text-blue-500">SUB</span>
+            <Link href="/" className="flex items-center gap-3 mb-6 group">
+              <img src="/logo.jpg" alt="9JASUB Logo" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform" />
+              <span className="text-xl font-black text-white tracking-tight">9JASUB</span>
             </Link>
-            <p className="text-slate-400 mb-6 leading-relaxed">
-              Powering Nigeria's digital economy. We provide the infrastructure for entrepreneurs to launch, scale, and automate their VTU businesses seamlessly.
-            </p>
+            <p className="text-slate-400 font-bold text-sm mb-2">Data • Airtime • Bills • VTU Solutions</p>
+            <p className="text-slate-500 text-sm font-medium mb-6">A Product of MK GLOBAL INVESTMENT LTD.</p>
             <div className="flex gap-4">
               <a href="#" className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-blue-500 hover:bg-blue-500/10 transition-all">
                 <MessageCircle className="w-4 h-4" />
@@ -32,42 +32,42 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-bold text-white mb-6">Product</h4>
+            <h4 className="font-bold text-white mb-6">Quick Links</h4>
             <ul className="space-y-4">
-              <li><Link href="#features" className="text-slate-400 hover:text-blue-400 transition-colors">Features</Link></li>
-              <li><Link href="#pricing" className="text-slate-400 hover:text-blue-400 transition-colors">Pricing</Link></li>
-              <li><Link href="#how-it-works" className="text-slate-400 hover:text-blue-400 transition-colors">How it Works</Link></li>
-              <li><Link href="/register" className="text-slate-400 hover:text-blue-400 transition-colors">Create Account</Link></li>
-              <li><Link href="/login" className="text-slate-400 hover:text-blue-400 transition-colors">Login</Link></li>
+              <li><Link href="/" className="text-slate-400 hover:text-blue-400 font-medium transition-colors">Home</Link></li>
+              <li><Link href="/#pricing" className="text-slate-400 hover:text-blue-400 font-medium transition-colors">Pricing</Link></li>
+              <li><Link href="/#how-it-works" className="text-slate-400 hover:text-blue-400 font-medium transition-colors">How It Works</Link></li>
+              <li><Link href="/#about" className="text-slate-400 hover:text-blue-400 font-medium transition-colors">About Us</Link></li>
+              <li><a href={`${process.env.NEXT_PUBLIC_APP_URL || ''}/login`} className="text-slate-400 hover:text-blue-400 font-medium transition-colors">Login</a></li>
+              <li><Link href="/#contact" className="text-slate-400 hover:text-blue-400 font-medium transition-colors">Contact Us</Link></li>
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <h4 className="font-bold text-white mb-6">Legal</h4>
+            <h4 className="font-bold text-white mb-6">Legal Links</h4>
             <ul className="space-y-4">
-              <li><Link href="/terms" className="text-slate-400 hover:text-blue-400 transition-colors">Terms of Service</Link></li>
-              <li><Link href="/privacy" className="text-slate-400 hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/refunds" className="text-slate-400 hover:text-blue-400 transition-colors">Refund Policy</Link></li>
-              <li><Link href="/compliance" className="text-slate-400 hover:text-blue-400 transition-colors">Compliance</Link></li>
+              <li><Link href="/privacy" className="text-slate-400 hover:text-blue-400 font-medium transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-slate-400 hover:text-blue-400 font-medium transition-colors">Terms of Service</Link></li>
+              <li><Link href="/terms#refund" className="text-slate-400 hover:text-blue-400 font-medium transition-colors">Refund Policy</Link></li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="font-bold text-white mb-6">Contact Us</h4>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                <span className="text-slate-400">Lagos, Nigeria</span>
-              </li>
+            <h4 className="font-bold text-white mb-6">Contact</h4>
+            <ul className="space-y-4 text-slate-400 font-medium">
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-blue-500 shrink-0" />
-                <span className="text-slate-400">+234 (0) 800 9JASUB</span>
+                <span>0904 105 0812</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-blue-500 shrink-0" />
-                <span className="text-slate-400">support@9jasub.com</span>
+                <span>support@9jasub.com</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-blue-500 shrink-0" />
+                <span>Kano, Nigeria</span>
               </li>
             </ul>
           </div>
@@ -75,8 +75,8 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-slate-900 text-center flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-slate-500 text-sm">
-            &copy; {new Date().getFullYear()} 9JASUB. All rights reserved.
+          <p className="text-slate-500 text-sm font-bold">
+            © 2026 9JASUB. All Rights Reserved.
           </p>
           <div className="flex gap-4">
             <div className="h-8 px-3 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-xs font-semibold text-slate-400">

@@ -1,0 +1,43 @@
+{
+  "buildId": null,
+  "resellerId": "654321098765432109876543",
+  "appName": "Mksubdata App",
+  "packageName": "com.customer.c",
+  "generatedAt": "2026-08-08T11:00:50.399Z",
+  "buildType": "PWA",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "assets": {
+    "apkUrl": "https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/1786186833551-979519706-mksubdataapp-release.apk",
+    "iconUrl": "/reseller-assets/mksubdataapp/icon.png",
+    "splashUrl": "/reseller-assets/mksubdataapp/splash.png",
+    "featureGraphicUrl": "/reseller-assets/mksubdataapp/feature_graphic.png",
+    "screenshots": [
+      "/reseller-assets/mksubdataapp/screenshot_login.png",
+      "/reseller-assets/mksubdataapp/screenshot_dashboard.png",
+      "/reseller-assets/mksubdataapp/screenshot_wallet.png"
+    ],
+    "isReady": true,
+    "lastGeneratedAt": "2026-08-08T11:00:47.046Z",
+    "pwaUrl": "https://customer_c_app.9jasub.com"
+  },
+  "metadata": {
+    "shortDescription": "Top up airtime, data, and pay bills easily with Mksubdata App.",
+    "fullDescription": "Mksubdata App is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!",
+    "privacyPolicyUrl": "https://customer_c_app.9jasub.com/privacy-policy",
+    "websiteUrl": "https://customer_c_app.9jasub.com"
+  },
+  "performance": {
+    "durationMs": 262385,
+    "memoryUsageMb": 27,
+    "serverNode": "DESKTOP-RLE6BL3"
+  },
+  "storage": {
+    "strategy": "local",
+    "root": "reseller-assets/mksubdataapp"
+  },
+  "infrastructure": {
+    "signature": "09adaf9f0a28c5f01255c2a6cee5dfef4759c18a0d4ce8a89f2be90be9a203a4",
+    "signedBy": "DESKTOP-RLE6BL3"
+  }
+}

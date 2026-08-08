@@ -22,24 +22,26 @@ export default function Navbar() {
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         
         {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-white z-50">
-          9JA<span className="text-blue-500">SUB</span>
+        <Link href="/" className="flex items-center gap-3 z-50 group">
+          <img src="/logo.jpg" alt="9JASUB Logo" className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform" />
+          <span className="text-2xl font-black tracking-tight text-white">9JASUB</span>
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="#how-it-works" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">How it Works</Link>
-          <Link href="#services" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Services</Link>
-          <Link href="#pricing" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</Link>
-          <Link href="#testimonials" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Testimonials</Link>
+          <Link href="/" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</Link>
+          <Link href="/services" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Services</Link>
+          <Link href="/get-started" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Own your VTU site in 5 mins</Link>
+          <Link href="/about" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">About Us</Link>
+          <Link href="/#contact" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Contact Us</Link>
         </nav>
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+          <a href={`${process.env.NEXT_PUBLIC_APP_URL || ''}/login`} className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
             Login
-          </Link>
-          <Link href="/register">
+          </a>
+          <Link href="/get-started">
             <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-blue-600/20">
               Get Started
             </button>
@@ -65,16 +67,17 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="absolute top-full left-0 right-0 bg-slate-900 border-b border-slate-800 p-4 md:hidden flex flex-col gap-4 shadow-2xl"
           >
-            <Link href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">How it Works</Link>
-            <Link href="#services" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Services</Link>
-            <Link href="#pricing" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Pricing</Link>
-            <Link href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Testimonials</Link>
+            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Home</Link>
+            <Link href="/services" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Services</Link>
+            <Link href="/get-started" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Own your VTU site in 5 mins</Link>
+            <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">About Us</Link>
+            <Link href="/#contact" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Contact Us</Link>
             
             <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-800">
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+              <a href={`${process.env.NEXT_PUBLIC_APP_URL || ''}/login`} onClick={() => setMobileMenuOpen(false)}>
                 <button className="w-full py-3 bg-slate-800 text-white rounded-lg font-semibold">Login</button>
-              </Link>
-              <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+              </a>
+              <Link href="/get-started" onClick={() => setMobileMenuOpen(false)}>
                 <button className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold">Get Started</button>
               </Link>
             </div>
