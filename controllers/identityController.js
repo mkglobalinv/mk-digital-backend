@@ -51,6 +51,8 @@ export const processIdentityService = async (req, res) => {
 
     let isDeducted = false;
     let cost = 0;
+    const txReference = reference || `IDT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    const walletReference = reference ? `W-${reference}` : `W-${txReference}`;
 
     try {
         // Fetch the Identity plan from the database
@@ -89,30 +91,8 @@ PROVIDER RESPONSE MESSAGE: Insufficient balance
             return res.status(400).json({ status: 'error', message: 'Insufficient balance' });
         }
 
-        // NEW: If no client-supplied reference (we generated a payload-hash), check DB for an existing SUCCESS transaction with that same reference
-        // This ensures generated payload-hash references are treated as idempotent keys and avoids misleading "Wallet deduction failed".
-        if (!reference) {
-            try {
-                const existingSuccessTx = await Transaction.findOne({ reference: idempotencyKey, status: 'success' });
-                if (existingSuccessTx) {
-                    // Release the in-memory lock and return the previous successful result as an idempotent retry
-                    idempotencyService.releaseLock(idempotencyKey);
-                    console.log(`[Identity] Idempotent retry detected for user ${userId}. Returning existing successful transaction for reference ${idempotencyKey}`);
-
-                    return res.json({
-                        status: 'success',
-                        message: `${plan.plan_name} completed successfully`,
-                        data: existingSuccessTx.api_response || existingSuccessTx
-                    });
-                }
-            } catch (e) {
-                // Log but do not block the request — fall back to normal flow
-                console.error('[Identity] Error while checking existing idempotent transaction:', e.message);
-            }
-        }
-
         // 2. Deduct Wallet securely
-        const deductResult = await deductBalance(userId, cost, idempotencyKey, `Identity Service: ${plan.plan_name}`);
+        const deductResult = await deductBalance(userId, cost, walletReference, `Identity Service: ${plan.plan_name}`);
         if (!deductResult) {
             idempotencyService.releaseLock(idempotencyKey);
 
@@ -135,7 +115,7 @@ PROVIDER RESPONSE MESSAGE: Wallet deduction failed
         // 3. Create Transaction (Pending)
         const transaction = await Transaction.create({
             userId: userId,
-            reference: `${idempotencyKey}-${Date.now()}`,
+            reference: txReference,
             amount: cost,
             type: 'debit',
             description: plan.plan_name,
@@ -203,7 +183,7 @@ PROVIDER RESPONSE MESSAGE: ${providerResponse.message}
                 await refundBalance(userId, cost);
                 
                 // Try to mark transaction as failed if it was created
-                const tx = await Transaction.findOne({ reference: idempotencyKey });
+                const tx = await Transaction.findOne({ reference: txReference });
                 if (tx) {
                     tx.status = 'failed';
                     tx.api_response = 'Internal System Error - Refunded';
