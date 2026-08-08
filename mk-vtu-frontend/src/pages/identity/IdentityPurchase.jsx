@@ -130,8 +130,7 @@ const IdentityPurchase = ({ user }) => {
         return (
           <div className="input-group">
             <label>NIMC Tracking ID</label>
-            <input name="tracking_id" placeholder="Enter Tracking ID" required
-              onChange={handleChange} value={params.tracking_id || ''} />
+            <input name="tracking_id" placeholder="Enter Tracking ID" required onChange={handleChange} value={params.tracking_id || ''} />
           </div>
         );
       case 'nin-demographics':
@@ -193,6 +192,15 @@ const IdentityPurchase = ({ user }) => {
       default:
         return <div style={{ color: '#ef4444' }}>Service input form not configured.</div>;
     }
+  };
+
+  /* helper: robust field accessor supporting multiple key variants */
+  const getField = (obj, keys = []) => {
+    if (!obj) return null;
+    for (const k of keys) {
+      if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') return obj[k];
+    }
+    return null;
   };
 
   /* ── 5. Loading / error states ────────────────────────────────── */
@@ -269,12 +277,19 @@ const IdentityPurchase = ({ user }) => {
             <div style={{ padding: '24px' }}>
               <div style={{ background: 'var(--bg-color)', borderRadius: '16px',
                 border: '1px solid var(--border-color)', padding: '24px', marginBottom: '24px' }}>
-                
+
                 {(() => {
                   const providerResponse = result.data || {};
-                  const idData = providerResponse?.data?.data || providerResponse?.data || providerResponse;
-                  const reportID = providerResponse?.reportID || idData?.reportID;
-                  
+                  // Billsplash nested payloads can vary — normalize robustly
+                  // Common shapes observed:
+                  // 1) { status, reportID, message, data: { status, data: { ...fields } } }
+                  // 2) { status, data: { ...fields } }
+                  // 3) { ...fields } (flat)
+                  const level1 = providerResponse?.data || providerResponse;
+                  const level2 = level1?.data || level1;
+                  const idData = level2?.data || level2;
+                  const reportID = providerResponse?.reportID || level1?.reportID || idData?.reportID;
+
                   const safeRender = (label, value) => {
                     if (!value || value === 'null' || value === 'undefined') return null;
                     return (
@@ -285,24 +300,52 @@ const IdentityPurchase = ({ user }) => {
                     );
                   };
 
-                  let imgSrc = idData?.base64Image || idData?.photo;
+                  let imgSrc = getField(idData, ['base64Image','photo','photo_base64']);
                   if (imgSrc && !imgSrc.startsWith('data:image')) {
                     imgSrc = `data:image/jpeg;base64,${imgSrc}`;
                   }
 
-                  const fullName = [idData?.firstName, idData?.middleName, idData?.lastName].filter(Boolean).join(' ');
+                  // Map field keys with fallbacks for different provider shapes
+                  const firstName = getField(idData, ['firstName','firstname','first_name','givenName','given_name']);
+                  const middleName = getField(idData, ['middleName','middlename','middle_name']);
+                  const lastName = getField(idData, ['lastName','lastname','last_name','surname']);
+                  const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+
+                  const dob = getField(idData, ['dateOfBirth','dob','birthDate','birth_date']);
+                  const gender = getField(idData, ['gender','sex']);
+                  const maritalStatus = getField(idData, ['maritalStatus','marital_status']);
+                  const nationality = getField(idData, ['nationality','country']);
+
+                  const ninVal = getField(idData, ['nin','NIN','ninNumber','nin_number']);
+                  const bvnVal = getField(idData, ['bvn','BVN','bvnNumber','bvn_number']);
+                  const idNumberLabel = ninVal ? 'NIN' : (bvnVal ? 'BVN' : null);
+                  const idNumberValue = ninVal ? `***${String(ninVal).slice(-4)}` : (bvnVal ? `***${String(bvnVal).slice(-4)}` : null);
+
+                  const stateOfOrigin = getField(idData, ['stateOfOrigin','state_of_origin','state_origin','state']);
+                  const lgaOfOrigin = getField(idData, ['lgaOfOrigin','lga_of_origin','lga_origin','lga']);
+                  const stateOfResidence = getField(idData, ['stateOfResidence','state_of_residence','residence_state']);
+                  const lgaOfResidence = getField(idData, ['lgaOfResidence','lga_of_residence','residence_lga']);
+                  const address = getField(idData, ['residentialAddress','address','residential_address','residentialAddress1']);
+
+                  const phone1 = getField(idData, ['phoneNumber1','phone1','phone','mobile']);
+                  const phone2 = getField(idData, ['phoneNumber2','phone2','alt_phone']);
+
+                  const registrationDate = getField(idData, ['registrationDate','enrollmentDate','registeredAt','registration_date']);
+                  const watchListed = getField(idData, ['watchListed','watch_listed','watchlisted']);
+                  const enrollmentBank = getField(idData, ['enrollmentBank','bank']);
+                  const enrollmentBranch = getField(idData, ['enrollmentBranch','branch']);
 
                   return (
                     <div style={{ textAlign: 'left' }}>
                       {reportID && (
-                        <div style={{ display: 'inline-block', background: 'rgba(16,185,129,0.1)', color: '#10b981', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: '600', marginBottom: '24px' }}>
+                        <div style={{ display: 'inline-block', background: 'rgba(16,185,129,0.1)', color: '#10b981', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>
                           Report ID: {reportID}
                         </div>
                       )}
-                      
+
                       {imgSrc && (
                         <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-                          <img src={imgSrc} alt="Verified Person" style={{ width: '140px', height: '140px', borderRadius: '16px', objectFit: 'cover', border: '4px solid #fff', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                          <img src={imgSrc} alt="Verified Person" style={{ width: '140px', height: '140px', borderRadius: '16px', objectFit: 'cover', border: '4px solid #fff', boxShadow: '0 4px 10px rgba(0,0,0,0.06)' }} />
                           <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-gray)', fontWeight: '600', letterSpacing: '1px' }}>PROFILE PHOTO</div>
                         </div>
                       )}
@@ -312,13 +355,13 @@ const IdentityPurchase = ({ user }) => {
                         <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>PERSONAL INFORMATION</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                           {safeRender('Full Name', fullName)}
-                          {safeRender(idData?.nin ? 'NIN' : 'BVN', idData?.nin || (idData?.bvn ? `***${String(idData.bvn).slice(-4)}` : null))}
-                          {safeRender('Date of Birth', idData?.dateOfBirth)}
-                          {safeRender('Gender', idData?.gender)}
-                          {safeRender('Marital Status', idData?.maritalStatus)}
-                          {safeRender('Nationality', idData?.nationality)}
-                          {safeRender('Phone 1', idData?.phoneNumber1)}
-                          {safeRender('Phone 2', idData?.phoneNumber2)}
+                          {safeRender(idNumberLabel, idNumberValue)}
+                          {safeRender('Date of Birth', dob)}
+                          {safeRender('Gender', gender)}
+                          {safeRender('Marital Status', maritalStatus)}
+                          {safeRender('Nationality', nationality)}
+                          {safeRender('Phone 1', phone1)}
+                          {safeRender('Phone 2', phone2)}
                         </div>
                       </div>
 
@@ -326,13 +369,13 @@ const IdentityPurchase = ({ user }) => {
                       <div style={{ marginBottom: '24px' }}>
                         <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>LOCATION</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {safeRender('State of Origin', idData?.stateOfOrigin)}
-                          {safeRender('LGA of Origin', idData?.lgaOfOrigin)}
-                          {safeRender('State of Residence', idData?.stateOfResidence)}
-                          {safeRender('LGA of Residence', idData?.lgaOfResidence)}
+                          {safeRender('State of Origin', stateOfOrigin)}
+                          {safeRender('LGA of Origin', lgaOfOrigin)}
+                          {safeRender('State of Residence', stateOfResidence)}
+                          {safeRender('LGA of Residence', lgaOfResidence)}
                         </div>
                         <div style={{ marginTop: '12px' }}>
-                          {safeRender('Address', idData?.residentialAddress)}
+                          {safeRender('Address', address)}
                         </div>
                       </div>
 
@@ -340,10 +383,10 @@ const IdentityPurchase = ({ user }) => {
                       <div>
                         <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>VERIFICATION DETAILS</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {safeRender('Registration Date', idData?.registrationDate)}
-                          {safeRender('Watchlist Status', idData?.watchListed)}
-                          {safeRender('Enrollment Bank', idData?.enrollmentBank)}
-                          {safeRender('Enrollment Branch', idData?.enrollmentBranch)}
+                          {safeRender('Registration Date', registrationDate)}
+                          {safeRender('Watchlist Status', watchListed)}
+                          {safeRender('Enrollment Bank', enrollmentBank)}
+                          {safeRender('Enrollment Branch', enrollmentBranch)}
                         </div>
                       </div>
                     </div>
