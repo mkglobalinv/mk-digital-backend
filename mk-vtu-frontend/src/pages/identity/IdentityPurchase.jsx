@@ -267,13 +267,88 @@ const IdentityPurchase = ({ user }) => {
             </div>
 
             <div style={{ padding: '24px' }}>
-              <div style={{ background: 'rgba(99,102,241,0.05)', borderRadius: '16px',
-                border: '1px solid rgba(99,102,241,0.1)', padding: '16px', marginBottom: '24px' }}>
-                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordWrap: 'break-word',
-                  fontSize: '13px', color: 'var(--text-dark)', maxHeight: '400px',
-                  overflowY: 'auto', fontFamily: 'monospace' }}>
-                  {JSON.stringify(result.data, null, 2)}
-                </pre>
+              <div style={{ background: 'var(--bg-color)', borderRadius: '16px',
+                border: '1px solid var(--border-color)', padding: '24px', marginBottom: '24px' }}>
+                
+                {(() => {
+                  const providerResponse = result.data || {};
+                  const idData = providerResponse?.data?.data || providerResponse?.data || providerResponse;
+                  const reportID = providerResponse?.reportID || idData?.reportID;
+                  
+                  const safeRender = (label, value) => {
+                    if (!value || value === 'null' || value === 'undefined') return null;
+                    return (
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+                        <div style={{ fontSize: '15px', color: 'var(--text-dark)', fontWeight: '500' }}>{value}</div>
+                      </div>
+                    );
+                  };
+
+                  let imgSrc = idData?.base64Image || idData?.photo;
+                  if (imgSrc && !imgSrc.startsWith('data:image')) {
+                    imgSrc = `data:image/jpeg;base64,${imgSrc}`;
+                  }
+
+                  const fullName = [idData?.firstName, idData?.middleName, idData?.lastName].filter(Boolean).join(' ');
+
+                  return (
+                    <div style={{ textAlign: 'left' }}>
+                      {reportID && (
+                        <div style={{ display: 'inline-block', background: 'rgba(16,185,129,0.1)', color: '#10b981', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: '600', marginBottom: '24px' }}>
+                          Report ID: {reportID}
+                        </div>
+                      )}
+                      
+                      {imgSrc && (
+                        <div style={{ marginBottom: '32px', textAlign: 'center' }}>
+                          <img src={imgSrc} alt="Verified Person" style={{ width: '140px', height: '140px', borderRadius: '16px', objectFit: 'cover', border: '4px solid #fff', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                          <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-gray)', fontWeight: '600', letterSpacing: '1px' }}>PROFILE PHOTO</div>
+                        </div>
+                      )}
+
+                      {/* PERSONAL INFO */}
+                      <div style={{ marginBottom: '24px' }}>
+                        <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>PERSONAL INFORMATION</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          {safeRender('Full Name', fullName)}
+                          {safeRender(idData?.nin ? 'NIN' : 'BVN', idData?.nin || (idData?.bvn ? `***${String(idData.bvn).slice(-4)}` : null))}
+                          {safeRender('Date of Birth', idData?.dateOfBirth)}
+                          {safeRender('Gender', idData?.gender)}
+                          {safeRender('Marital Status', idData?.maritalStatus)}
+                          {safeRender('Nationality', idData?.nationality)}
+                          {safeRender('Phone 1', idData?.phoneNumber1)}
+                          {safeRender('Phone 2', idData?.phoneNumber2)}
+                        </div>
+                      </div>
+
+                      {/* LOCATION INFO */}
+                      <div style={{ marginBottom: '24px' }}>
+                        <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>LOCATION</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          {safeRender('State of Origin', idData?.stateOfOrigin)}
+                          {safeRender('LGA of Origin', idData?.lgaOfOrigin)}
+                          {safeRender('State of Residence', idData?.stateOfResidence)}
+                          {safeRender('LGA of Residence', idData?.lgaOfResidence)}
+                        </div>
+                        <div style={{ marginTop: '12px' }}>
+                          {safeRender('Address', idData?.residentialAddress)}
+                        </div>
+                      </div>
+
+                      {/* VERIFICATION DETAILS */}
+                      <div>
+                        <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>VERIFICATION DETAILS</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          {safeRender('Registration Date', idData?.registrationDate)}
+                          {safeRender('Watchlist Status', idData?.watchListed)}
+                          {safeRender('Enrollment Bank', idData?.enrollmentBank)}
+                          {safeRender('Enrollment Branch', idData?.enrollmentBranch)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button onClick={() => navigate(-1)}

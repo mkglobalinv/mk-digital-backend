@@ -262,9 +262,9 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
  * Route identity verification requests to CheckMyNINBVN.
  * Identity services do not failover to VTU providers.
  */
-export const smartBuyIdentity = async (service, params) => {
+export const smartBuyIdentity = async (service, params, provider = 'checkmyninbvn') => {
     const transactionId = 'TXN-' + Date.now();
-    console.log(`[Switcher] [${transactionId}] Identity service: ${service}`);
+    console.log(`[Switcher] [${transactionId}] Identity service: ${service} via ${provider}`);
 
     try {
         const checkMyNINBVNParams = { ...params, consent: true };
@@ -272,9 +272,17 @@ export const smartBuyIdentity = async (service, params) => {
         switch (service) {
             case 'nin-verify':
             case 'nin':
+                if (provider === 'billsplash') {
+                    const { verifyNINWithBillsplash } = await import('./providers/billsplash.js');
+                    return await verifyNINWithBillsplash(checkMyNINBVNParams.nin, transactionId);
+                }
                 return await verifyNIN(checkMyNINBVNParams.nin);
             case 'bvn-verify':
             case 'bvn':
+                if (provider === 'billsplash') {
+                    const { verifyBVNWithBillsplash } = await import('./providers/billsplash.js');
+                    return await verifyBVNWithBillsplash(checkMyNINBVNParams.bvn, transactionId);
+                }
                 return await verifyBVN(checkMyNINBVNParams.bvn);
             case 'nin-phone':
                 return await verifyNINByPhone(checkMyNINBVNParams.phone);

@@ -73,6 +73,19 @@ export const processIdentityService = async (req, res) => {
         const user = await User.findById(userId);
         if ((user.balance1 + (user.balance2 || 0)) < cost) {
             idempotencyService.releaseLock(idempotencyKey);
+            
+            console.log(`
+=========================================
+IDENTITY SERVICE: ${serviceId.toUpperCase()}
+SELECTED PROVIDER: ${plan.provider}
+PROVIDER METHOD: N/A
+ENDPOINT: N/A
+WALLET DEDUCTION: REJECTED (Insufficient user balance: ${user.balance1 + (user.balance2 || 0)} < ${cost})
+PROVIDER REQUEST SENT: NO
+PROVIDER RESPONSE STATUS: N/A
+PROVIDER RESPONSE MESSAGE: Insufficient balance
+=========================================`);
+
             return res.status(400).json({ status: 'error', message: 'Insufficient balance' });
         }
 
@@ -80,6 +93,19 @@ export const processIdentityService = async (req, res) => {
         const deductResult = await deductBalance(userId, cost, idempotencyKey, `Identity Service: ${plan.plan_name}`);
         if (!deductResult) {
             idempotencyService.releaseLock(idempotencyKey);
+
+            console.log(`
+=========================================
+IDENTITY SERVICE: ${serviceId.toUpperCase()}
+SELECTED PROVIDER: ${plan.provider}
+PROVIDER METHOD: N/A
+ENDPOINT: N/A
+WALLET DEDUCTION: FAILED (₦${cost})
+PROVIDER REQUEST SENT: NO
+PROVIDER RESPONSE STATUS: N/A
+PROVIDER RESPONSE MESSAGE: Wallet deduction failed
+=========================================`);
+
             return res.status(400).json({ status: 'error', message: 'Wallet deduction failed. Please try again.' });
         }
         isDeducted = true;
@@ -96,13 +122,25 @@ export const processIdentityService = async (req, res) => {
         });
 
         // 4. Call Switcher
-        const providerResponse = await smartBuyIdentity(serviceId, params);
+        const providerResponse = await smartBuyIdentity(serviceId, params, plan.provider);
 
         if (providerResponse.status === 'success') {
             transaction.status = 'success';
             transaction.api_response = providerResponse.message || 'Verification successful';
             await transaction.save();
             idempotencyService.releaseLock(idempotencyKey);
+
+            console.log(`
+=========================================
+IDENTITY SERVICE: ${serviceId.toUpperCase()}
+SELECTED PROVIDER: ${plan.provider}
+PROVIDER METHOD: POST
+ENDPOINT: /api/${serviceId === 'nin' ? 'nin_verification.php' : 'bvn_verification.php'}
+WALLET DEDUCTION: SUCCESS (₦${cost})
+PROVIDER REQUEST SENT: YES
+PROVIDER RESPONSE STATUS: SUCCESS
+PROVIDER RESPONSE MESSAGE: ${providerResponse.message || 'OK'}
+=========================================`);
 
             return res.json({
                 status: 'success',
@@ -116,6 +154,18 @@ export const processIdentityService = async (req, res) => {
             transaction.api_response = providerResponse.message;
             await transaction.save();
             idempotencyService.releaseLock(idempotencyKey);
+
+            console.log(`
+=========================================
+IDENTITY SERVICE: ${serviceId.toUpperCase()}
+SELECTED PROVIDER: ${plan.provider}
+PROVIDER METHOD: POST
+ENDPOINT: /api/${serviceId === 'nin' ? 'nin_verification.php' : 'bvn_verification.php'}
+WALLET DEDUCTION: SUCCESS (₦${cost}) -> REFUNDED
+PROVIDER REQUEST SENT: YES
+PROVIDER RESPONSE STATUS: FAILED
+PROVIDER RESPONSE MESSAGE: ${providerResponse.message}
+=========================================`);
 
             return res.status(400).json({
                 status: 'error',
@@ -143,6 +193,19 @@ export const processIdentityService = async (req, res) => {
         }
 
         idempotencyService.releaseLock(idempotencyKey);
+
+        console.log(`
+=========================================
+IDENTITY SERVICE: ${serviceId.toUpperCase()}
+SELECTED PROVIDER: UNKNOWN
+PROVIDER METHOD: UNKNOWN
+ENDPOINT: UNKNOWN
+WALLET DEDUCTION: ${isDeducted ? 'SUCCESS -> REFUNDED' : 'FAILED'}
+PROVIDER REQUEST SENT: NO
+PROVIDER RESPONSE STATUS: N/A
+PROVIDER RESPONSE MESSAGE: Internal Server Error (${err.message})
+=========================================`);
+
         return res.status(500).json({ status: 'error', message: 'Internal Server Error. Amount refunded if deducted.' });
     }
 };

@@ -126,15 +126,30 @@ export const creditBalance = async (userId, amount, reference = `SYS-CRED-${Date
  */
 export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.now()}`, description = 'System Wallet Deduction', skipTxLog = false) => {
     const numericAmount = Number(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) return null;
+    
+    // SAFE FILE LOGGER (Only used for local debugging of identity wallet rejection)
+    const debugFile = 'C:\\Users\\userpc\\mk-digital-backend\\deduct_debug.txt';
+    const logReject = (reason) => {
+        try {
+            const fs = require('fs');
+            fs.appendFileSync(debugFile, `[${new Date().toISOString()}] REJECTED for ${userId}: ${reason} (Amount: ${numericAmount})\n`);
+        } catch(e) {}
+    };
+
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+        logReject(`Invalid amount: ${amount}`);
+        return null;
+    }
 
     const existingTx = await Transaction.findOne({ reference });
     if (existingTx && existingTx.status === 'success') {
         console.log(`[Wallet] Deduction REJECTED: Duplicate reference ${reference} already processed.`);
+        logReject(`Duplicate reference ${reference} already processed`);
         return null;
     }
 
     let session = null;
+
     try {
         if (mongoose.connection.states[mongoose.connection.readyState] === 'connected' && mongoose.connection.db.serverConfig && mongoose.connection.db.serverConfig.isReplicaSet && typeof mongoose.connection.db.serverConfig.isReplicaSet === 'function' && mongoose.connection.db.serverConfig.isReplicaSet()) {
             session = await mongoose.startSession();
@@ -146,6 +161,7 @@ export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.
         const user = await User.findById(userId).session(session);
         if (!user || user.isFrozen) {
             console.log(`[Wallet] Deduction REJECTED: Wallet is FROZEN or user not found for ${userId}`);
+            logReject('Wallet is FROZEN or user not found');
             return null;
         }
 
@@ -155,6 +171,7 @@ export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.
 
         if (totalAvailable < numericAmount) {
             console.log(`[Wallet] Deduction REJECTED: Insufficient balance for ${user.email}`);
+            logReject('Insufficient balance');
             return null;
         }
 
@@ -229,6 +246,7 @@ export const deductBalance = async (userId, amount, reference = `SYS-DED-${Date.
             session.endSession();
         }
         console.error("DEDUCT ERROR:", err);
+        logReject(`Exception in deductBalance: ${err.message}`);
         return null;
     }
 };

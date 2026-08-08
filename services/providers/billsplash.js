@@ -460,10 +460,8 @@ export const verifyNINWithBillsplash = async (nin) => {
         slip_type: "vnin"
     };
 
-    // Strict implementation: as per instructions, use POST /nin_verification
-    // The instructions specified both POST /api/nin_verification.php and POST /api/nin_verification
-    // I will use /nin_verification for the standard lookup
-    const result = await postWithRetry('/nin_verification', payload);
+    // Strict implementation: as per instructions, use POST /nin_verification.php
+    const result = await postWithRetry('/nin_verification.php', payload);
     return normalizeResponse(result, reference);
 };
 
@@ -579,9 +577,8 @@ export const submitIPEClearanceWithBillsplash = async (params) => {
         pin: params.pin
     };
 
-    // Strict implementation: as per instructions, use POST /bill/ipe_clearance.php
-    // Since baseURL is /api, we use ../bill/ipe_clearance.php to resolve to /bill/ipe_clearance.php
-    const result = await postWithRetry('../bill/ipe_clearance.php', payload);
+    // Strict implementation: use POST /ipe_clearance.php
+    const result = await postWithRetry('/ipe_clearance.php', payload);
     
     // IPE endpoints often return done: true/false at the root level
     if (result.success && result.data) {
