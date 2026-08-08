@@ -89,6 +89,28 @@ PROVIDER RESPONSE MESSAGE: Insufficient balance
             return res.status(400).json({ status: 'error', message: 'Insufficient balance' });
         }
 
+        // NEW: If no client-supplied reference (we generated a payload-hash), check DB for an existing SUCCESS transaction with that same reference
+        // This ensures generated payload-hash references are treated as idempotent keys and avoids misleading "Wallet deduction failed".
+        if (!reference) {
+            try {
+                const existingSuccessTx = await Transaction.findOne({ reference: idempotencyKey, status: 'success' });
+                if (existingSuccessTx) {
+                    // Release the in-memory lock and return the previous successful result as an idempotent retry
+                    idempotencyService.releaseLock(idempotencyKey);
+                    console.log(`[Identity] Idempotent retry detected for user ${userId}. Returning existing successful transaction for reference ${idempotencyKey}`);
+
+                    return res.json({
+                        status: 'success',
+                        message: `${plan.plan_name} completed successfully`,
+                        data: existingSuccessTx.api_response || existingSuccessTx
+                    });
+                }
+            } catch (e) {
+                // Log but do not block the request — fall back to normal flow
+                console.error('[Identity] Error while checking existing idempotent transaction:', e.message);
+            }
+        }
+
         // 2. Deduct Wallet securely
         const deductResult = await deductBalance(userId, cost, idempotencyKey, `Identity Service: ${plan.plan_name}`);
         if (!deductResult) {
