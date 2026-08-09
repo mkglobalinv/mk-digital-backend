@@ -38,6 +38,10 @@ import {
   getDomainRequests,
   updateDomainRequestStatus,
   approveDomainDeployment,
+  getServiceRequests,
+  updateServiceRequestStatus,
+  getServiceRequestDocuments,
+
   adminLoginStep2,
   adminLoginStep3,
   setupAdminSecurityQuestions,
@@ -926,6 +930,10 @@ router.get("/app-requests", requireOwner, getAppRequests);
 router.put("/app-requests/:id", requireOwner, updateAppRequestStatus);
 router.post("/app-requests/:id/assets", requireOwner, generateAppAssetsForRequest);
 router.get("/app-requests/:id/assets/download", requireOwner, downloadAssetsZip);
+
+router.get("/service-requests", requireOwner, getServiceRequests);
+router.put("/service-requests/:id", requireOwner, updateServiceRequestStatus);
+router.get("/service-requests/:id/documents", requireOwner, getServiceRequestDocuments);
 
 router.post("/upload-apk", requireOwner, uploadBuild.single('file'), uploadApk);
 router.post("/upload-aab", requireOwner, uploadBuild.single('file'), uploadAab);

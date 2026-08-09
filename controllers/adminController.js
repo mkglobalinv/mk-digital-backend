@@ -12,6 +12,8 @@ import SystemSetting from '../models/SystemSetting.js';
 import AppRequest from '../models/AppRequest.js';
 import CustomDomainRequest from '../models/CustomDomainRequest.js';
 import ResellerRequest from '../models/ResellerRequest.js';
+import ServiceRequest from '../models/ServiceRequest.js';
+import { getSignedDocumentUrl } from '../services/storageService.js';
 import { refundBalance, creditBalance, deductBalance, refundEarnings, creditEarnings, deductEarnings } from '../services/walletService.js';
 import { 
     sendAdminBroadcastEmail, 
@@ -4022,5 +4024,91 @@ export const toggleResellerPricingPermission = async (req, res) => {
     } catch (err) {
         console.error('[TogglePricingPermission Error]', err);
         res.status(500).json({ message: err.message });
+    }
+};
+
+export const getServiceRequests = async (req, res) => {
+    try {
+        const { page = 1, limit = 50, status } = req.query;
+        let query = {};
+        if (status) query.status = status;
+        
+        const requests = await ServiceRequest.find(query)
+            .populate('userId', 'name email phone')
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit))
+            .skip((parseInt(page) - 1) * parseInt(limit));
+            
+        const total = await ServiceRequest.countDocuments(query);
+        res.json({ requests, total, pages: Math.ceil(total / limit) });
+    } catch (err) {
+        res.status(500).json({ message: "Error fetching service requests: " + err.message });
+    }
+};
+
+export const updateServiceRequestStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, adminNotes } = req.body;
+        
+        // Atomic state transition to prevent concurrent admin refund races
+        const request = await ServiceRequest.findOneAndUpdate(
+            { _id: id, status: { $nin: ['COMPLETED', 'FAILED', 'REJECTED'] } },
+            { $set: { status, adminNotes: adminNotes !== undefined ? adminNotes : '' } },
+            { new: true }
+        );
+
+        if (!request) {
+            // Check if it simply doesn't exist, or if it was already processed
+            const existing = await ServiceRequest.findById(id);
+            if (!existing) return res.status(404).json({ message: "Service request not found" });
+            return res.status(400).json({ message: `Cannot change status. Request is already ${existing.status}` });
+        }
+        
+        if (['COMPLETED', 'FAILED', 'REJECTED'].includes(status)) {
+            const tx = await Transaction.findById(request.transactionId);
+            if (tx) {
+                if (status === 'COMPLETED') {
+                    tx.status = 'success';
+                    tx.api_response = 'Admin Processed Successfully';
+                } else if (status === 'FAILED' || status === 'REJECTED') {
+                    // Refund user if rejected
+                    await refundBalance(request.userId, request.amount, tx);
+                    tx.status = 'failed';
+                    tx.api_response = `Admin Rejected: ${adminNotes || 'No reason provided'}`;
+                }
+                await tx.save();
+            }
+        }
+        
+        res.json({ message: "Service request updated", request });
+    } catch (err) {
+        res.status(500).json({ message: "Error updating service request: " + err.message });
+    }
+};
+
+export const getServiceRequestDocuments = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const request = await ServiceRequest.findById(id);
+        
+        if (!request) return res.status(404).json({ message: "Service request not found" });
+        
+        const documentsWithUrls = [];
+        for (const doc of request.documents) {
+            if (doc.storageKey) {
+                const url = await getSignedDocumentUrl(doc.storageKey);
+                if (url) {
+                    documentsWithUrls.push({
+                        ...doc.toObject(),
+                        signedUrl: url
+                    });
+                }
+            }
+        }
+        
+        res.json({ documents: documentsWithUrls });
+    } catch (err) {
+        res.status(500).json({ message: "Error fetching documents: " + err.message });
     }
 };

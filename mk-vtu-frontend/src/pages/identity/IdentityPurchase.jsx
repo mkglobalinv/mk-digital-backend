@@ -121,6 +121,7 @@ const IdentityPurchase = ({ user }) => {
   const [planError, setPlanError]     = useState(null);
 
   const [params, setParams]   = useState({});
+  const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult]   = useState(null);
   const [error, setError]     = useState(null);
@@ -160,10 +161,15 @@ const IdentityPurchase = ({ user }) => {
   /* ── 2. Input handler ─────────────────────────────────────────── */
   const handleChange = (e) => {
     let value = e.target.value;
-    if (['nin', 'bvn', 'phone'].includes(e.target.name)) {
+    if (['nin', 'bvn', 'phone', 'whatsappNumber'].includes(e.target.name)) {
       value = value.replace(/\D/g, '');
     }
     setParams(prev => ({ ...prev, [e.target.name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setDocuments(prev => [...prev, ...files]);
   };
 
   /* ── 3. Submit purchase ──────────────────────────────────────── */
@@ -173,12 +179,32 @@ const IdentityPurchase = ({ user }) => {
     setError(null);
     setResult(null);
 
+    const isAssistedService = ['nin-modification', 'bvn-modification', 'cac-registration'].includes(service.api_plan_id);
+
     try {
-      const res = await API.post('/api/retail/identity/purchase', {
-        serviceId: service.api_plan_id,
-        params: { ...params, consent: true }
-      });
-      setResult(res.data);
+      if (isAssistedService) {
+        const formData = new FormData();
+        const reference = `ASST-${Date.now()}`;
+        formData.append('reference', reference);
+        formData.append('serviceType', params.service_type);
+        
+        Object.keys(params).forEach(key => {
+          if (key !== 'service_type') formData.append(key, params[key]);
+        });
+        
+        documents.forEach(file => {
+          formData.append('documents', file);
+        });
+
+        const res = await API.post('/api/retail/identity/assisted-purchase', formData);
+        setResult(res.data);
+      } else {
+        const res = await API.post('/api/retail/identity/purchase', {
+          serviceId: service.api_plan_id,
+          params: { ...params, consent: true }
+        });
+        setResult(res.data);
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Transaction failed. Please try again.');
     } finally {
@@ -251,6 +277,11 @@ const IdentityPurchase = ({ user }) => {
         return (
           <>
             <div className="input-group">
+              <label>WhatsApp Number</label>
+              <input name="whatsappNumber" placeholder="Enter WhatsApp number for updates" required
+                onChange={handleChange} value={params.whatsappNumber || ''} maxLength="11" />
+            </div>
+            <div className="input-group">
               <label>Existing NIN</label>
               <input name="nin" placeholder="Enter 11-digit NIN" required
                 onChange={handleChange} value={params.nin || ''} maxLength="11" />
@@ -259,10 +290,11 @@ const IdentityPurchase = ({ user }) => {
               <label>Modification Type</label>
               <select name="service_type" required onChange={handleChange}>
                 <option value="">Select Modification</option>
-                <option value="nin_name_modification">Name Modification</option>
-                <option value="nin_dob_modification">Date of Birth Modification</option>
-                <option value="nin_phone_modification">Phone Number Modification</option>
-                <option value="nin_address_modification">Address Modification</option>
+                <option value="nin-name-modification">Name Modification</option>
+                <option value="nin-dob-modification">Date of Birth Modification</option>
+                <option value="nin-phone-modification">Phone Number Modification</option>
+                <option value="nin-address-modification">Address Modification</option>
+                <option value="nin-state-lga-modification">State & LGA Modification</option>
               </select>
             </div>
             <div className="input-group">
@@ -275,6 +307,85 @@ const IdentityPurchase = ({ user }) => {
               <textarea name="details" placeholder="Provide the new details to apply"
                 required onChange={handleChange}
                 style={{ resize: 'vertical', minHeight: '80px' }} />
+            </div>
+            <div className="input-group">
+              <label>Supporting Documents</label>
+              <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" required onChange={handleFileChange} />
+              <div style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Upload valid supporting documents (PDF/JPG/PNG)</div>
+            </div>
+          </>
+        );
+      case 'bvn-modification':
+        return (
+          <>
+            <div className="input-group">
+              <label>WhatsApp Number</label>
+              <input name="whatsappNumber" placeholder="Enter WhatsApp number for updates" required
+                onChange={handleChange} value={params.whatsappNumber || ''} maxLength="11" />
+            </div>
+            <div className="input-group">
+              <label>Existing BVN</label>
+              <input name="bvn" placeholder="Enter 11-digit BVN" required
+                onChange={handleChange} value={params.bvn || ''} maxLength="11" />
+            </div>
+            <div className="input-group">
+              <label>Modification Type</label>
+              <select name="service_type" required onChange={handleChange}>
+                <option value="">Select Modification</option>
+                <option value="bvn-name-update">Name Update</option>
+                <option value="bvn-phone-update">Phone Update</option>
+                <option value="bvn-dob-update">Date of Birth Update</option>
+                <option value="bvn-affidavit-with">With Court Affidavit</option>
+                <option value="bvn-affidavit-without">Without Court Affidavit</option>
+              </select>
+            </div>
+            <div className="input-group">
+              <label>New Value / Details</label>
+              <textarea name="details" placeholder="Provide the new details to apply"
+                required onChange={handleChange}
+                style={{ resize: 'vertical', minHeight: '80px' }} />
+            </div>
+            <div className="input-group">
+              <label>Supporting Documents</label>
+              <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" required onChange={handleFileChange} />
+              <div style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Upload valid supporting documents (PDF/JPG/PNG)</div>
+            </div>
+          </>
+        );
+      case 'cac-registration':
+        return (
+          <>
+            <div className="input-group">
+              <label>WhatsApp Number</label>
+              <input name="whatsappNumber" placeholder="Enter WhatsApp number for updates" required
+                onChange={handleChange} value={params.whatsappNumber || ''} maxLength="11" />
+            </div>
+            <div className="input-group">
+              <label>Registration Type</label>
+              <select name="service_type" required onChange={handleChange}>
+                <option value="">Select CAC Registration</option>
+                <option value="cac-business-name">Business Name Registration</option>
+                <option value="cac-private-limited">Private Limited Registration</option>
+                <option value="cac-public-limited">Public Limited Registration</option>
+                <option value="cac-ngo">Incorporated Trustee / NGO</option>
+              </select>
+            </div>
+            <div className="input-group">
+              <label>Business Name Proposals</label>
+              <textarea name="business_names" placeholder="Enter 3 proposed names in order of preference"
+                required onChange={handleChange}
+                style={{ resize: 'vertical', minHeight: '80px' }} />
+            </div>
+            <div className="input-group">
+              <label>Business Details</label>
+              <textarea name="details" placeholder="Provide description of business activities, address, etc."
+                required onChange={handleChange}
+                style={{ resize: 'vertical', minHeight: '80px' }} />
+            </div>
+            <div className="input-group">
+              <label>Director/Owner Documents</label>
+              <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" required onChange={handleFileChange} />
+              <div style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Upload Passport Photo, Signature, and ID (PDF/JPG/PNG)</div>
             </div>
           </>
         );
@@ -368,6 +479,21 @@ const IdentityPurchase = ({ user }) => {
                 border: '1px solid var(--border-color)', padding: '24px', marginBottom: '24px' }}>
 
                 {(() => {
+                  if (result.data?.reference) {
+                    return (
+                      <div style={{ textAlign: 'center' }}>
+                        <h4 style={{ color: '#6366f1', margin: '0 0 16px 0' }}>SERVICE REQUEST SUBMITTED</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', textAlign: 'left' }}>
+                          {safeRender('Reference ID', result.data.reference)}
+                          {safeRender('Service', result.data.service)}
+                          {safeRender('Amount Paid', `₦${result.data.amount?.toLocaleString()}`)}
+                          {safeRender('Status', result.data.status)}
+                          {safeRender('Est. Processing Time', result.data.expectedProcessingTime)}
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const normalizedIdentity = normalizeIdentityResponse(result);
                   if (!normalizedIdentity) return <div style={{ color: 'var(--text-gray)' }}>No detailed identity information available.</div>;
 

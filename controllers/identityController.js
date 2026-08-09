@@ -5,6 +5,7 @@ import { deductBalance, refundBalance } from '../services/walletService.js';
 import { smartBuyIdentity } from '../services/switcher.js';
 import idempotencyService from '../services/idempotencyService.js';
 import { getRetailPrice } from '../services/pricing/retailPricing.js';
+import { getAssistedServiceConfig } from '../services/pricing/assistedServicesPricing.js';
 import { maskPII } from '../services/providers/checkmyninbvn.js';
 
 /**
@@ -211,3 +212,148 @@ PROVIDER RESPONSE MESSAGE: Internal Server Error (${err.message})
         return res.status(500).json({ status: 'error', message: 'Internal Server Error. Amount refunded if deducted.' });
     }
 };
+
+import { getAssistedServiceConfig } from '../services/pricing/assistedServicesPricing.js';
+import { uploadPrivateDocument } from '../services/storageService.js';
+import ServiceRequest from '../models/ServiceRequest.js';
+
+export const processAssistedIdentityService = async (req, res) => {
+    const { serviceType, whatsappNumber, reference, ...submittedData } = req.body;
+    const userId = req.user._id;
+
+    const config = getAssistedServiceConfig(serviceType);
+
+    if (!serviceType || !config) {
+        return res.status(400).json({ status: 'error', message: 'Invalid or missing serviceType' });
+    }
+    if (!whatsappNumber) {
+        return res.status(400).json({ status: 'error', message: 'WhatsApp number is required' });
+    }
+    if (!reference) {
+        return res.status(400).json({ status: 'error', message: 'Reference is required' });
+    }
+
+    const cost = config.amount;
+
+    // 1. Idempotency (Using transactionIdempotency middleware handles uniqueness & lock)
+    // The transactionIdempotency middleware already verified lock and uniqueness before this controller hits.
+
+    let isDeducted = false;
+    let uploadedDocs = [];
+    const txReference = reference;
+    const walletReference = `W-${reference}`;
+
+    try {
+        // 2. Validate Balance
+        const user = await User.findById(userId);
+        if ((user.balance1 + (user.balance2 || 0)) < cost) {
+            return res.status(400).json({ status: 'error', message: 'Insufficient balance' });
+        }
+
+        // 3. Process Document Uploads
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const mimeType = file.mimetype;
+                const originalName = file.originalname;
+                const storageKey = await uploadPrivateDocument(file.buffer, originalName, mimeType, 'assisted-services');
+                uploadedDocs.push({
+                    storageKey,
+                    documentType: 'UPLOADED_FILE',
+                    mimeType,
+                    size: file.size
+                });
+            }
+        }
+
+        // 4. Deduct Wallet
+        const deductResult = await deductBalance(userId, cost, walletReference, `Assisted Service: ${config.name}`);
+        if (!deductResult) {
+            return res.status(400).json({ status: 'error', message: 'Wallet deduction failed. Please try again.' });
+        }
+        isDeducted = true;
+
+        // 5. Create Transaction (SUCCESS - since wallet logic committed its own transaction)
+        const transaction = await Transaction.create({
+            userId: userId,
+            reference: txReference,
+            amount: cost,
+            type: 'debit',
+            description: config.name,
+            provider_used: 'System Admin',
+            status: 'success',
+            api_response: 'Pending Admin Processing'
+        });
+
+        // 6. Create ServiceRequest
+        let serviceRequest;
+        try {
+            serviceRequest = await ServiceRequest.create({
+                userId,
+                serviceType,
+                reference: txReference,
+                whatsappNumber,
+                submittedData,
+                documents: uploadedDocs,
+                amount: cost,
+                status: 'PENDING_REVIEW',
+                expectedProcessingTime: config.expectedProcessingTime,
+                transactionId: transaction._id
+            });
+        } catch (dbErr) {
+            console.error('[Assisted Service] Failed to create ServiceRequest after deduction', dbErr);
+            // ROLLBACK COMPENSATING TRANSACTION
+            try {
+                await refundBalance(userId, cost, transaction);
+                transaction.status = 'failed';
+                transaction.api_response = 'Internal System Error - Refunded';
+                await transaction.save();
+                console.log(`[Assisted Service] Successfully refunded ₦${cost} for ${txReference} due to ServiceRequest creation failure.`);
+            } catch (refundErr) {
+                console.error(`[Assisted Service] HIGH SEVERITY: Refund exception for ${txReference}`, refundErr);
+                transaction.status = 'failed';
+                transaction.api_response = 'Internal System Error - Refund FAILED (Reconciliation Required)';
+                await transaction.save();
+            }
+            return res.status(500).json({ status: 'error', message: 'System Error during processing.' });
+        }
+
+        return res.json({
+            status: 'success',
+            message: `${config.name} submitted successfully`,
+            data: {
+                reference: serviceRequest.reference,
+                service: config.name,
+                amount: cost,
+                status: serviceRequest.status,
+                expectedProcessingTime: serviceRequest.expectedProcessingTime
+            }
+        });
+
+    } catch (err) {
+        console.error('[Assisted Service] Error:', err);
+        
+        if (isDeducted) {
+            try {
+                const tx = await Transaction.findOne({ reference: txReference });
+                await refundBalance(userId, cost, tx);
+                if (tx) {
+                    tx.status = 'failed';
+                    tx.api_response = 'Internal System Error - Refunded';
+                    await tx.save();
+                }
+                console.log(`[Assisted Service] Successfully refunded ₦${cost} for ${txReference} due to exception.`);
+            } catch (refundErr) {
+                console.error(`[Assisted Service] HIGH SEVERITY: Refund failed after exception for ${txReference}`, refundErr);
+                const tx = await Transaction.findOne({ reference: txReference });
+                if (tx) {
+                    tx.status = 'failed';
+                    tx.api_response = 'Internal System Error - Refund FAILED (Reconciliation Required)';
+                    await tx.save();
+                }
+            }
+        }
+
+        return res.status(500).json({ status: 'error', message: 'Internal Server Error.' });
+    }
+};
+

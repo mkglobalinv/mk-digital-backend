@@ -68,5 +68,22 @@ export const uploadDomain = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
+// Secure Document Filter
+const secureDocumentFilter = (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (['.pdf', '.jpg', '.jpeg', '.png'].includes(ext)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid document type. Only PDF, JPG, and PNG are allowed.'), false);
+    }
+};
+
+export const uploadSecureDocument = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: secureDocumentFilter,
+    limits: { fileSize: 10 * 1024 * 1024, files: 5 } // 10MB max per file, max 5 files
+});
+
+
 // Default fallback export for backwards compatibility
 export default uploadBuild;
