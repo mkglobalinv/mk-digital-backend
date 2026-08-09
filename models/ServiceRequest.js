@@ -22,6 +22,18 @@ const serviceRequestSchema = new mongoose.Schema({
         default: "PENDING_REVIEW" 
     },
     expectedProcessingTime: { type: String },
+
+    // Profit & Multi-Tenant Tracking
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    resellerTierAtPurchase: { type: String, enum: ['basic', 'premium', 'vip', null], default: null },
+    underlyingCost: { type: Number, default: null },
+    grossProfit: { type: Number, default: 0 },
+    resellerProfitShare: { type: Number, default: 0 }, // e.g. 0.30 or 0.60
+    resellerProfitAmount: { type: Number, default: 0 },
+    platformProfitShare: { type: Number, default: 0 },
+    platformProfitAmount: { type: Number, default: 0 },
+    profitDistributed: { type: Boolean, default: false },
+
     transactionId: { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },
     adminNotes: { type: String, default: "" }
 }, { 

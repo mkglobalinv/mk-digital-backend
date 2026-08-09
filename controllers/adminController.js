@@ -33,6 +33,7 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import AppBuildJob from '../models/AppBuildJob.js';
+import { insertLedgerEntry, syncLedgerToMongo } from '../services/supabaseLedger.js';
 import { generateAppAssets } from '../services/appAssetService.js';
 import socketService from '../services/socketService.js';
 import Session from '../models/Session.js';
@@ -4071,6 +4072,45 @@ export const updateServiceRequestStatus = async (req, res) => {
                 if (status === 'COMPLETED') {
                     tx.status = 'success';
                     tx.api_response = 'Admin Processed Successfully';
+                    tx.profit = request.grossProfit || 0;
+
+                    // Handle Reseller Profit Distribution (Idempotent by profitDistributed flag)
+                    if (request.tenantId && request.resellerProfitAmount > 0 && !request.profitDistributed) {
+                        try {
+                            const ref = `COMM-${tx.reference}`;
+                            const desc = `Commission: ${request.serviceType} (Assisted) for ${request.reference}`;
+                            
+                            // Log to Ledger
+                            await insertLedgerEntry(
+                                request.tenantId,
+                                request.resellerProfitAmount,
+                                'commission',
+                                'earnings',
+                                ref,
+                                desc
+                            );
+                            await syncLedgerToMongo(request.tenantId);
+                            
+                            // Transaction Record for Reseller
+                            await Transaction.create({
+                                userId: request.tenantId,
+                                type: 'credit',
+                                status: 'success',
+                                amount: request.resellerProfitAmount,
+                                description: desc,
+                                reference: ref,
+                                provider: 'System',
+                                isInternal: false,
+                                resellerId: request.tenantId
+                            });
+
+                            request.profitDistributed = true;
+                        } catch (profitErr) {
+                            console.error('[Admin Profit Dist] Error:', profitErr);
+                            request.adminNotes = (request.adminNotes ? request.adminNotes + ' | ' : '') + 'Profit Dist Error: ' + profitErr.message;
+                        }
+                    }
+
                 } else if (status === 'FAILED' || status === 'REJECTED') {
                     // Refund user if rejected
                     await refundBalance(request.userId, request.amount, tx);
@@ -4078,6 +4118,7 @@ export const updateServiceRequestStatus = async (req, res) => {
                     tx.api_response = `Admin Rejected: ${adminNotes || 'No reason provided'}`;
                 }
                 await tx.save();
+                await request.save(); // Save profitDistributed flag and potential errors
             }
         }
         

@@ -213,7 +213,7 @@ PROVIDER RESPONSE MESSAGE: Internal Server Error (${err.message})
     }
 };
 
-import { getAssistedServiceConfig } from '../services/pricing/assistedServicesPricing.js';
+import { getAssistedServiceConfig, calculateProfitSplit } from '../services/pricing/assistedServicesPricing.js';
 import { uploadPrivateDocument } from '../services/storageService.js';
 import ServiceRequest from '../models/ServiceRequest.js';
 
@@ -233,7 +233,11 @@ export const processAssistedIdentityService = async (req, res) => {
         return res.status(400).json({ status: 'error', message: 'Reference is required' });
     }
 
-    const cost = config.amount;
+    const tenantId = req.reseller ? req.reseller._id : null;
+    const resellerTier = req.reseller ? req.reseller.resellerTier : null;
+    const profitData = calculateProfitSplit(serviceType, resellerTier);
+
+    const cost = profitData.amount;
 
     // 1. Idempotency (Using transactionIdempotency middleware handles uniqueness & lock)
     // The transactionIdempotency middleware already verified lock and uniqueness before this controller hits.
@@ -297,7 +301,18 @@ export const processAssistedIdentityService = async (req, res) => {
                 amount: cost,
                 status: 'PENDING_REVIEW',
                 expectedProcessingTime: config.expectedProcessingTime,
-                transactionId: transaction._id
+                transactionId: transaction._id,
+                
+                // Profit & Multi-Tenant Snapshot
+                tenantId: tenantId,
+                resellerTierAtPurchase: resellerTier,
+                underlyingCost: profitData.cost,
+                grossProfit: profitData.profit,
+                resellerProfitShare: profitData.resellerShare,
+                resellerProfitAmount: profitData.resellerProfit,
+                platformProfitShare: profitData.platformShare,
+                platformProfitAmount: profitData.platformProfit,
+                profitDistributed: false
             });
         } catch (dbErr) {
             console.error('[Assisted Service] Failed to create ServiceRequest after deduction', dbErr);

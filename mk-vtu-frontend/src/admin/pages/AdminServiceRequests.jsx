@@ -88,6 +88,7 @@ const AdminServiceRequests = () => {
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>Reference</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>User</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>Service Type</th>
+                                <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>Financials</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>Data</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>Status</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>Actions</th>
@@ -110,7 +111,23 @@ const AdminServiceRequests = () => {
                                         <span style={{ padding: '4px 8px', background: '#e0e7ff', color: '#4338ca', borderRadius: '4px', fontSize: '12px', fontWeight: '500' }}>
                                             {req.serviceType}
                                         </span>
-                                        <div style={{ marginTop: '4px', fontSize: '13px' }}>₦{req.amount}</div>
+                                    </td>
+                                    <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '12px', color: '#334155' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px' }}>
+                                            <strong>Customer paid:</strong> <span>₦{req.amount?.toLocaleString()}</span>
+                                            <strong>Underlying cost:</strong> <span>{req.underlyingCost != null ? `₦${req.underlyingCost?.toLocaleString()}` : 'Not Configured'}</span>
+                                            <strong>Gross profit:</strong> <span>₦{req.grossProfit?.toLocaleString()}</span>
+                                            {req.tenantId && (
+                                                <>
+                                                    <div style={{ gridColumn: '1 / -1', height: '1px', background: '#e2e8f0', margin: '4px 0' }} />
+                                                    <strong>Reseller:</strong> <span>{req.tenantId?.name || req.tenantId}</span>
+                                                    <strong>Tier:</strong> <span style={{ textTransform: 'uppercase' }}>{req.resellerTierAtPurchase || 'BASIC'}</span>
+                                                    <strong>Share:</strong> <span>{(req.resellerProfitShare * 100).toFixed(0)}%</span>
+                                                    <strong>Reseller Profit:</strong> <span style={{ color: '#16a34a' }}>₦{req.resellerProfitAmount?.toLocaleString()}</span>
+                                                    <strong>Platform Profit:</strong> <span style={{ color: '#2563eb' }}>₦{req.platformProfitAmount?.toLocaleString()}</span>
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                     <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', maxWidth: '250px' }}>
                                         <pre style={{ fontSize: '11px', background: '#f1f5f9', padding: '8px', borderRadius: '4px', overflowX: 'auto', margin: 0 }}>
