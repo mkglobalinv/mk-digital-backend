@@ -23,6 +23,95 @@ import API from '../../api';
  *
  * Nothing is hardcoded.
  */
+
+// Small reusable helpers
+const getFirstAvailableValue = (obj, keys = []) => {
+  if (!obj) return null;
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') return obj[k];
+  }
+  return null;
+};
+
+const safeRender = (label, value) => {
+  if (!value || value === 'null' || value === 'undefined') return null;
+  return (
+    <div style={{ marginBottom: '12px' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+      <div style={{ fontSize: '15px', color: 'var(--text-dark)', fontWeight: '500' }}>{value}</div>
+    </div>
+  );
+};
+
+const formatNIN = (ninStr) => {
+  if (!ninStr) return null;
+  return `***${String(ninStr).slice(-4)}`;
+};
+
+const normalizePhoto = (imgSrc) => {
+  if (!imgSrc) return null;
+  if (!imgSrc.startsWith('data:image') && !imgSrc.startsWith('http')) {
+    return `data:image/jpeg;base64,${imgSrc}`;
+  }
+  return imgSrc;
+};
+
+const normalizeIdentityResponse = (result) => {
+  if (!result || !result.data) return null;
+  const providerResponse = result.data || {};
+  
+  // Defensive flattening
+  const level1 = providerResponse?.data || providerResponse;
+  const level2 = level1?.data || level1;
+  const idData = level2?.data || level2;
+
+  const rawPhoto = getFirstAvailableValue(idData, ['photo', 'photoUrl', 'photo_url', 'base64Image', 'image', 'imageUrl', 'image_url']);
+  const firstName = getFirstAvailableValue(idData, ['firstName', 'firstname', 'first_name', 'givenName', 'given_name']);
+  const middleName = getFirstAvailableValue(idData, ['middleName', 'middlename', 'middle_name']);
+  const surname = getFirstAvailableValue(idData, ['surname', 'lastName', 'lastname', 'last_name']);
+  const rawFullName = getFirstAvailableValue(idData, ['fullName', 'full_name', 'name']);
+  
+  const computedFullName = rawFullName || [firstName, middleName, surname].filter(Boolean).join(' ');
+  const ninVal = getFirstAvailableValue(idData, ['nin', 'NIN', 'ninNumber', 'nin_number']);
+  const bvnVal = getFirstAvailableValue(idData, ['bvn', 'BVN', 'bvnNumber', 'bvn_number']);
+  const rawPhone = getFirstAvailableValue(idData, ['phoneNumber1', 'phone1', 'phone', 'mobile']);
+  
+  return {
+    reportId: getFirstAvailableValue(providerResponse, ['reportID', 'reportId', 'report_id', 'reference', 'transactionId']) 
+              || getFirstAvailableValue(idData, ['reportID', 'reportId', 'report_id', 'reference', 'transactionId']),
+    trackingId: getFirstAvailableValue(idData, ['trackingId', 'tracking_id', 'trackingID', 'trackingNumber', 'tracking_number']),
+    photo: normalizePhoto(rawPhoto),
+    
+    fullName: computedFullName,
+    surname: surname,
+    firstName: firstName,
+    middleName: middleName,
+    
+    nin: ninVal,
+    bvn: bvnVal,
+    isBvn: !!bvnVal && !ninVal,
+    maskedId: ninVal ? formatNIN(ninVal) : formatNIN(bvnVal),
+    
+    gender: getFirstAvailableValue(idData, ['gender', 'sex']),
+    dateOfBirth: getFirstAvailableValue(idData, ['dateOfBirth', 'date_of_birth', 'dob', 'birthDate', 'birth_date']),
+    nationality: getFirstAvailableValue(idData, ['nationality', 'country']),
+    maritalStatus: getFirstAvailableValue(idData, ['maritalStatus', 'marital_status']),
+    phone: rawPhone,
+    
+    address: getFirstAvailableValue(idData, ['address', 'residentialAddress', 'residential_address', 'addressLine', 'address_line']),
+    state: getFirstAvailableValue(idData, ['state', 'stateOfResidence', 'state_of_residence', 'residence_state']),
+    lga: getFirstAvailableValue(idData, ['lga', 'LGA', 'localGovernment', 'local_government', 'lgaOfResidence', 'lga_of_residence']),
+    stateOfOrigin: getFirstAvailableValue(idData, ['stateOfOrigin', 'state_of_origin', 'state_origin']),
+    lgaOfOrigin: getFirstAvailableValue(idData, ['lgaOfOrigin', 'lga_of_origin', 'lga_origin']),
+    stateOfResidence: getFirstAvailableValue(idData, ['stateOfResidence', 'state_of_residence', 'residence_state']),
+    lgaOfResidence: getFirstAvailableValue(idData, ['lgaOfResidence', 'lga_of_residence', 'residence_lga']),
+    
+    enrollmentDate: getFirstAvailableValue(idData, ['enrollmentDate', 'registrationDate', 'registeredAt', 'registration_date']),
+    enrollmentBank: getFirstAvailableValue(idData, ['enrollmentBank', 'bank']),
+    enrollmentBranch: getFirstAvailableValue(idData, ['enrollmentBranch', 'branch']),
+    watchListed: getFirstAvailableValue(idData, ['watchListed', 'watch_listed', 'watchlisted']),
+  };
+};
 const IdentityPurchase = ({ user }) => {
   const { serviceId } = useParams();
   const navigate     = useNavigate();
@@ -279,73 +368,20 @@ const IdentityPurchase = ({ user }) => {
                 border: '1px solid var(--border-color)', padding: '24px', marginBottom: '24px' }}>
 
                 {(() => {
-                  const providerResponse = result.data || {};
-                  // Billsplash nested payloads can vary — normalize robustly
-                  // Common shapes observed:
-                  // 1) { status, reportID, message, data: { status, data: { ...fields } } }
-                  // 2) { status, data: { ...fields } }
-                  // 3) { ...fields } (flat)
-                  const level1 = providerResponse?.data || providerResponse;
-                  const level2 = level1?.data || level1;
-                  const idData = level2?.data || level2;
-                  const reportID = providerResponse?.reportID || level1?.reportID || idData?.reportID;
-
-                  const safeRender = (label, value) => {
-                    if (!value || value === 'null' || value === 'undefined') return null;
-                    return (
-                      <div style={{ marginBottom: '12px' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
-                        <div style={{ fontSize: '15px', color: 'var(--text-dark)', fontWeight: '500' }}>{value}</div>
-                      </div>
-                    );
-                  };
-
-                  let imgSrc = getField(idData, ['base64Image','photo','photo_base64']);
-                  if (imgSrc && !imgSrc.startsWith('data:image')) {
-                    imgSrc = `data:image/jpeg;base64,${imgSrc}`;
-                  }
-
-                  // Map field keys with fallbacks for different provider shapes
-                  const firstName = getField(idData, ['firstName','firstname','first_name','givenName','given_name']);
-                  const middleName = getField(idData, ['middleName','middlename','middle_name']);
-                  const lastName = getField(idData, ['lastName','lastname','last_name','surname']);
-                  const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
-
-                  const dob = getField(idData, ['dateOfBirth','dob','birthDate','birth_date']);
-                  const gender = getField(idData, ['gender','sex']);
-                  const maritalStatus = getField(idData, ['maritalStatus','marital_status']);
-                  const nationality = getField(idData, ['nationality','country']);
-
-                  const ninVal = getField(idData, ['nin','NIN','ninNumber','nin_number']);
-                  const bvnVal = getField(idData, ['bvn','BVN','bvnNumber','bvn_number']);
-                  const idNumberLabel = ninVal ? 'NIN' : (bvnVal ? 'BVN' : null);
-                  const idNumberValue = ninVal ? `***${String(ninVal).slice(-4)}` : (bvnVal ? `***${String(bvnVal).slice(-4)}` : null);
-
-                  const stateOfOrigin = getField(idData, ['stateOfOrigin','state_of_origin','state_origin','state']);
-                  const lgaOfOrigin = getField(idData, ['lgaOfOrigin','lga_of_origin','lga_origin','lga']);
-                  const stateOfResidence = getField(idData, ['stateOfResidence','state_of_residence','residence_state']);
-                  const lgaOfResidence = getField(idData, ['lgaOfResidence','lga_of_residence','residence_lga']);
-                  const address = getField(idData, ['residentialAddress','address','residential_address','residentialAddress1']);
-
-                  const phone1 = getField(idData, ['phoneNumber1','phone1','phone','mobile']);
-                  const phone2 = getField(idData, ['phoneNumber2','phone2','alt_phone']);
-
-                  const registrationDate = getField(idData, ['registrationDate','enrollmentDate','registeredAt','registration_date']);
-                  const watchListed = getField(idData, ['watchListed','watch_listed','watchlisted']);
-                  const enrollmentBank = getField(idData, ['enrollmentBank','bank']);
-                  const enrollmentBranch = getField(idData, ['enrollmentBranch','branch']);
+                  const normalizedIdentity = normalizeIdentityResponse(result);
+                  if (!normalizedIdentity) return <div style={{ color: 'var(--text-gray)' }}>No detailed identity information available.</div>;
 
                   return (
                     <div style={{ textAlign: 'left' }}>
-                      {reportID && (
+                      {normalizedIdentity.reportId && (
                         <div style={{ display: 'inline-block', background: 'rgba(16,185,129,0.1)', color: '#10b981', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>
-                          Report ID: {reportID}
+                          Report ID: {normalizedIdentity.reportId}
                         </div>
                       )}
 
-                      {imgSrc && (
+                      {normalizedIdentity.photo && (
                         <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-                          <img src={imgSrc} alt="Verified Person" style={{ width: '140px', height: '140px', borderRadius: '16px', objectFit: 'cover', border: '4px solid #fff', boxShadow: '0 4px 10px rgba(0,0,0,0.06)' }} />
+                          <img src={normalizedIdentity.photo} alt="Verified Person" style={{ width: '140px', height: '140px', borderRadius: '16px', objectFit: 'cover', border: '4px solid #fff', boxShadow: '0 4px 10px rgba(0,0,0,0.06)' }} />
                           <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-gray)', fontWeight: '600', letterSpacing: '1px' }}>PROFILE PHOTO</div>
                         </div>
                       )}
@@ -354,14 +390,16 @@ const IdentityPurchase = ({ user }) => {
                       <div style={{ marginBottom: '24px' }}>
                         <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>PERSONAL INFORMATION</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {safeRender('Full Name', fullName)}
-                          {safeRender(idNumberLabel, idNumberValue)}
-                          {safeRender('Date of Birth', dob)}
-                          {safeRender('Gender', gender)}
-                          {safeRender('Marital Status', maritalStatus)}
-                          {safeRender('Nationality', nationality)}
-                          {safeRender('Phone 1', phone1)}
-                          {safeRender('Phone 2', phone2)}
+                          {safeRender('Full Name', normalizedIdentity.fullName)}
+                          {safeRender('Surname', normalizedIdentity.surname)}
+                          {safeRender('First Name', normalizedIdentity.firstName)}
+                          {safeRender('Middle Name', normalizedIdentity.middleName)}
+                          {safeRender(normalizedIdentity.isBvn ? 'BVN' : 'NIN', normalizedIdentity.maskedId)}
+                          {safeRender('Date of Birth', normalizedIdentity.dateOfBirth)}
+                          {safeRender('Gender', normalizedIdentity.gender)}
+                          {safeRender('Marital Status', normalizedIdentity.maritalStatus)}
+                          {safeRender('Nationality', normalizedIdentity.nationality)}
+                          {safeRender('Phone', normalizedIdentity.phone)}
                         </div>
                       </div>
 
@@ -369,13 +407,15 @@ const IdentityPurchase = ({ user }) => {
                       <div style={{ marginBottom: '24px' }}>
                         <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>LOCATION</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {safeRender('State of Origin', stateOfOrigin)}
-                          {safeRender('LGA of Origin', lgaOfOrigin)}
-                          {safeRender('State of Residence', stateOfResidence)}
-                          {safeRender('LGA of Residence', lgaOfResidence)}
+                          {safeRender('State of Origin', normalizedIdentity.stateOfOrigin)}
+                          {safeRender('LGA of Origin', normalizedIdentity.lgaOfOrigin)}
+                          {safeRender('State of Residence', normalizedIdentity.stateOfResidence)}
+                          {safeRender('LGA of Residence', normalizedIdentity.lgaOfResidence)}
                         </div>
                         <div style={{ marginTop: '12px' }}>
-                          {safeRender('Address', address)}
+                          {safeRender('Address', normalizedIdentity.address)}
+                          {safeRender('State', normalizedIdentity.state)}
+                          {safeRender('LGA', normalizedIdentity.lga)}
                         </div>
                       </div>
 
@@ -383,10 +423,12 @@ const IdentityPurchase = ({ user }) => {
                       <div>
                         <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6366f1', borderBottom: '1px solid rgba(99,102,241,0.2)', paddingBottom: '8px' }}>VERIFICATION DETAILS</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {safeRender('Registration Date', registrationDate)}
-                          {safeRender('Watchlist Status', watchListed)}
-                          {safeRender('Enrollment Bank', enrollmentBank)}
-                          {safeRender('Enrollment Branch', enrollmentBranch)}
+                          {safeRender('Tracking ID', normalizedIdentity.trackingId)}
+                          {safeRender('Report ID', normalizedIdentity.reportId)}
+                          {safeRender('Enrollment Date', normalizedIdentity.enrollmentDate)}
+                          {safeRender('Enrollment Bank', normalizedIdentity.enrollmentBank)}
+                          {safeRender('Enrollment Branch', normalizedIdentity.enrollmentBranch)}
+                          {safeRender('Watchlist Status', normalizedIdentity.watchListed)}
                         </div>
                       </div>
                     </div>
@@ -401,7 +443,10 @@ const IdentityPurchase = ({ user }) => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   Done
                 </button>
-                <button onClick={() => alert('Download coming soon')}
+                <button onClick={() => {
+                  const normalizedData = normalizeIdentityResponse(result);
+                  alert('Download coming soon');
+                }}
                   style={{ flex: 1, padding: '16px', borderRadius: '16px',
                     background: '#3b82f6', color: 'white', border: 'none',
                     fontWeight: '600', cursor: 'pointer',
