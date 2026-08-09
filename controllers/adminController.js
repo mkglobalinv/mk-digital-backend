@@ -13,7 +13,7 @@ import AppRequest from '../models/AppRequest.js';
 import CustomDomainRequest from '../models/CustomDomainRequest.js';
 import ResellerRequest from '../models/ResellerRequest.js';
 import ServiceRequest from '../models/ServiceRequest.js';
-import { getSignedDocumentUrl } from '../services/storageService.js';
+import { generateSignedUrl } from '../services/storageService.js';
 import { refundBalance, creditBalance, deductBalance, refundEarnings, creditEarnings, deductEarnings } from '../services/walletService.js';
 import { 
     sendAdminBroadcastEmail, 
@@ -3068,7 +3068,7 @@ export const downloadAssetsZip = async (req, res) => {
     }
 };
 
-import { generateAndSendInvoice } from '../services/invoiceService.js';
+
 export const initiateResellerWalletAction = async (req, res) => {
     try {
         const { id } = req.params;
@@ -4138,7 +4138,7 @@ export const getServiceRequestDocuments = async (req, res) => {
         const documentsWithUrls = [];
         for (const doc of request.documents) {
             if (doc.storageKey) {
-                const url = await getSignedDocumentUrl(doc.storageKey);
+                const url = await generateSignedUrl(doc.storageKey);
                 if (url) {
                     documentsWithUrls.push({
                         ...doc.toObject(),
