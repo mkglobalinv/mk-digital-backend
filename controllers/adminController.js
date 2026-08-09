@@ -3068,7 +3068,7 @@ export const downloadAssetsZip = async (req, res) => {
     }
 };
 
-import { insertLedgerEntry, syncLedgerToMongo } from '../services/supabaseLedger.js';
+import { generateAndSendInvoice } from '../services/invoiceService.js';
 export const initiateResellerWalletAction = async (req, res) => {
     try {
         const { id } = req.params;
