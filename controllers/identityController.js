@@ -5,7 +5,9 @@ import { deductBalance, refundBalance } from '../services/walletService.js';
 import { smartBuyIdentity } from '../services/switcher.js';
 import idempotencyService from '../services/idempotencyService.js';
 import { getRetailPrice } from '../services/pricing/retailPricing.js';
-import { getAssistedServiceConfig } from '../services/pricing/assistedServicesPricing.js';
+import { getAssistedServiceConfig, calculateProfitSplit } from '../services/pricing/assistedServicesPricing.js';
+import { uploadPrivateDocument } from '../services/storageService.js';
+import ServiceRequest from '../models/ServiceRequest.js';
 import { maskPII } from '../services/providers/checkmyninbvn.js';
 
 /**
@@ -213,9 +215,6 @@ PROVIDER RESPONSE MESSAGE: Internal Server Error (${err.message})
     }
 };
 
-import { getAssistedServiceConfig, calculateProfitSplit } from '../services/pricing/assistedServicesPricing.js';
-import { uploadPrivateDocument } from '../services/storageService.js';
-import ServiceRequest from '../models/ServiceRequest.js';
 
 export const processAssistedIdentityService = async (req, res) => {
     const { serviceType, whatsappNumber, reference, ...submittedData } = req.body;
