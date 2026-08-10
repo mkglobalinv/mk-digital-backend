@@ -39,7 +39,15 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
     }
   };
 
-  const visible = expanded ? IDENTITY_SERVICES : IDENTITY_SERVICES.slice(0, 4);
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const availableServices = IDENTITY_SERVICES.filter(svc => {
+    if (['bvn-verify', 'bvn-phone', 'nin-modification'].includes(svc.api_plan_id)) {
+      return isLocalhost;
+    }
+    return true;
+  });
+
+  const visible = expanded ? availableServices : availableServices.slice(0, 4);
 
   return (
     <div className="identity-section">
