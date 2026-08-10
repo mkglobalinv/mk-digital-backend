@@ -253,6 +253,10 @@ body.dark-theme .service-card:hover .service-icon-wrap {
   font-size: 9.5px; font-weight: 700;
   color: var(--text-gray); text-align: center; line-height: 1.2;
 }
+/* Night mode: service card labels are light */
+body.dark-theme .service-card span {
+  color: rgba(255,255,255,0.75) !important;
+}
 
 /* Service colour tokens */
 .srv-gold   .service-icon-wrap { color: #D97706; background: rgba(245,158,11,0.1);   border-color: rgba(245,158,11,0.2); }
@@ -440,6 +444,10 @@ body.dark-theme .referral-cta { color: #F4B400; background: rgba(244,180,0,0.12)
 .identity-label {
   font-size: 10px; font-weight: 700;
   color: var(--text-gray); text-align: center; line-height: 1.2;
+}
+/* Night mode: identity labels are light */
+body.dark-theme .identity-label {
+  color: rgba(255,255,255,0.75) !important;
 }
 
 /* -----------------------------------------------------------
@@ -718,11 +726,13 @@ body.day-mode .fintech-wallet-card .action-item.primary .action-icon-wrap {
   color: #0F172A !important; /* Keep the yellow button text dark */
 }
 
-/* Services must be clearly visible */
+/* Services must be clearly visible in DAY mode */
+body.dark-theme.day-mode .service-card span,
 body.day-mode .service-card span {
   color: #0F172A !important;
   font-weight: 800 !important;
 }
+body.dark-theme.day-mode .service-icon-wrap,
 body.day-mode .service-icon-wrap {
   background: #FFFFFF !important;
   border-color: #E2E8F0 !important;
@@ -730,10 +740,12 @@ body.day-mode .service-icon-wrap {
 }
 
 /* Identity cards day mode */
+body.dark-theme.day-mode .identity-label,
 body.day-mode .identity-label {
   color: #0F172A !important;
   font-weight: 800 !important;
 }
+body.dark-theme.day-mode .identity-icon-wrap,
 body.day-mode .identity-icon-wrap {
   box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
 }
