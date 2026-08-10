@@ -5,6 +5,7 @@ import {
   Loader2, ShieldCheck, Download
 } from 'lucide-react';
 import API from '../../api';
+import { openVerificationSlip } from '../../utils/openVerificationSlip';
 
 /**
  * IdentityPurchase
@@ -23,6 +24,15 @@ import API from '../../api';
  *
  * Nothing is hardcoded.
  */
+
+// UI Display Override for Assisted Services with sub-selections
+const ASSISTED_SERVICES_PRICING = {
+  'nin-name-modification': 6000,
+  'nin-dob-modification': 36500,
+  'nin-phone-modification': 6000,
+  'nin-address-modification': 6000,
+  'nin-state-lga-modification': 8500
+};
 
 // Small reusable helpers
 const getFirstAvailableValue = (obj, keys = []) => {
@@ -56,14 +66,14 @@ const normalizePhoto = (imgSrc) => {
   return imgSrc;
 };
 
-const normalizeIdentityResponse = (result) => {
+const normalizeIdentityResponse = (result, params = {}) => {
   if (!result || !result.data) return null;
   const providerResponse = result.data || {};
   
   // Defensive flattening
   const level1 = providerResponse?.data || providerResponse;
   const level2 = level1?.data || level1;
-  const idData = level2?.data || level2;
+  const idData = level2?.verification_data?.user_data?.response?.[0] || level2?.verification_data?.user_data || level2?.data || level2;
 
   const rawPhoto = getFirstAvailableValue(idData, ['photo', 'photoUrl', 'photo_url', 'base64Image', 'image', 'imageUrl', 'image_url']);
   const firstName = getFirstAvailableValue(idData, ['firstName', 'firstname', 'first_name', 'givenName', 'given_name']);
@@ -72,13 +82,14 @@ const normalizeIdentityResponse = (result) => {
   const rawFullName = getFirstAvailableValue(idData, ['fullName', 'full_name', 'name']);
   
   const computedFullName = rawFullName || [firstName, middleName, surname].filter(Boolean).join(' ');
-  const ninVal = getFirstAvailableValue(idData, ['nin', 'NIN', 'ninNumber', 'nin_number']);
-  const bvnVal = getFirstAvailableValue(idData, ['bvn', 'BVN', 'bvnNumber', 'bvn_number']);
+  const ninVal = getFirstAvailableValue(idData, ['nin', 'NIN', 'ninNumber', 'nin_number']) || params.nin;
+  const bvnVal = getFirstAvailableValue(idData, ['bvn', 'BVN', 'bvnNumber', 'bvn_number']) || params.bvn;
   const rawPhone = getFirstAvailableValue(idData, ['phoneNumber1', 'phone1', 'phone', 'mobile']);
   
   return {
     reportId: getFirstAvailableValue(providerResponse, ['reportID', 'reportId', 'report_id', 'reference', 'transactionId']) 
-              || getFirstAvailableValue(idData, ['reportID', 'reportId', 'report_id', 'reference', 'transactionId']),
+              || getFirstAvailableValue(level2, ['reference', 'transactionId', 'reportId'])
+              || getFirstAvailableValue(idData, ['reportID', 'reportId', 'report_id', 'reference', 'transactionId', 'transactionReference']),
     trackingId: getFirstAvailableValue(idData, ['trackingId', 'tracking_id', 'trackingID', 'trackingNumber', 'tracking_number']),
     photo: normalizePhoto(rawPhoto),
     
@@ -87,20 +98,18 @@ const normalizeIdentityResponse = (result) => {
     firstName: firstName,
     middleName: middleName,
     
-    nin: ninVal,
-    bvn: bvnVal,
     isBvn: !!bvnVal && !ninVal,
-    maskedId: ninVal ? formatNIN(ninVal) : formatNIN(bvnVal),
+    idNumber: ninVal || bvnVal,
     
     gender: getFirstAvailableValue(idData, ['gender', 'sex']),
-    dateOfBirth: getFirstAvailableValue(idData, ['dateOfBirth', 'date_of_birth', 'dob', 'birthDate', 'birth_date']),
+    dateOfBirth: getFirstAvailableValue(idData, ['dateOfBirth', 'date_of_birth', 'dob', 'birthDate', 'birth_date', 'birthdate']),
     nationality: getFirstAvailableValue(idData, ['nationality', 'country']),
     maritalStatus: getFirstAvailableValue(idData, ['maritalStatus', 'marital_status']),
     phone: rawPhone,
     
-    address: getFirstAvailableValue(idData, ['address', 'residentialAddress', 'residential_address', 'addressLine', 'address_line']),
-    state: getFirstAvailableValue(idData, ['state', 'stateOfResidence', 'state_of_residence', 'residence_state']),
-    lga: getFirstAvailableValue(idData, ['lga', 'LGA', 'localGovernment', 'local_government', 'lgaOfResidence', 'lga_of_residence']),
+    address: getFirstAvailableValue(idData, ['address', 'residentialAddress', 'residential_address', 'addressLine', 'address_line', 'residence_AdressLine1']),
+    state: getFirstAvailableValue(idData, ['state', 'stateOfResidence', 'state_of_residence', 'residence_state', 'residence_State']),
+    lga: getFirstAvailableValue(idData, ['lga', 'LGA', 'localGovernment', 'local_government', 'lgaOfResidence', 'lga_of_residence', 'residence_lga', 'town', 'city', 'residence_town']),
     stateOfOrigin: getFirstAvailableValue(idData, ['stateOfOrigin', 'state_of_origin', 'state_origin']),
     lgaOfOrigin: getFirstAvailableValue(idData, ['lgaOfOrigin', 'lga_of_origin', 'lga_origin']),
     stateOfResidence: getFirstAvailableValue(idData, ['stateOfResidence', 'state_of_residence', 'residence_state']),
@@ -298,6 +307,11 @@ const IdentityPurchase = ({ user }) => {
               </select>
             </div>
             <div className="input-group">
+              <label>Current Information</label>
+              <input name="currentInformation" placeholder="Provide existing details"
+                onChange={handleChange} value={params.currentInformation || ''} />
+            </div>
+            <div className="input-group">
               <label>NIMC Tracking ID (Optional)</label>
               <input name="tracking_id" placeholder="If already submitted via NIMC"
                 onChange={handleChange} />
@@ -394,15 +408,6 @@ const IdentityPurchase = ({ user }) => {
     }
   };
 
-  /* helper: robust field accessor supporting multiple key variants */
-  const getField = (obj, keys = []) => {
-    if (!obj) return null;
-    for (const k of keys) {
-      if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') return obj[k];
-    }
-    return null;
-  };
-
   /* ── 5. Loading / error states ────────────────────────────────── */
   if (loadingPlan) {
     return (
@@ -494,7 +499,7 @@ const IdentityPurchase = ({ user }) => {
                     );
                   }
 
-                  const normalizedIdentity = normalizeIdentityResponse(result);
+                  const normalizedIdentity = normalizeIdentityResponse(result, params);
                   if (!normalizedIdentity) return <div style={{ color: 'var(--text-gray)' }}>No detailed identity information available.</div>;
 
                   return (
@@ -520,7 +525,7 @@ const IdentityPurchase = ({ user }) => {
                           {safeRender('Surname', normalizedIdentity.surname)}
                           {safeRender('First Name', normalizedIdentity.firstName)}
                           {safeRender('Middle Name', normalizedIdentity.middleName)}
-                          {safeRender(normalizedIdentity.isBvn ? 'BVN' : 'NIN', normalizedIdentity.maskedId)}
+                          {safeRender(normalizedIdentity.isBvn ? 'BVN' : 'NIN', normalizedIdentity.idNumber)}
                           {safeRender('Date of Birth', normalizedIdentity.dateOfBirth)}
                           {safeRender('Gender', normalizedIdentity.gender)}
                           {safeRender('Marital Status', normalizedIdentity.maritalStatus)}
@@ -562,23 +567,25 @@ const IdentityPurchase = ({ user }) => {
                 })()}
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button onClick={() => navigate(-1)}
+                <button type="button" onClick={() => navigate(-1)}
                   style={{ flex: 1, padding: '16px', borderRadius: '16px',
                     background: 'var(--border-color)', color: 'var(--text-dark)',
                     border: 'none', fontWeight: '600', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   Done
                 </button>
-                <button onClick={() => {
-                  const normalizedData = normalizeIdentityResponse(result);
-                  alert('Download coming soon');
+                <button type="button" onClick={() => {
+                  if (result) {
+                    const norm = normalizeIdentityResponse(result, params);
+                    if (norm) openVerificationSlip(norm);
+                  }
                 }}
                   style={{ flex: 1, padding: '16px', borderRadius: '16px',
                     background: '#3b82f6', color: 'white', border: 'none',
                     fontWeight: '600', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                     boxShadow: '0 4px 14px rgba(59,130,246,0.3)' }}>
-                  <Download size={18} /> Save PDF
+                  <Download size={18} /> View NIN Slip
                 </button>
               </div>
             </div>
@@ -589,13 +596,19 @@ const IdentityPurchase = ({ user }) => {
             borderRadius: '24px', border: '1px solid var(--border-color)',
             boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }}>
 
-            {/* Price from DB */}
+            {['nin-modification', 'bvn-modification', 'cac-registration'].includes(service.api_plan_id) && (
+              <div style={{ background: '#e0e7ff', color: '#3730a3', padding: '12px 16px', borderRadius: '12px', marginBottom: '24px', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle size={18} /> Estimated processing time: 1 day
+              </div>
+            )}
+
+            {/* Price from DB or mapped selection */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               marginBottom: '32px', paddingBottom: '20px',
               borderBottom: '1px dashed var(--border-color)' }}>
               <span style={{ color: 'var(--text-gray)', fontSize: '15px' }}>Service Charge</span>
               <span style={{ fontWeight: '800', fontSize: '24px', color: 'var(--text-dark)' }}>
-                ₦{service.selling_price?.toLocaleString()}
+                ₦{((service.api_plan_id === 'nin-modification' && params.service_type) ? (ASSISTED_SERVICES_PRICING[params.service_type] || service.selling_price) : service.selling_price)?.toLocaleString()}
               </span>
             </div>
 
@@ -640,7 +653,7 @@ const IdentityPurchase = ({ user }) => {
                   transition: 'all 0.2s', opacity: loading ? 0.7 : 1 }}>
                 {loading
                   ? <><Loader2 size={20} className="animate-spin" /> Processing Securely…</>
-                  : `Pay ₦${service.selling_price?.toLocaleString()}`
+                  : `Pay ₦${((service.api_plan_id === 'nin-modification' && params.service_type) ? (ASSISTED_SERVICES_PRICING[params.service_type] || service.selling_price) : service.selling_price)?.toLocaleString()}`
                 }
               </button>
             </form>
