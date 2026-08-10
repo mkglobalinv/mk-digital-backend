@@ -585,7 +585,7 @@ const IdentityPurchase = ({ user }) => {
                     fontWeight: '600', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                     boxShadow: '0 4px 14px rgba(59,130,246,0.3)' }}>
-                  <Download size={18} /> View NIN Slip
+                  <Download size={18} /> View {service.api_plan_id.includes('bvn') ? 'BVN' : 'NIN'} Slip
                 </button>
               </div>
             </div>

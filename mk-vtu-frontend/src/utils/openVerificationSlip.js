@@ -1,13 +1,16 @@
 export const openVerificationSlip = (data) => {
   const val = (v) => (v ? String(v) : '');
 
+  const slipType = data.isBvn ? "BVN" : "NIN";
+  const slipTitle = data.isBvn ? "Bank Verification Slip" : "Identity Verification Slip";
+
   const slipHTML = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>NIN Verification Slip - ${val(data.idNumber)}</title>
+      <title>${slipType} Verification Slip - ${val(data.idNumber)}</title>
       <style>
         body {
           font-family: 'Arial', Helvetica, sans-serif;
@@ -118,8 +121,8 @@ export const openVerificationSlip = (data) => {
         <table class="slip-table">
           <tr>
             <td colspan="4" class="header-cell">
-              <h1>NIN VERIFICATION</h1>
-              <h2>Identity Verification Slip</h2>
+              <h1>${slipType} VERIFICATION</h1>
+              <h2>${slipTitle}</h2>
               <h3>Federal Republic of Nigeria</h3>
             </td>
           </tr>
@@ -153,7 +156,7 @@ export const openVerificationSlip = (data) => {
           <tr>
             <td>
               <div class="field-container">
-                <span class="field-label">NIN:</span>
+                <span class="field-label">${slipType}:</span>
                 <span class="field-value">${val(data.idNumber)}</span>
               </div>
             </td>
