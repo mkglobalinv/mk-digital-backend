@@ -457,7 +457,7 @@ export const verifyNINWithBillsplash = async (nin) => {
 
     const payload = {
         nin: String(nin),
-        slip_type: "premium"
+        slip_type: "regular"
     };
 
     // Strict implementation: as per instructions, use POST /nin_verification.php
