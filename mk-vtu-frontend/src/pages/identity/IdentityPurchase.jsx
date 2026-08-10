@@ -66,7 +66,7 @@ const normalizePhoto = (imgSrc) => {
   return imgSrc;
 };
 
-const normalizeIdentityResponse = (result, params = {}) => {
+const normalizeIdentityResponse = (result, params = {}, serviceId = '') => {
   if (!result || !result.data) return null;
   const providerResponse = result.data || {};
   
@@ -86,6 +86,8 @@ const normalizeIdentityResponse = (result, params = {}) => {
   const bvnVal = getFirstAvailableValue(idData, ['bvn', 'BVN', 'bvnNumber', 'bvn_number']) || params.bvn;
   const rawPhone = getFirstAvailableValue(idData, ['phoneNumber1', 'phone1', 'phone', 'mobile']);
   
+  const isBvn = (String(serviceId || params.serviceId || '').toLowerCase().includes('bvn')) || !!params.bvn || (!!bvnVal && !ninVal);
+
   return {
     reportId: getFirstAvailableValue(providerResponse, ['reportID', 'reportId', 'report_id', 'reference', 'transactionId']) 
               || getFirstAvailableValue(level2, ['reference', 'transactionId', 'reportId'])
@@ -98,8 +100,8 @@ const normalizeIdentityResponse = (result, params = {}) => {
     firstName: firstName,
     middleName: middleName,
     
-    isBvn: !!bvnVal && !ninVal,
-    idNumber: (ninVal && String(ninVal).length > 4) ? ('***' + String(ninVal).slice(-4)) : (ninVal || bvnVal),
+    isBvn: isBvn,
+    idNumber: isBvn ? (bvnVal || ninVal) : ((ninVal && String(ninVal).length > 4) ? ('***' + String(ninVal).slice(-4)) : (ninVal || bvnVal)),
     
     gender: getFirstAvailableValue(idData, ['gender', 'sex']),
     dateOfBirth: getFirstAvailableValue(idData, ['dateOfBirth', 'date_of_birth', 'dob', 'birthDate', 'birth_date', 'birthdate']),
@@ -499,7 +501,7 @@ const IdentityPurchase = ({ user }) => {
                     );
                   }
 
-                  const normalizedIdentity = normalizeIdentityResponse(result, params);
+                  const normalizedIdentity = normalizeIdentityResponse(result, params, service?.api_plan_id);
                   if (!normalizedIdentity) return <div style={{ color: 'var(--text-gray)' }}>No detailed identity information available.</div>;
 
                   return (
@@ -576,7 +578,7 @@ const IdentityPurchase = ({ user }) => {
                 </button>
                 <button type="button" onClick={() => {
                   if (result) {
-                    const norm = normalizeIdentityResponse(result, params);
+                    const norm = normalizeIdentityResponse(result, params, service?.api_plan_id);
                     if (norm) openVerificationSlip(norm);
                   }
                 }}

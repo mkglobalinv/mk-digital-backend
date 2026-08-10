@@ -1,0 +1,215 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>BVN Verification Slip - 22380776148</title>
+      <style>
+        body {
+          font-family: 'Arial', Helvetica, sans-serif;
+          background-color: #fff;
+          margin: 0;
+          padding: 20px;
+        }
+        .slip-wrapper {
+          max-width: 1100px;
+          margin: 0 auto;
+          border: 2px solid #000;
+          padding: 0;
+        }
+        table.slip-table {
+          width: 100%;
+          border-collapse: collapse;
+          background: #fff;
+          color: #000;
+          font-size: 15px;
+        }
+        .slip-table td {
+          border: 1px solid #000;
+          padding: 12px 15px;
+          vertical-align: middle;
+        }
+        .slip-table td.header-cell {
+          text-align: center;
+          padding: 25px;
+          border-bottom: 2px solid #000;
+        }
+        .slip-table h1 { margin: 0 0 8px 0; font-size: 28px; font-weight: bold; text-transform: uppercase; }
+        .slip-table h2 { margin: 0 0 6px 0; font-size: 18px; font-weight: bold; }
+        .slip-table h3 { margin: 0; font-size: 16px; font-weight: normal; }
+
+        .field-container {
+          display: flex;
+          align-items: center;
+        }
+        .field-label {
+          font-weight: bold;
+          width: 120px;
+          flex-shrink: 0;
+        }
+        .field-value {
+          flex-grow: 1;
+          word-break: break-word;
+        }
+        .col-address {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .photo-cell {
+          padding: 0 !important;
+          vertical-align: top;
+          width: 15%;
+        }
+        .photo-cell img {
+          width: 100%;
+          height: 100%;
+          min-height: 250px;
+          object-fit: cover;
+          display: block;
+        }
+
+        .bottom-section {
+          padding: 15px;
+          border-top: 2px solid #000;
+          font-size: 14px;
+        }
+        .ref-section {
+          display: flex;
+          justify-content: space-between;
+          border-top: 1px solid #000;
+          padding-top: 15px;
+          margin-top: 15px;
+        }
+
+        .action-area {
+          text-align: center;
+          margin-top: 30px;
+        }
+        .print-btn {
+          background-color: #2563eb;
+          color: #fff;
+          border: none;
+          padding: 12px 24px;
+          font-size: 15px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .print-btn:hover { background-color: #1d4ed8; }
+
+        @media print {
+          body { padding: 0; }
+          .action-area { display: none; }
+          .slip-wrapper { border: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="slip-wrapper">
+        <table class="slip-table">
+          <tr>
+            <td colspan="4" class="header-cell">
+              <h1>BVN VERIFICATION</h1>
+              <h2>Bank Verification Slip</h2>
+              <h3>Federal Republic of Nigeria</h3>
+            </td>
+          </tr>
+          
+          <!-- ROW 1 -->
+          <tr>
+            <td style="width: 25%;">
+              <div class="field-container">
+                <span class="field-label">Tracking ID:</span>
+                <span class="field-value"></span>
+              </div>
+            </td>
+            <td style="width: 30%;">
+              <div class="field-container">
+                <span class="field-label">Surname:</span>
+                <span class="field-value">SURNAME</span>
+              </div>
+            </td>
+            <td style="width: 30%;">
+              <div class="col-address">
+                <span style="font-weight: bold;">Address:</span>
+                <span>123 REAL STREET</span>
+              </div>
+            </td>
+            <td rowspan="4" class="photo-cell">
+              
+            </td>
+          </tr>
+
+          <!-- ROW 2 -->
+          <tr>
+            <td>
+              <div class="field-container">
+                <span class="field-label">BVN:</span>
+                <span class="field-value">22380776148</span>
+              </div>
+            </td>
+            <td>
+              <div class="field-container">
+                <span class="field-label">First Name:</span>
+                <span class="field-value">FIRSTNAME</span>
+              </div>
+            </td>
+            <td style="vertical-align: top;">
+              <div>IKEJA</div>
+            </td>
+          </tr>
+
+          <!-- ROW 3 -->
+          <tr>
+            <td>
+              <div class="field-container">
+                <span class="field-label">Date of Birth:</span>
+                <span class="field-value">1990-01-01</span>
+              </div>
+            </td>
+            <td>
+              <div class="field-container">
+                <span class="field-label">Middle Name:</span>
+                <span class="field-value">MIDDLENAME</span>
+              </div>
+            </td>
+            <td style="vertical-align: top;">
+              <div>LAGOS</div>
+            </td>
+          </tr>
+
+          <!-- ROW 4 -->
+          <tr>
+            <td></td>
+            <td>
+              <div class="field-container">
+                <span class="field-label">Gender:</span>
+                <span class="field-value">Female</span>
+              </div>
+            </td>
+            <td></td>
+          </tr>
+        </table>
+        
+        
+      </div>
+      <div style="max-width: 1100px; margin: 15px auto 0; padding: 0; font-size: 12px; color: #555; display: flex; justify-content: space-between;">
+        <div><b>Reference ID:</b> API-BVN-17863703495386</div>
+        <div><b>Verification Status:</b> Verified</div>
+      </div>
+      
+      <div class="action-area">
+        <button class="print-btn" onclick="window.print()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print / Save PDF
+        </button>
+      </div>
+    </body>
+    </html>
+  
