@@ -99,7 +99,7 @@ const normalizeIdentityResponse = (result, params = {}) => {
     middleName: middleName,
     
     isBvn: !!bvnVal && !ninVal,
-    idNumber: ninVal || bvnVal,
+    idNumber: (ninVal && String(ninVal).length > 4) ? ('***' + String(ninVal).slice(-4)) : (ninVal || bvnVal),
     
     gender: getFirstAvailableValue(idData, ['gender', 'sex']),
     dateOfBirth: getFirstAvailableValue(idData, ['dateOfBirth', 'date_of_birth', 'dob', 'birthDate', 'birth_date', 'birthdate']),

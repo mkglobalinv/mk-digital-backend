@@ -4,13 +4,20 @@ export const openVerificationSlip = (data) => {
   const slipType = data.isBvn ? "BVN" : "NIN";
   const slipTitle = data.isBvn ? "Bank Verification Slip" : "Identity Verification Slip";
 
+  // NIN masking rule: show only last 4 digits (e.g., ***3858)
+  // Do NOT mask BVN
+  let displayId = val(data.idNumber);
+  if (!data.isBvn && displayId.length > 4) {
+    displayId = '***' + displayId.slice(-4);
+  }
+
   const slipHTML = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${slipType} Verification Slip - ${val(data.idNumber)}</title>
+      <title>${slipType} Verification Slip - ${displayId}</title>
       <style>
         body {
           font-family: 'Arial', Helvetica, sans-serif;
@@ -157,7 +164,7 @@ export const openVerificationSlip = (data) => {
             <td>
               <div class="field-container">
                 <span class="field-label">${slipType}:</span>
-                <span class="field-value">${val(data.idNumber)}</span>
+                <span class="field-value">${displayId}</span>
               </div>
             </td>
             <td>
@@ -198,6 +205,7 @@ export const openVerificationSlip = (data) => {
           </tr>
         </table>
         
+        ${data.isBvn ? '' : `
         <table style="width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; color: #000;">
           <tr>
             <td colspan="4" style="border: 1px solid #000; border-left: none; border-right: none; border-top: none; padding: 10px 15px; font-size: 14px;">
@@ -231,8 +239,8 @@ export const openVerificationSlip = (data) => {
             </td>
           </tr>
         </table>
+        `}
       </div>
-      
       <div style="max-width: 1100px; margin: 15px auto 0; padding: 0; font-size: 12px; color: #555; display: flex; justify-content: space-between;">
         <div><b>Reference ID:</b> ${val(data.reportId)}</div>
         <div><b>Verification Status:</b> Verified</div>
