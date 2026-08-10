@@ -464,6 +464,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                       >
                         Smart Option
                       </button>
+                      {/* Value Option hidden as requested
                       <button
                         type="button"
                         onClick={() => setDataOption('value')}
@@ -471,6 +472,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                       >
                         Value Option
                       </button>
+                      */}
                     </div>
                   </div>
                   <div className="purchase-input-group">
