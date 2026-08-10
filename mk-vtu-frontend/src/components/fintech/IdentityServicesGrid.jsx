@@ -25,6 +25,8 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [showNinModifyModal, setShowNinModifyModal] = useState(false);
+  const [showVbnModifyModal, setShowVbnModifyModal] = useState(false);
+  const [vbnModifyStep, setVbnModifyStep] = useState(1);
 
   /**
    * Navigate to /identity/:serviceId (retail) or /reseller/identity/:serviceId.
@@ -35,6 +37,11 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
   const handleClick = (api_plan_id) => {
     if (api_plan_id === 'nin-phone') {
       setShowNinModifyModal(true);
+      return;
+    }
+    if (api_plan_id === 'nin-tracking') {
+      setVbnModifyStep(1);
+      setShowVbnModifyModal(true);
       return;
     }
     if (isReseller) {
@@ -144,6 +151,87 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {showVbnModifyModal && (
+        <div className="modal-overlay-modern" onClick={() => setShowVbnModifyModal(false)}>
+          <div className="modal-content-modern animate-scale-in" onClick={e => e.stopPropagation()} style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-dark)', margin: 0 }}>
+                {vbnModifyStep === 1 ? 'BVN Modification' : 'Select Option'}
+              </h2>
+              <button className="icon-btn" onClick={() => setShowVbnModifyModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            {vbnModifyStep === 1 ? (
+              <>
+                <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '20px' }}>
+                  Choose an agency to process your BVN modification.
+                </p>
+                <button
+                  style={{
+                    display: 'flex', flexDirection: 'column',
+                    padding: '20px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
+                    borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease', width: '100%'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
+                  onClick={() => setVbnModifyStep(2)}
+                >
+                  <div style={{ fontWeight: '800', color: 'var(--text-dark)', fontSize: '16px', marginBottom: '8px' }}>Agency Banking</div>
+                  <div style={{ color: 'var(--text-gray)', fontSize: '13px', lineHeight: '1.4' }}>BVN modification processed through a licensed Agency Banking outlet.</div>
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '20px' }}>
+                  Choose your preferred modification option below:
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {[
+                    {
+                      title: 'With Court Affidavit',
+                      price: '₦8,500',
+                      features: ['You provide a sworn court affidavit document', 'Lower cost', 'Document upload required', 'Court-sworn document']
+                    },
+                    {
+                      title: 'Without Court Affidavit',
+                      price: '₦10,000',
+                      features: ['No affidavit document required', 'Higher cost', 'No upload needed', 'Quick submission']
+                    }
+                  ].map(opt => (
+                    <button
+                      key={opt.title}
+                      style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '16px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
+                        borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease', width: '100%'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                      onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
+                      onClick={() => {
+                        const msg = encodeURIComponent(`Hello, I want to request for BVN Modification: ${opt.title} for ${opt.price}.`);
+                        window.open(`https://wa.me/2347081385387?text=${msg}`, '_blank');
+                      }}
+                    >
+                      <div style={{ paddingRight: '10px', flex: 1 }}>
+                        <div style={{ fontWeight: '800', color: 'var(--text-dark)', fontSize: '15px', marginBottom: '8px' }}>{opt.title}</div>
+                        <ul style={{ color: 'var(--text-gray)', fontSize: '12px', paddingLeft: '16px', margin: 0, lineHeight: '1.5' }}>
+                          {opt.features.map((f, i) => <li key={i}>{f}</li>)}
+                        </ul>
+                      </div>
+                      <div style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '18px', whiteSpace: 'nowrap' }}>
+                        {opt.price}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
