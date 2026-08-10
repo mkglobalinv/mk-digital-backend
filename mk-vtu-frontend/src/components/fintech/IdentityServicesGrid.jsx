@@ -26,6 +26,7 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
   const [expanded, setExpanded] = useState(false);
   const [showNinModifyModal, setShowNinModifyModal] = useState(false);
   const [showVbnModifyModal, setShowVbnModifyModal] = useState(false);
+  const [showCacModal, setShowCacModal] = useState(false);
   const [vbnModifyStep, setVbnModifyStep] = useState(1);
 
   /**
@@ -42,6 +43,10 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
     if (api_plan_id === 'nin-tracking') {
       setVbnModifyStep(1);
       setShowVbnModifyModal(true);
+      return;
+    }
+    if (api_plan_id === 'nin-demographics') {
+      setShowCacModal(true);
       return;
     }
     if (isReseller) {
@@ -232,6 +237,77 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {showCacModal && (
+        <div className="modal-overlay-modern" onClick={() => setShowCacModal(false)}>
+          <div className="modal-content-modern animate-scale-in" onClick={e => e.stopPropagation()} style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-dark)', margin: 0 }}>CAC Registration Options</h2>
+              <button className="icon-btn" onClick={() => setShowCacModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '20px' }}>
+              Select the type of company or business you want to register.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                {
+                  title: 'Public Limited Company (PLC)',
+                  desc: 'Register a Public Limited Company',
+                  price: '₦130,000',
+                  delivery: '20-30 working days'
+                },
+                {
+                  title: 'Incorporated Trustee / NGO',
+                  desc: 'Register an Incorporated Trustee or NGO',
+                  price: '₦95,000',
+                  delivery: '20-25 working days'
+                },
+                {
+                  title: 'Business Name',
+                  desc: 'Register Business Name',
+                  price: '₦35,000',
+                  delivery: '10-15 working days'
+                },
+                {
+                  title: 'Private Limited Company',
+                  desc: 'Register a Private Limited Company',
+                  price: '₦70,000',
+                  delivery: '15-20 working days'
+                }
+              ].map(opt => (
+                <button
+                  key={opt.title}
+                  style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '16px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
+                    borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease', width: '100%'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
+                  onClick={() => {
+                    const msg = encodeURIComponent(`Hello, I want to request for CAC Registration: ${opt.title} for ${opt.price}.`);
+                    window.open(`https://wa.me/2347081385387?text=${msg}`, '_blank');
+                  }}
+                >
+                  <div style={{ paddingRight: '10px', flex: 1 }}>
+                    <div style={{ fontWeight: '800', color: 'var(--text-dark)', fontSize: '15px', marginBottom: '4px' }}>{opt.title}</div>
+                    <div style={{ color: 'var(--text-gray)', fontSize: '12px', marginBottom: '6px' }}>{opt.desc}</div>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(37,99,235,0.1)', color: '#2563EB', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
+                      ⏱️ {opt.delivery}
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '18px', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--text-gray)', fontWeight: '600', marginBottom: '2px' }}>STARTING FROM</div>
+                    {opt.price}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
