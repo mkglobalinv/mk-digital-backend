@@ -101,7 +101,7 @@ const normalizeIdentityResponse = (result, params = {}, serviceId = '') => {
     middleName: middleName,
     
     isBvn: isBvn,
-    idNumber: isBvn ? (bvnVal || ninVal) : ((ninVal && String(ninVal).length > 4) ? ('***' + String(ninVal).slice(-4)) : (ninVal || bvnVal)),
+    idNumber: bvnVal || ninVal || params.id_number,
     
     gender: getFirstAvailableValue(idData, ['gender', 'sex']),
     dateOfBirth: getFirstAvailableValue(idData, ['dateOfBirth', 'date_of_birth', 'dob', 'birthDate', 'birth_date', 'birthdate']),

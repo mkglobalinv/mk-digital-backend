@@ -2,10 +2,7 @@ export const openVerificationSlip = (data) => {
   const val = (v) => (v ? String(v) : '');
 
   const isBvn = !!data.isBvn;
-  let displayId = val(data.idNumber);
-  if (!isBvn && displayId.length > 4) {
-    displayId = '***' + displayId.slice(-4);
-  }
+  const displayId = val(data.idNumber);
 
   const formatDateUpper = (dStr) => {
     if (!dStr) return '';
