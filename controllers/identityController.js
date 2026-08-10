@@ -8,7 +8,6 @@ import { getRetailPrice } from '../services/pricing/retailPricing.js';
 import { getAssistedServiceConfig, calculateProfitSplit } from '../services/pricing/assistedServicesPricing.js';
 import { uploadPrivateDocument } from '../services/storageService.js';
 import ServiceRequest from '../models/ServiceRequest.js';
-import { maskPII } from '../services/providers/checkmyninbvn.js';
 
 /**
  * GET /api/retail/identity/service/:serviceId

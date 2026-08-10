@@ -3,7 +3,7 @@ import ProviderStatus from '../models/ProviderStatus.js';
 import Transaction from '../models/Transaction.js';
 import { fetchPeyflexUserProfile } from './providers/peyflex.js';
 import { getReloadlyAccessToken } from './reloadlyAuth.js';
-import { getBalance as fetchCheckMyNINBVNBalance } from './providers/checkmyninbvn.js';
+import { fetchBillsplashBalance } from './providers/billsplash.js';
 import { sendEmail } from './emailService.js';
 
 /**
@@ -14,7 +14,7 @@ const seedProviders = async () => {
     { providerName: 'peyflex',      warningThreshold: 50000, criticalThreshold: 10000, pauseThreshold: 2000 },
     { providerName: 'clubkonnect',  warningThreshold: 50000, criticalThreshold: 10000, pauseThreshold: 2000 },
     { providerName: 'reloadly',     warningThreshold: 50,    criticalThreshold: 10,    pauseThreshold: 2    }, // USD for Reloadly
-    { providerName: 'checkmyninbvn',warningThreshold: 5000,  criticalThreshold: 1000,  pauseThreshold: 500  }
+    { providerName: 'billsplash',   warningThreshold: 5000,  criticalThreshold: 1000,  pauseThreshold: 500  }
   ];
 
   for (const p of defaultProviders) {
@@ -174,15 +174,10 @@ const pollProvider = async (providerName) => {
       balance = await fetchReloadlyBalance();
       latency = Date.now() - startTime;
       isOnline = true;
-    } else if (providerName === 'checkmyninbvn') {
-      const res = await fetchCheckMyNINBVNBalance();
+    } else if (providerName === 'billsplash') {
+      balance = await fetchBillsplashBalance();
       latency = Date.now() - startTime;
-      if (res && res.status === 'success') {
-          balance = parseFloat(res.balance);
-          isOnline = !isNaN(balance);
-      } else {
-          errorMsg = res?.message || "Failed to fetch balance";
-      }
+      isOnline = true;
     }
   } catch (err) {
     latency = Date.now() - startTime;
@@ -371,7 +366,7 @@ export const pollProviders = async () => {
       pollProvider('peyflex'),
       pollProvider('clubkonnect'),
       pollProvider('reloadly'),
-      pollProvider('checkmyninbvn')
+      pollProvider('billsplash')
     ]);
     await checkTransactionSpikes();
   } catch (err) {

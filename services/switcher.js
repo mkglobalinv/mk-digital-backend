@@ -2,14 +2,11 @@ import { buyAirtimeWithClubkonnect, buyDataWithClubkonnect, fetchDataPlansFromCl
 import { buyAirtimeWithReloadly, buyDataWithReloadly } from "./providers/reloadly.js";
 import { buyAirtimeWithPeyflex, buyDataWithPeyflex, buyElectricityWithPeyflex, buyCableTVWithPeyflex } from "./providers/peyflexV2.js";
 import {
-    verifyNIN,
-    verifyNINByPhone,
-    verifyNINByTracking,
-    verifyNINByDemography,
-    verifyBVN,
-    verifyBVNByPhone,
-    submitNINModification
-} from "./providers/checkmyninbvn.js";
+    verifyNINWithBillsplash,
+    verifyBVNWithBillsplash,
+    verifyNINByPhoneWithBillsplash,
+    verifyNINByDemographicsWithBillsplash
+} from "./providers/billsplash.js";
 import ProviderStatus from "../models/ProviderStatus.js";
 import DataPlan from "../models/DataPlan.js";
 import { handleProviderTransactionSuccess, handleProviderTransactionFailure } from "./providerMonitoringService.js";
@@ -259,46 +256,36 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
 };
 
 /**
- * Route identity verification requests to CheckMyNINBVN.
+ * Route identity verification requests to Billsplash.
  * Identity services do not failover to VTU providers.
  */
-export const smartBuyIdentity = async (service, params, provider = 'checkmyninbvn') => {
+export const smartBuyIdentity = async (service, params, provider = 'billsplash') => {
     const transactionId = 'TXN-' + Date.now();
     console.log(`[Switcher] [${transactionId}] Identity service: ${service} via ${provider}`);
 
     try {
-        const checkMyNINBVNParams = { ...params, consent: true };
+        const payload = { ...params, consent: true };
 
         switch (service) {
             case 'nin-verify':
             case 'nin':
-                if (provider === 'billsplash') {
-                    const { verifyNINWithBillsplash } = await import('./providers/billsplash.js');
-                    return await verifyNINWithBillsplash(checkMyNINBVNParams.nin, transactionId);
-                }
-                return await verifyNIN(checkMyNINBVNParams.nin);
+                return await verifyNINWithBillsplash(payload.nin);
             case 'bvn-verify':
             case 'bvn':
-                if (provider === 'billsplash') {
-                    const { verifyBVNWithBillsplash } = await import('./providers/billsplash.js');
-                    return await verifyBVNWithBillsplash(checkMyNINBVNParams.bvn, transactionId);
-                }
-                return await verifyBVN(checkMyNINBVNParams.bvn);
+                return await verifyBVNWithBillsplash(payload.bvn);
             case 'nin-phone':
-                return await verifyNINByPhone(checkMyNINBVNParams.phone);
-            case 'nin-tracking':
-                return await verifyNINByTracking(checkMyNINBVNParams.tracking_id);
+                return await verifyNINByPhoneWithBillsplash(payload.phone);
             case 'nin-demographics':
-                return await verifyNINByDemography(
-                    checkMyNINBVNParams.firstname, 
-                    checkMyNINBVNParams.lastname, 
-                    checkMyNINBVNParams.gender, 
-                    checkMyNINBVNParams.dob
-                );
+                return await verifyNINByDemographicsWithBillsplash({
+                    firstname: payload.firstname, 
+                    lastname: payload.lastname, 
+                    gender: payload.gender, 
+                    dob: payload.dob
+                });
+            case 'nin-tracking':
             case 'bvn-phone':
-                return await verifyBVNByPhone(checkMyNINBVNParams.phone);
             case 'nin-modification':
-                return await submitNINModification(checkMyNINBVNParams);
+                return { status: 'failed', message: `${service} is not currently supported by Billsplash.` };
             default:
                 return { status: 'failed', message: `Unknown identity service: ${service}` };
         }
