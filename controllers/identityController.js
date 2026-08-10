@@ -16,6 +16,8 @@ import { maskPII } from '../services/providers/checkmyninbvn.js';
  */
 export const getIdentityService = async (req, res) => {
     const { serviceId } = req.params;
+    const userId = req.user._id;
+
     if (!serviceId) {
         return res.status(400).json({ status: 'error', message: 'serviceId is required' });
     }
@@ -30,6 +32,11 @@ export const getIdentityService = async (req, res) => {
         if (!plan.status) {
             return res.status(400).json({ status: 'error', message: 'This service is currently unavailable' });
         }
+
+        // Dynamically fetch authoritative pricing (overrides deprecated static DB price)
+        const pricingResult = await getRetailPrice(userId, plan.api_plan_id, 'identity');
+        plan.selling_price = pricingResult.finalPrice;
+
         return res.json({ status: 'success', data: plan });
     } catch (err) {
         console.error('[Identity Service] getIdentityService error:', err);
@@ -172,9 +179,19 @@ PROVIDER RESPONSE STATUS: FAILED
 PROVIDER RESPONSE MESSAGE: ${providerResponse.message}
 =========================================`);
 
+            let displayMessage = providerResponse.message || 'Service failed. Amount refunded.';
+            
+            // Do not leak platform API balance or gateway issues to the retail customer
+            const lowerMsg = displayMessage.toLowerCase();
+            if ((lowerMsg.includes('insufficient') || lowerMsg.includes('insuffient')) && lowerMsg.includes('balance')) {
+                displayMessage = 'Service temporarily unavailable from provider. Amount refunded.';
+            } else if (lowerMsg.includes('upstreem') || lowerMsg.includes('upstream') || lowerMsg.includes('500')) {
+                displayMessage = 'Connection to Identity Provider failed. Please try again later. Amount refunded.';
+            }
+
             return res.status(400).json({
                 status: 'error',
-                message: providerResponse.message || 'Service failed. Amount refunded.'
+                message: displayMessage
             });
         }
     } catch (err) {
