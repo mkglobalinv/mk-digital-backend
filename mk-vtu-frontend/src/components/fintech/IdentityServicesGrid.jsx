@@ -13,9 +13,9 @@ import './FintechComponents.css';
  */
 const IDENTITY_SERVICES = [
   { api_plan_id: 'nin-verify',       label: 'NIN Verify',  icon: Fingerprint, color: '#10B981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.2)' },
-  { api_plan_id: 'nin-phone',        label: 'NIN Phone',   icon: Phone,       color: '#3B82F6', bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.2)' },
-  { api_plan_id: 'nin-tracking',     label: 'NIN Track',   icon: MapPin,      color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)' },
-  { api_plan_id: 'nin-demographics', label: 'NIN Demo',    icon: BookOpen,    color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.2)' },
+  { api_plan_id: 'nin-phone',        label: 'NIN Modify',   icon: Phone,       color: '#3B82F6', bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.2)' },
+  { api_plan_id: 'nin-tracking',     label: 'VBN Modify',   icon: MapPin,      color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)' },
+  { api_plan_id: 'nin-demographics', label: 'CAC',          icon: BookOpen,    color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.2)' },
   { api_plan_id: 'bvn-verify',       label: 'BVN Verify',  icon: ShieldCheck, color: '#10B981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.2)' },
   { api_plan_id: 'bvn-phone',        label: 'BVN Phone',   icon: Users,       color: '#2563EB', bg: 'rgba(37,99,235,0.08)',   border: 'rgba(37,99,235,0.2)' },
   { api_plan_id: 'nin-modification', label: 'NIN Modify',  icon: Edit3,       color: '#F4B400', bg: 'rgba(244,180,0,0.08)',   border: 'rgba(244,180,0,0.2)' },
