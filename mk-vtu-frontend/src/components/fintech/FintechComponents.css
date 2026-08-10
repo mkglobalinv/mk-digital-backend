@@ -233,7 +233,7 @@ body.dark-theme .nav-avatar {
 .service-card:hover { transform: translateY(-3px); }
 
 .service-icon-wrap {
-  width: 42px; height: 42px; border-radius: 13px;
+  width: 52px; height: 52px; border-radius: 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   display: flex; align-items: center; justify-content: center;
@@ -431,14 +431,14 @@ body.dark-theme .referral-cta { color: #F4B400; background: rgba(244,180,0,0.12)
 }
 .identity-card:hover { transform: translateY(-3px); }
 .identity-icon-wrap {
-  width: 42px; height: 42px; border-radius: 13px;
+  width: 52px; height: 52px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
 }
 .identity-card:hover .identity-icon-wrap { filter: brightness(1.12); transform: scale(1.05); }
 .identity-label {
-  font-size: 9.5px; font-weight: 700;
+  font-size: 10px; font-weight: 700;
   color: var(--text-gray); text-align: center; line-height: 1.2;
 }
 
@@ -727,6 +727,67 @@ body.day-mode .service-icon-wrap {
   background: #FFFFFF !important;
   border-color: #E2E8F0 !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+}
+
+/* Identity cards day mode */
+body.day-mode .identity-label {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+body.day-mode .identity-icon-wrap {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+}
+
+/* Activity / Transaction list */
+body.day-mode .activity-item {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+body.day-mode .activity-label {
+  color: #0F172A !important;
+}
+body.day-mode .activity-sub {
+  color: #64748B !important;
+}
+body.day-mode .amount-credit { color: #059669 !important; }
+body.day-mode .amount-debit  { color: #DC2626 !important; }
+
+/* Promo cards */
+body.day-mode .promo-card-title,
+body.day-mode .promo-card-desc {
+  color: #0F172A !important;
+}
+
+/* Bottom nav in day mode */
+body.day-mode .fintech-nav-glass {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(18,60,115,0.12) !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08) !important;
+}
+body.day-mode .fintech-nav-item {
+  color: #64748B !important;
+}
+body.day-mode .fintech-nav-item span {
+  color: #64748B !important;
+}
+body.day-mode .fintech-nav-item.active span {
+  color: #123C73 !important;
+}
+
+/* Explore more / section text */
+body.day-mode .explore-more-btn {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+
+/* Stats widget */
+body.day-mode .stats-value {
+  color: #0F172A !important;
+}
+body.day-mode .stats-title {
+  color: #64748B !important;
 }
 
 body.day-mode .greeting-text {

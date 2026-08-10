@@ -88,7 +88,7 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
                 className="identity-icon-wrap"
                 style={{ background: svc.bg, border: `1px solid ${svc.border}` }}
               >
-                <Icon size={17} color={svc.color} />
+                <Icon size={22} color={svc.color} />
               </div>
               <span className="identity-label">{svc.label}</span>
             </div>

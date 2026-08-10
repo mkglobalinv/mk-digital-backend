@@ -45,7 +45,7 @@ const QuickServicesGrid = ({ isReseller = false }) => {
           return (
             <div key={svc.id} className={`service-card ${svc.cls}`} onClick={() => handleServiceClick(svc)}>
               <div className="service-icon-wrap">
-                <Icon size={18} />
+                <Icon size={22} />
               </div>
               <span>{svc.label}</span>
             </div>
@@ -78,7 +78,7 @@ const QuickServicesGrid = ({ isReseller = false }) => {
             return (
               <div key={svc.id} className={`service-card ${svc.cls}`} onClick={() => handleServiceClick(svc)}>
                 <div className="service-icon-wrap">
-                  <Icon size={18} />
+                  <Icon size={22} />
                 </div>
                 <span>{svc.label}</span>
               </div>
