@@ -13,6 +13,7 @@ import AppRequest from '../models/AppRequest.js';
 import CustomDomainRequest from '../models/CustomDomainRequest.js';
 import ResellerRequest from '../models/ResellerRequest.js';
 import ServiceRequest from '../models/ServiceRequest.js';
+import ManualApplication from '../models/ManualApplication.js';
 import { generateSignedUrl } from '../services/storageService.js';
 import { refundBalance, creditBalance, deductBalance, refundEarnings, creditEarnings, deductEarnings } from '../services/walletService.js';
 import { 
@@ -385,6 +386,75 @@ export const getAdminSecurityStatus = async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({ message: "Error fetching status" });
+    }
+};
+
+export const getManualApplications = async (req, res) => {
+    try {
+        const applications = await ManualApplication.find({})
+            .populate('ownerId', 'name email subdomain customDomain')
+            .sort({ createdAt: -1 });
+        res.json({ status: 'success', data: applications });
+    } catch (error) {
+        console.error('[AdminController] getManualApplications error:', error);
+        res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+    }
+};
+
+export const processManualApplicationCommission = async (req, res) => {
+    const { applicationId } = req.body;
+    try {
+        const application = await ManualApplication.findOne({ applicationId });
+        if (!application) {
+            return res.status(404).json({ status: 'error', message: 'Application not found' });
+        }
+        
+        if (application.commissionStatus === 'paid') {
+            return res.status(400).json({ status: 'error', message: 'Commission already paid for this application' });
+        }
+        
+        // Determine commission amount exclusively by backend based on serviceType
+        let commissionAmount = 0;
+        if (application.serviceType === 'nin_modification') {
+            commissionAmount = 100;
+        } else if (application.serviceType === 'bvn_modification') {
+            commissionAmount = 100;
+        } else if (application.serviceType === 'cac_registration') {
+            commissionAmount = 500;
+        }
+        
+        if (commissionAmount === 0) {
+            return res.status(400).json({ status: 'error', message: 'Invalid service type for commission' });
+        }
+        
+        // Update user balance and save transaction
+        const user = await User.findById(application.ownerId);
+        if (!user) {
+            return res.status(404).json({ status: 'error', message: 'Owner not found' });
+        }
+        
+        user.balance1 += commissionAmount;
+        await user.save();
+        
+        await Transaction.create({
+            userId: user._id,
+            reference: 'COMM-' + application.applicationId,
+            amount: commissionAmount,
+            type: 'credit',
+            description: 'Commission for ' + application.serviceType,
+            status: 'success'
+        });
+        
+        application.status = 'completed';
+        application.commissionStatus = 'paid';
+        application.commissionAmount = commissionAmount;
+        application.completedAt = new Date();
+        await application.save();
+        
+        res.json({ status: 'success', message: 'Commission processed successfully', data: application });
+    } catch (error) {
+        console.error('[AdminController] processManualApplicationCommission error:', error);
+        res.status(500).json({ status: 'error', message: 'Internal Server Error' });
     }
 };
 
@@ -4153,3 +4223,5 @@ export const getServiceRequestDocuments = async (req, res) => {
         res.status(500).json({ message: "Error fetching documents: " + err.message });
     }
 };
+i m p o r t   M a n u a l A p p l i c a t i o n   f r o m   ' . . / m o d e l s / M a n u a l A p p l i c a t i o n . j s ' ;  
+ 

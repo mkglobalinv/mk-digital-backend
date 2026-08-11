@@ -4,7 +4,7 @@ import {
   Check, Upload, ChevronRight, Info, Send, FileText
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-
+import API from '../../../api';
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const WHATSAPP_NUMBER = '2347081385387';
 const STEP_LABELS = ['CHANNEL', 'AFFIDAVIT', 'MODIFY', 'DETAILS', 'REVIEW'];
@@ -62,6 +62,12 @@ const ReviewRow = ({ label, value }) =>
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function BvnModifyModal({ onClose }) {
   const { showToast } = useToast();
+  const toast = {
+    loading: (msg) => { showToast(msg, 'success'); return '1'; },
+    success: (msg) => showToast(msg, 'success'),
+    error: (msg) => showToast(msg, 'error'),
+    dismiss: () => {}
+  };
   const fileInputRef = useRef(null);
 
   const [step, setStep] = useState(1);
@@ -128,28 +134,52 @@ export default function BvnModifyModal({ onClose }) {
     return true;
   };
 
-  const handleSubmit = () => {
-    let msg = `*BVN MODIFICATION REQUEST*\n`;
-    msg += `Service: BVN Modification\nChannel: Agency Banking\n`;
-    msg += `Affidavit: ${affidavitOption === 'with_affidavit' ? 'With Court Affidavit' : 'Without Court Affidavit'}\n`;
-    msg += `Modifications: ${selectedMods.map(m => MODIFICATIONS.find(mod => mod.id === m)?.label).join(', ')}\n`;
-    msg += `Total: ${formatCurrency(total)}\n`;
-    msg += `\n*Current BVN Information:*\nBVN: ${currentInfo.bvn}\nDate of Birth: ${currentInfo.dob}\nSurname: ${currentInfo.surname}\nFirst Name: ${currentInfo.firstName}\n`;
-    if (currentInfo.middleName) msg += `Middle Name: ${currentInfo.middleName}\n`;
-    if (currentInfo.nin) msg += `NIN: ${currentInfo.nin}\n`;
-    if (hasMod('name')) {
-      msg += `\n*New Name Details:*\n`;
-      if (nameUpdate.newSurname) msg += `New Surname: ${nameUpdate.newSurname}\n`;
-      if (nameUpdate.newFirstName) msg += `New First Name: ${nameUpdate.newFirstName}\n`;
-      if (nameUpdate.newMiddleName) msg += `New Middle Name: ${nameUpdate.newMiddleName}\n`;
-    }
-    if (hasMod('phone')) msg += `\n*Phone Update:*\nOld Phone: ${phoneUpdate.oldPhone}\nNew Phone: ${phoneUpdate.newPhone}\n`;
-    if (hasMod('dob')) msg += `\n*DOB Correction:*\nCorrected DOB: ${dobUpdate.correctDob}\n`;
-    if (affidavitFile) msg += `\nAffidavit: ${affidavitFile.name} (${(affidavitFile.size / 1024).toFixed(1)} KB) — please request file separately\n`;
-    msg += `\nPlease process this BVN modification request manually.`;
+  const handleSubmit = async () => {
+    const toastId = toast.loading('Submitting application...');
+    try {
+      const payload = {
+          serviceType: 'bvn_modification',
+          submittedData: {
+              affidavitOption,
+              selectedMods,
+              currentInfo,
+              nameUpdate,
+              phoneUpdate,
+              dobUpdate
+          }
+      };
+      
+      const res = await API.post('/api/retail/identity/manual-application', payload);
+      if (res.data.status === 'success') {
+          toast.dismiss(toastId);
+          let msg = `*BVN MODIFICATION REQUEST*\n`;
+          msg += `Service: BVN Modification\nChannel: Agency Banking\n`;
+          msg += `Application ID: ${res.data.data.applicationId}\n`;
+          msg += `Source Website: ${res.data.data.websiteId}\n`;
+          msg += `Affidavit: ${affidavitOption === 'with_affidavit' ? 'With Court Affidavit' : 'Without Court Affidavit'}\n`;
+          msg += `Modifications: ${selectedMods.map(m => MODIFICATIONS.find(mod => mod.id === m)?.label).join(', ')}\n`;
+          
+          msg += `\n*Current BVN Information:*\nBVN: ${currentInfo.bvn}\nDate of Birth: ${currentInfo.dob}\nSurname: ${currentInfo.surname}\nFirst Name: ${currentInfo.firstName}\n`;
+          if (currentInfo.middleName) msg += `Middle Name: ${currentInfo.middleName}\n`;
+          if (currentInfo.nin) msg += `NIN: ${currentInfo.nin}\n`;
+          if (hasMod('name')) {
+            msg += `\n*New Name Details:*\n`;
+            if (nameUpdate.newSurname) msg += `New Surname: ${nameUpdate.newSurname}\n`;
+            if (nameUpdate.newFirstName) msg += `New First Name: ${nameUpdate.newFirstName}\n`;
+            if (nameUpdate.newMiddleName) msg += `New Middle Name: ${nameUpdate.newMiddleName}\n`;
+          }
+          if (hasMod('phone')) msg += `\n*Phone Update:*\nOld Phone: ${phoneUpdate.oldPhone}\nNew Phone: ${phoneUpdate.newPhone}\n`;
+          if (hasMod('dob')) msg += `\n*DOB Correction:*\nCorrected DOB: ${dobUpdate.correctDob}\n`;
+          if (affidavitFile) msg += `\nAffidavit: ${affidavitFile.name} (${(affidavitFile.size / 1024).toFixed(1)} KB) — please request file separately\n`;
+          msg += `\nPlease process this BVN modification request manually.`;
 
-    showToast('Request submitted. Redirecting to WhatsApp…', 'success');
-    setTimeout(() => { window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank'); closeReset(); }, 1500);
+          toast.success('Request submitted. Redirecting to WhatsApp…');
+          setTimeout(() => { window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank'); closeReset(); }, 1500);
+      }
+    } catch (err) {
+       toast.dismiss(toastId);
+       toast.error('Failed to submit application');
+    }
   };
 
   // ─── Progress Bar ──────────────────────────────────────────────────────────────
@@ -177,8 +207,8 @@ export default function BvnModifyModal({ onClose }) {
     <div style={{ borderTop: '1px solid var(--border-color)', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--bg-surface)', flexShrink: 0 }}>
       {showTotal && (
         <div>
-          <div style={{ fontSize: '10px', color: 'var(--text-gray)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>TOTAL</div>
-          <div style={{ fontSize: '20px', fontWeight: '900', color: total > 0 ? '#8B5CF6' : 'var(--text-dark)', transition: 'all 0.3s' }}>{total > 0 ? formatCurrency(total) : '—'}</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-gray)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>STATUS</div>
+          <div style={{ fontSize: '20px', fontWeight: '900', color: '#8B5CF6', transition: 'all 0.3s' }}>MANUAL</div>
         </div>
       )}
       <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>

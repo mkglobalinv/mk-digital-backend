@@ -105,6 +105,7 @@ const PromotionGridManager = lazyWithRetry(() => import("./admin/pages/Promotion
 const UserAudit = lazyWithRetry(() => import("./admin/pages/UserAudit"));
 const AdminReferrals = lazyWithRetry(() => import("./admin/pages/AdminReferrals"));
 const AdminFuturePlatforms = lazyWithRetry(() => import("./admin/pages/AdminFuturePlatforms"));
+const ManualApplications = lazyWithRetry(() => import("./admin/pages/ManualApplications"));
 import MarketingLayout from './admin/pages/MarketingCenter/MarketingLayout';
 import CampaignManager from './admin/pages/MarketingCenter/CampaignManager';
 import AnnouncementManager from './admin/pages/MarketingCenter/AnnouncementManager';
@@ -998,6 +999,7 @@ function App() {
                           <Route path="profit" element={<ProfitAnalytics token={adminToken} />} />
                           <Route path="referrals" element={<AdminReferrals />} />
                           <Route path="future-platforms" element={<AdminFuturePlatforms />} />
+                          <Route path="manual-applications" element={<ManualApplications />} />
                           <Route path="kyc" element={<KYCManager token={adminToken} />} />
                           <Route path="withdrawals" element={<WithdrawalManager token={adminToken} />} />
                           <Route path="content" element={<ContentManager token={adminToken} />} />

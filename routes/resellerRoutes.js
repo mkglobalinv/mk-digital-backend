@@ -38,7 +38,8 @@ import {
     getPremiumNotificationHistory,
     sendPremiumNotification,
     seenWelcomeBanner,
-    seenBusinessGuide
+    seenBusinessGuide,
+    toggleManualService
 } from "../controllers/resellerController.js";
 import { getEmailCampaigns, sendEmailCampaign } from "../controllers/resellerEmailCampaignController.js";
 import { restrictToPremium, restrictToBasicOrPremium } from "../middlewares/tierMiddleware.js";
@@ -81,6 +82,7 @@ router.delete("/content/:id", restrictToPremium, deleteResellerContent);
 
 // Premium Feature: Advanced Branding
 router.post("/branding", restrictToPremium, updateBranding);
+router.post("/manual-services/toggle", restrictToBasicOrPremium, toggleManualService);
 router.post("/app-settings", restrictToPremium, saveAppSettings);
 router.get("/app-status", restrictToPremium, getAppStatus);
 router.post("/generate-assets", restrictToPremium, triggerAssetRegeneration);

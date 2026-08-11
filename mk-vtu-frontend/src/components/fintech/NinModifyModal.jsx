@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, AlertTriangle, Info, Check, Upload, Eye, EyeOff, Send, Calendar, Smartphone, MapPin, Map, UserCog, ArrowLeft } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-
+import API from '../../../api';
 const MODIFICATION_TYPES = [
   { id: 'name', title: 'Name Modification', desc: 'Correct or change name on NIN records', price: 6500, priceFormatted: '₦6,500', icon: UserCog, color: '#8B5CF6' },
   { id: 'dob', title: 'Date of Birth Modification', desc: 'Correct date of birth on NIN records', price: 37500, priceFormatted: '₦37,500', icon: Calendar, color: '#EC4899' },
@@ -47,6 +47,12 @@ export default function NinModifyModal({ onClose, isReseller }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
   const { showToast } = useToast();
+  const toast = {
+    loading: (msg) => { showToast(msg, 'success'); return '1'; },
+    success: (msg) => showToast(msg, 'success'),
+    error: (msg) => showToast(msg, 'error'),
+    dismiss: () => {}
+  };
 
   const handleInputChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -56,13 +62,13 @@ export default function NinModifyModal({ onClose, isReseller }) {
     return 'NIN-MOD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const typeDetails = MODIFICATION_TYPES.find(t => t.id === selectedType);
     if (!typeDetails) return;
 
     // Manual Validation
-    const requiredFields = ['ninNumber', 'whatsapp', 'pin'];
+    const requiredFields = ['ninNumber', 'whatsapp'];
     if (selectedType === 'name') requiredFields.push('surname', 'firstName');
     if (selectedType === 'phone') requiredFields.push('newPhone');
     if (selectedType === 'dob') requiredFields.push('attestationNo', 'oldDob', 'newDob');
@@ -82,33 +88,43 @@ export default function NinModifyModal({ onClose, isReseller }) {
     }
 
     try {
-      let msgBody = `*IDENTITY SERVICE REQUEST*\n`;
-      msgBody += `Service: NIN ${typeDetails.title}\n`;
-      msgBody += `\n*Submitted Information:*\n`;
+      showToast('Submitting application...', 'success');
       
-      Object.entries(formData).forEach(([key, value]) => {
-        // Format key nicely (e.g., ninNumber -> Nin Number)
-        const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-        msgBody += `${formattedKey}: ${value}\n`;
-      });
+      const payload = {
+          serviceType: 'nin_modification',
+          submittedData: formData
+      };
+      
+      const res = await API.post('/api/retail/identity/manual-application', payload);
+      
+      if (res.data.status === 'success') {
+          showToast('Request submitted successfully. Continue on WhatsApp.', 'success');
+          
+          let msgBody = `*IDENTITY SERVICE REQUEST*\n`;
+          msgBody += `Service: NIN ${typeDetails.title}\n`;
+          msgBody += `Application ID: ${res.data.data.applicationId}\n`;
+          msgBody += `Source Website: ${res.data.data.websiteId}\n`;
+          msgBody += `\n*Submitted Information:*\n`;
+          
+          Object.entries(formData).forEach(([key, value]) => {
+            const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            msgBody += `${formattedKey}: ${value}\n`;
+          });
 
-      // Attach file info if certificate was uploaded
-      if (selectedFile) {
-        msgBody += `Attestation Certificate: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB) — Please request file separately\n`;
+          if (selectedFile) {
+            msgBody += `Attestation Certificate: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB) — Please request file separately\n`;
+          }
+          
+          msgBody += `\nPlease process this request manually.`;
+          
+          const whatsappNumber = '2347081385387';
+          const encodedMsg = encodeURIComponent(msgBody);
+          
+          setTimeout(() => {
+            window.open(`https://wa.me/${whatsappNumber}?text=${encodedMsg}`, '_blank');
+            onClose();
+          }, 1500);
       }
-      
-      msgBody += `\nPlease process this request manually.`;
-      
-      const whatsappNumber = '2347081385387'; // Configured Identity Service Number
-      const encodedMsg = encodeURIComponent(msgBody);
-      
-      showToast('Request submitted successfully. Continue on WhatsApp.', 'success');
-      
-      setTimeout(() => {
-        window.open(`https://wa.me/${whatsappNumber}?text=${encodedMsg}`, '_blank');
-        onClose();
-      }, 1500);
-
     } catch (error) {
       console.error("Submission Error:", error);
       showToast('An unexpected error occurred during submission.', 'error');
@@ -317,21 +333,13 @@ export default function NinModifyModal({ onClose, isReseller }) {
 
         <InputField label="WhatsApp Number" name="whatsapp" type="tel" onChange={handleInputChange} placeholder="e.g. 08012345678" />
 
-        <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-          <Info size={18} color="#D97706" style={{ flexShrink: 0 }} />
-          <p style={{ margin: 0, fontSize: '12px', color: '#92400E', lineHeight: '1.4' }}>You will be charged <strong>{typeDetails.priceFormatted}</strong> immediately upon submission</p>
-        </div>
-
-        <div style={{ maxWidth: '300px' }}>
-          <InputField label="Transaction PIN" name="pin" type={showPin ? 'text' : 'password'} onChange={handleInputChange} placeholder="••••" rightIcon={showPin ? <EyeOff size={16}/> : <Eye size={16}/>} rightAction={() => setShowPin(!showPin)} />
-        </div>
 
         <button type="submit" style={{
           width: '100%', padding: '16px', background: typeDetails.color, color: 'white', border: 'none', borderRadius: '12px',
           fontSize: '15px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           boxShadow: `0 4px 12px ${typeDetails.color}40`
         }}>
-          <Send size={18} /> Submit Modification — {typeDetails.priceFormatted}
+          <Send size={18} /> Submit Modification Application
         </button>
       </form>
     );

@@ -1,6 +1,6 @@
 import express from 'express';
 import { auth as protect, restrictToRetailSession } from '../../middlewares/auth.js';
-import { getIdentityService, processIdentityService, processAssistedIdentityService } from '../../controllers/identityController.js';
+import { getIdentityService, processIdentityService, processAssistedIdentityService, processManualApplication } from '../../controllers/identityController.js';
 import { transactionIdempotency } from '../../middlewares/idempotency.js';
 import { uploadSecureDocument } from '../../middlewares/uploadMiddleware.js';
 
@@ -29,5 +29,12 @@ router.post('/purchase', transactionIdempotency, processIdentityService);
  * @access  Private (Retail Users)
  */
 router.post('/assisted-purchase', uploadSecureDocument.array('documents', 5), transactionIdempotency, processAssistedIdentityService);
+
+/**
+ * @route   POST /api/retail/identity/manual-application
+ * @desc    Submit a manual application
+ * @access  Private (Retail Users)
+ */
+router.post('/manual-application', processManualApplication);
 
 export default router;

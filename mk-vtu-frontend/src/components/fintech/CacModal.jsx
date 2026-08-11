@@ -4,7 +4,7 @@ import {
   Check, Upload, ChevronRight, Info, Send, FileText, Plus, Trash2
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-
+import API from '../../../api';
 const WHATSAPP_NUMBER = '2347081385387';
 
 const CAC_PACKAGES = [
@@ -58,6 +58,12 @@ const Input = ({ value, onChange, placeholder, type = 'text', as = 'input', opti
 
 export default function CacModal({ onClose }) {
   const { showToast } = useToast();
+  const toast = {
+    loading: (msg) => { showToast(msg, 'success'); return '1'; },
+    success: (msg) => showToast(msg, 'success'),
+    error: (msg) => showToast(msg, 'error'),
+    dismiss: () => {}
+  };
   
   const [step, setStep] = useState(1);
   const [selectedPackageId, setSelectedPackageId] = useState(null);
@@ -123,46 +129,73 @@ export default function CacModal({ onClose }) {
     return null;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const err = validateForm();
     if (err) { setStepError(err); return; }
 
-    let msg = `*CAC REGISTRATION REQUEST*\n\n`;
-    msg += `Package: ${selectedPackage.title}\nPrice: ${formatCurrency(selectedPackage.price)}\n\n`;
+    const toastId = toast.loading('Submitting application...');
+    try {
+      const payload = {
+          serviceType: 'cac_registration',
+          submittedData: {
+              package: selectedPackage,
+              isBusinessName,
+              personalInfo: isBusinessName ? personalInfo : undefined,
+              businessInfo,
+              directors: !isBusinessName ? directors : undefined,
+              companyDetails: !isBusinessName ? companyDetails : undefined,
+              shareCapital: !isBusinessName ? shareCapital : undefined,
+              secretary: !isBusinessName ? secretary : undefined
+          }
+      };
+      
+      const res = await API.post('/api/retail/identity/manual-application', payload);
+      
+      if (res.data.status === 'success') {
+          toast.dismiss(toastId);
+          let msg = `*CAC REGISTRATION REQUEST*\n\n`;
+          msg += `Application ID: ${res.data.data.applicationId}\n`;
+          msg += `Source Website: ${res.data.data.websiteId}\n`;
+          msg += `Package: ${selectedPackage.title}\nPrice: ${formatCurrency(selectedPackage.price)}\n\n`;
 
-    if (isBusinessName) {
-      msg += `*Personal Information*\nName: ${personalInfo.surname} ${personalInfo.firstName} ${personalInfo.otherName}\nDOB: ${personalInfo.dob}\nGender: ${personalInfo.gender}\nPhone: ${personalInfo.phone}\nAddress: ${personalInfo.address}\n\n`;
-      msg += `*Business Information*\nName 1 (Preferred): ${businessInfo.name1}\nName 2 (Alternative): ${businessInfo.name2 || 'N/A'}\nEmail: ${businessInfo.email}\nBusiness Address: ${businessInfo.address}\n`;
-    } else {
-      msg += `*Proposed Company Names*\nOption 1: ${businessInfo.name1}\nOption 2: ${businessInfo.name2 || 'N/A'}\n\n`;
-      msg += `*Business Details*\nNature of Business: ${companyDetails.nature}\nAddress: ${companyDetails.address}\nEmail: ${companyDetails.email}\n\n`;
-      
-      if (selectedPackageId === 'plc' || selectedPackageId === 'private_ltd') {
-        msg += `*Share Capital*\nAuthorized Capital: ₦${shareCapital.authorized}\nNumber of Shares: ${shareCapital.shares}\n\n`;
+          if (isBusinessName) {
+            msg += `*Personal Information*\nName: ${personalInfo.surname} ${personalInfo.firstName} ${personalInfo.otherName}\nDOB: ${personalInfo.dob}\nGender: ${personalInfo.gender}\nPhone: ${personalInfo.phone}\nAddress: ${personalInfo.address}\n\n`;
+            msg += `*Business Information*\nName 1 (Preferred): ${businessInfo.name1}\nName 2 (Alternative): ${businessInfo.name2 || 'N/A'}\nEmail: ${businessInfo.email}\nBusiness Address: ${businessInfo.address}\n`;
+          } else {
+            msg += `*Proposed Company Names*\nOption 1: ${businessInfo.name1}\nOption 2: ${businessInfo.name2 || 'N/A'}\n\n`;
+            msg += `*Business Details*\nNature of Business: ${companyDetails.nature}\nAddress: ${companyDetails.address}\nEmail: ${companyDetails.email}\n\n`;
+            
+            if (selectedPackageId === 'plc' || selectedPackageId === 'private_ltd') {
+              msg += `*Share Capital*\nAuthorized Capital: ₦${shareCapital.authorized}\nNumber of Shares: ${shareCapital.shares}\n\n`;
+            }
+            
+            msg += `*Directors / Trustees (${directors.length})*\n`;
+            directors.forEach((d, i) => {
+              msg += `[Director ${i+1}] Name: ${d.name}, DOB: ${d.dob}, Gender: ${d.gender}, Nationality: ${d.nationality}, Phone: ${d.phone}, Email: ${d.email}, ID: ${d.idType} (${d.idNumber})`;
+              if (d.shareholding) msg += `, Shareholding: ${d.shareholding}%`;
+              msg += `\nAddress: ${d.address}\n\n`;
+            });
+            
+            if (secretary.name) {
+              msg += `*Company Secretary*\nName: ${secretary.name}\nPhone: ${secretary.phone}\nEmail: ${secretary.email}\n\n`;
+            }
+          }
+
+          msg += `\n*Documents Provided (To be requested separately):*\n`;
+          if (files.validId) msg += `- Valid ID: ${files.validId.name}\n`;
+          if (files.passport) msg += `- Passport: ${files.passport.name}\n`;
+          if (files.signature) msg += `- Signature: ${files.signature.name}\n`;
+          if (files.proofOfAddress) msg += `- Proof of Address: ${files.proofOfAddress.name}\n`;
+          
+          msg += `\nPlease process this CAC registration request manually.`;
+
+          toast.success('Request submitted. Redirecting to WhatsApp…');
+          setTimeout(() => { window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank'); closeReset(); }, 1500);
       }
-      
-      msg += `*Directors / Trustees (${directors.length})*\n`;
-      directors.forEach((d, i) => {
-        msg += `[Director ${i+1}] Name: ${d.name}, DOB: ${d.dob}, Gender: ${d.gender}, Nationality: ${d.nationality}, Phone: ${d.phone}, Email: ${d.email}, ID: ${d.idType} (${d.idNumber})`;
-        if (d.shareholding) msg += `, Shareholding: ${d.shareholding}%`;
-        msg += `\nAddress: ${d.address}\n\n`;
-      });
-      
-      if (secretary.name) {
-        msg += `*Company Secretary*\nName: ${secretary.name}\nPhone: ${secretary.phone}\nEmail: ${secretary.email}\n\n`;
-      }
+    } catch (err) {
+       toast.dismiss(toastId);
+       toast.error('Failed to submit application');
     }
-
-    msg += `\n*Documents Provided (To be requested separately):*\n`;
-    if (files.validId) msg += `- Valid ID: ${files.validId.name}\n`;
-    if (files.passport) msg += `- Passport: ${files.passport.name}\n`;
-    if (files.signature) msg += `- Signature: ${files.signature.name}\n`;
-    if (files.proofOfAddress) msg += `- Proof of Address: ${files.proofOfAddress.name}\n`;
-    
-    msg += `\nPlease process this CAC registration request manually.`;
-
-    showToast('Request submitted. Redirecting to WhatsApp…', 'success');
-    setTimeout(() => { window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank'); closeReset(); }, 1500);
   };
 
   const FileUploadCard = ({ title, desc, fileKey, refObj, accept = ".pdf,.jpg,.jpeg,.png" }) => {

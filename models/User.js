@@ -237,8 +237,12 @@ const userSchema = new mongoose.Schema({
 
   // Tenant Isolation — the reseller this user belongs to (portal where they registered).
   // Completely independent of referredBy, which is referral/commission lineage only.
-  tenantOwnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
+  tenantOwnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+
+  // Manual Services independently activated by website owner
+  activatedManualServices: [{ type: String, enum: ['nin_modification', 'bvn_modification', 'cac_registration'] }]
 }, { 
+
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }

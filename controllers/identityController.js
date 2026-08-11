@@ -8,6 +8,7 @@ import { getRetailPrice } from '../services/pricing/retailPricing.js';
 import { getAssistedServiceConfig, calculateProfitSplit } from '../services/pricing/assistedServicesPricing.js';
 import { uploadPrivateDocument } from '../services/storageService.js';
 import ServiceRequest from '../models/ServiceRequest.js';
+import ManualApplication from '../models/ManualApplication.js';
 
 /**
  * GET /api/retail/identity/service/:serviceId
@@ -384,6 +385,56 @@ export const processAssistedIdentityService = async (req, res) => {
         }
 
         return res.status(500).json({ status: 'error', message: 'Internal Server Error.' });
+    }
+};
+
+export const processManualApplication = async (req, res) => {
+    const { serviceType, submittedData } = req.body;
+    
+    if (!serviceType) {
+        return res.status(400).json({ status: 'error', message: 'serviceType is required' });
+    }
+
+    try {
+        const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+        const randomStr = Math.random().toString(36).substr(2, 5).toUpperCase();
+        
+        let prefix = 'MS';
+        if (serviceType === 'nin_modification') prefix = 'MS-NIN';
+        else if (serviceType === 'bvn_modification') prefix = 'MS-BVN';
+        else if (serviceType === 'cac_registration') prefix = 'MS-CAC';
+        
+        const applicationId = `${prefix}-${dateStr}-${randomStr}`;
+        
+        // Resolve websiteId and ownerId server-side from whiteLabel context
+        let ownerId = req.user._id; 
+        let websiteId = 'MAIN-PLATFORM';
+        
+        if (req.reseller) {
+            ownerId = req.reseller._id;
+            websiteId = req.reseller.subdomain || req.reseller.customDomain || 'RESELLER-PORTAL';
+        }
+
+        const application = await ManualApplication.create({
+            applicationId,
+            websiteId,
+            ownerId,
+            serviceType,
+            status: 'submitted',
+            submittedData
+        });
+
+        return res.json({
+            status: 'success',
+            message: 'Application submitted successfully',
+            data: {
+                applicationId: application.applicationId,
+                websiteId: application.websiteId
+            }
+        });
+    } catch (err) {
+        console.error('[Manual Application] Error:', err);
+        return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
     }
 };
 

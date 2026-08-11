@@ -57,6 +57,7 @@ const AdminLayout = ({ children, admin, logout }) => {
         { name: 'Withdrawal Requests', path: '/admin/withdrawals', icon: <Banknote size={18} /> },
         { name: 'Service Requests', path: '/admin/service-requests', icon: <FileText size={18} /> },
         { name: 'Identity Requests', path: '/admin/identity-requests', icon: <ShieldCheck size={18} />, badge: 'NEW' },
+        { name: 'Manual Identity Apps', path: '/admin/manual-applications', icon: <FileText size={18} /> },
         { name: 'Global Transactions', path: '/admin/transactions', icon: <History size={18} /> },
       ]
     },

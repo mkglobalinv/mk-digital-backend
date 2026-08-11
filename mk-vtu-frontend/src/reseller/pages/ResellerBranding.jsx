@@ -18,7 +18,8 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
         telegramLink: '',
         contactEmail: '',
         subdomain: '',
-        customDomain: ''
+        customDomain: '',
+        activatedManualServices: []
     });
     const [loading, setLoading] = useState(false);
     const toast = useToast();
@@ -50,7 +51,8 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
                     telegramLink: b.telegramLink || '',
                     contactEmail: b.contactEmail || '',
                     subdomain: r.subdomain || '',
-                    customDomain: r.customDomain || ''
+                    customDomain: r.customDomain || '',
+                    activatedManualServices: r.activatedManualServices || []
                 });
             }
         } catch (err) {
@@ -105,6 +107,18 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
         } finally {
             setLoading(false);
             isSavingRef.current = false;
+        }
+    };
+
+    const handleToggleService = async (serviceType, enabled) => {
+        try {
+            const res = await API.post('/api/reseller/manual-services/toggle', { serviceType, enabled });
+            if (res.data.status === 'success') {
+                setSettings({...settings, activatedManualServices: res.data.data.activatedManualServices});
+                toast.success(res.data.message);
+            }
+        } catch (err) {
+            toast.error('Failed to toggle service');
         }
     };
 
@@ -314,14 +328,52 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
                         />
                     </div>
 
-                    <button type="submit" className="submit-btn" disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <button type="submit" className="submit-btn" disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '32px' }}>
                         {loading && <Loader2 size={18} className="animate-spin" />}
                         {loading ? 'Saving Changes...' : 'Save Branding Changes'}
                     </button>
+                    
+                    <div style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>Services for My Customers</h2>
+                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>Add more services to your website. Activation is instant and no approval is required.</p>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                            {[
+                                { id: 'nin_modification', title: 'NIN Modification' },
+                                { id: 'bvn_modification', title: 'BVN Modification' },
+                                { id: 'cac_registration', title: 'CAC Registration' }
+                            ].map(service => {
+                                const isActive = settings.activatedManualServices?.includes(service.id);
+                                return (
+                                    <div key={service.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div>
+                                            <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 4px' }}>{service.title}</h3>
+                                            <span style={{ fontSize: '12px', color: isActive ? '#10b981' : '#64748b', fontWeight: '500' }}>
+                                                {isActive ? 'ACTIVE' : 'INACTIVE'}
+                                            </span>
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            onClick={() => handleToggleService(service.id, !isActive)}
+                                            style={{ 
+                                                padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px',
+                                                background: isActive ? '#fef2f2' : '#eff6ff',
+                                                color: isActive ? '#ef4444' : '#3b82f6',
+                                                border: `1px solid ${isActive ? '#fca5a5' : '#bfdbfe'}`
+                                            }}
+                                        >
+                                            {isActive ? 'Remove' : 'Add to My Website'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </fieldset>
             </form>
         </div>
     );
 };
+
 
 export default ResellerBranding;

@@ -83,7 +83,9 @@ import {
   setResellerAssignedPrice,
   removeResellerAssignedPrice,
   toggleResellerPricingPermission,
-  toggleIndependence
+  toggleIndependence,
+  getManualApplications,
+  processManualApplicationCommission
 } from "../controllers/adminController.js";
 import { 
   searchUserByEmergencyId,
@@ -359,6 +361,10 @@ router.get("/resellers/:id/pricing-dashboard", getResellerPricingDashboard);
 router.post("/resellers/:id/assign-price", setResellerAssignedPrice);
 router.delete("/resellers/:id/assign-price", removeResellerAssignedPrice);
 router.post("/resellers/:id/pricing-permission", toggleResellerPricingPermission);
+
+// Manual Applications
+router.get("/manual-applications", getManualApplications);
+router.post("/manual-applications/commission", processManualApplicationCommission);
 
 // --- ADMIN RESELLER PRICING MANAGEMENT ---
 
