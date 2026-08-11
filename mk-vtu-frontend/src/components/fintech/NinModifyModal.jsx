@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, AlertTriangle, Info, Check, Upload, Eye, EyeOff, Send, Calendar, Smartphone, MapPin, Map, UserCog, ArrowLeft } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
@@ -44,6 +44,8 @@ export default function NinModifyModal({ onClose, isReseller }) {
   const [showEmailPassword, setShowEmailPassword] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [formData, setFormData] = useState({});
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
   const { showToast } = useToast();
 
   const handleInputChange = (e) => {
@@ -73,48 +75,40 @@ export default function NinModifyModal({ onClose, isReseller }) {
       return;
     }
 
-    try {
-      const cost = typeDetails.price;
-
-    const currentBalance = parseFloat(localStorage.getItem('mock_wallet_balance')) || 50000;
-    if (currentBalance < cost) {
-      showToast('Insufficient wallet balance. Fund your wallet to proceed.', 'error');
+    // Require attestation certificate for DOB modification
+    if (selectedType === 'dob' && !selectedFile) {
+      showToast('Please upload your Attestation Certificate.', 'error');
       return;
     }
-    localStorage.setItem('mock_wallet_balance', (currentBalance - cost).toString());
 
-    if (isReseller) {
-      const isPremium = localStorage.getItem('mock_reseller_premium') === 'true';
-      if (isPremium) {
-        const resellerWallet = parseFloat(localStorage.getItem('mock_reseller_wallet')) || 0;
-        localStorage.setItem('mock_reseller_wallet', (resellerWallet + 500).toString());
-      } else {
-        const resellerProfit = parseFloat(localStorage.getItem('mock_reseller_profit')) || 0;
-        localStorage.setItem('mock_reseller_profit', (resellerProfit + 150).toString());
+    try {
+      let msgBody = `*IDENTITY SERVICE REQUEST*\n`;
+      msgBody += `Service: NIN ${typeDetails.title}\n`;
+      msgBody += `\n*Submitted Information:*\n`;
+      
+      Object.entries(formData).forEach(([key, value]) => {
+        // Format key nicely (e.g., ninNumber -> Nin Number)
+        const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        msgBody += `${formattedKey}: ${value}\n`;
+      });
+
+      // Attach file info if certificate was uploaded
+      if (selectedFile) {
+        msgBody += `Attestation Certificate: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB) — Please request file separately\n`;
       }
-    }
+      
+      msgBody += `\nPlease process this request manually.`;
+      
+      const whatsappNumber = '2347081385387'; // Configured Identity Service Number
+      const encodedMsg = encodeURIComponent(msgBody);
+      
+      showToast('Request submitted successfully. Continue on WhatsApp.', 'success');
+      
+      setTimeout(() => {
+        window.open(`https://wa.me/${whatsappNumber}?text=${encodedMsg}`, '_blank');
+        onClose();
+      }, 1500);
 
-    const newRequest = {
-      id: generateSerialNumber(),
-      type: typeDetails.title,
-      price: typeDetails.price,
-      formData: { ...formData },
-      status: 'Pending',
-      createdAt: new Date().toISOString()
-    };
-
-      let existingRequests = [];
-      try {
-        const parsed = JSON.parse(localStorage.getItem('identity_requests') || '[]');
-        existingRequests = Array.isArray(parsed) ? parsed : [];
-      } catch (err) {
-        console.error("Failed to parse identity_requests", err);
-        existingRequests = [];
-      }
-      localStorage.setItem('identity_requests', JSON.stringify([newRequest, ...existingRequests]));
-
-      showToast(`Request Submitted Successfully. Serial: ${newRequest.id}`, 'success');
-      onClose();
     } catch (error) {
       console.error("Submission Error:", error);
       showToast('An unexpected error occurred during submission.', 'error');
@@ -276,13 +270,50 @@ export default function NinModifyModal({ onClose, isReseller }) {
         {selectedType === 'dob' && (
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--text-gray)', marginBottom: '6px', textTransform: 'uppercase' }}>Attestation Certificate *</label>
-            <div style={{ border: '1px dashed #D8B4FE', background: '#FAF5FF', borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer' }}>
-              <Upload size={24} color="#9333EA" style={{ margin: '0 auto 8px' }} />
-              <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: '700', color: '#7E22CE' }}>Click to upload file</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#9333EA' }}>PDF, JPG, PNG — max 10 MB</p>
+            {/* Hidden real file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) {
+                  showToast('File is too large. Maximum size is 10 MB.', 'error');
+                  e.target.value = '';
+                  return;
+                }
+                setSelectedFile(file);
+              }}
+            />
+            {/* Clickable upload area */}
+            <div
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              style={{
+                border: selectedFile ? '1px solid #A7F3D0' : '1px dashed #D8B4FE',
+                background: selectedFile ? '#ECFDF5' : '#FAF5FF',
+                borderRadius: '12px', padding: '24px', textAlign: 'center',
+                cursor: 'pointer', transition: 'all 0.2s ease'
+              }}
+            >
+              {selectedFile ? (
+                <>
+                  <Check size={24} color="#10B981" style={{ margin: '0 auto 8px' }} />
+                  <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: '700', color: '#065F46' }}>{selectedFile.name}</p>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#10B981' }}>Tap to change file</p>
+                </>
+              ) : (
+                <>
+                  <Upload size={24} color="#9333EA" style={{ margin: '0 auto 8px' }} />
+                  <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: '700', color: '#7E22CE' }}>Click to upload file</p>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#9333EA' }}>PDF, JPG, PNG — max 10 MB</p>
+                </>
+              )}
             </div>
           </div>
         )}
+
 
         <InputField label="WhatsApp Number" name="whatsapp" type="tel" onChange={handleInputChange} placeholder="e.g. 08012345678" />
 
