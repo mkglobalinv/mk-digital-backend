@@ -55,7 +55,8 @@ const AdminLayout = ({ children, admin, logout }) => {
         { name: 'Profit Analytics', path: '/admin/profit', icon: <TrendingUp size={18} /> },
         { name: 'Referral Analytics', path: '/admin/referrals', icon: <Share2 size={18} />, badge: 'NEW' },
         { name: 'Withdrawal Requests', path: '/admin/withdrawals', icon: <Banknote size={18} /> },
-        { name: 'Service Requests', path: '/admin/service-requests', icon: <FileText size={18} />, badge: 'NEW' },
+        { name: 'Service Requests', path: '/admin/service-requests', icon: <FileText size={18} /> },
+        { name: 'Identity Requests', path: '/admin/identity-requests', icon: <ShieldCheck size={18} />, badge: 'NEW' },
         { name: 'Global Transactions', path: '/admin/transactions', icon: <History size={18} /> },
       ]
     },
