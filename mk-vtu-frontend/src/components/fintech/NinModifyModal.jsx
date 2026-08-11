@@ -44,7 +44,7 @@ export default function NinModifyModal({ onClose, isReseller }) {
   const [showEmailPassword, setShowEmailPassword] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [formData, setFormData] = useState({});
-  const { addToast } = useToast();
+  const { showToast } = useToast();
 
   const handleInputChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -63,7 +63,7 @@ export default function NinModifyModal({ onClose, isReseller }) {
 
     const currentBalance = parseFloat(localStorage.getItem('mock_wallet_balance') || '50000');
     if (currentBalance < cost) {
-      addToast('error', 'Insufficient wallet balance', 'Fund your wallet to proceed.');
+      showToast('Insufficient wallet balance. Fund your wallet to proceed.', 'error');
       return;
     }
     localStorage.setItem('mock_wallet_balance', (currentBalance - cost).toString());
@@ -91,7 +91,7 @@ export default function NinModifyModal({ onClose, isReseller }) {
     const existingRequests = JSON.parse(localStorage.getItem('identity_requests') || '[]');
     localStorage.setItem('identity_requests', JSON.stringify([newRequest, ...existingRequests]));
 
-    addToast('success', 'Request Submitted Successfully', `Your modification request has been submitted. Serial: ${newRequest.id}`);
+    showToast(`Request Submitted Successfully. Serial: ${newRequest.id}`, 'success');
     onClose();
   };
 
