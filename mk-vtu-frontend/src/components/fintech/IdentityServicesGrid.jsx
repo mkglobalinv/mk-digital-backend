@@ -4,6 +4,8 @@ import {
   Users, Edit3, BookOpen, ChevronDown, ChevronUp, Sparkles, X
 } from 'lucide-react';
 import NinModifyModal from './NinModifyModal';
+import BvnModifyModal from './BvnModifyModal';
+import CacModal from './CacModal';
 import { useNavigate } from 'react-router-dom';
 import './FintechComponents.css';
 
@@ -15,8 +17,8 @@ import './FintechComponents.css';
 const IDENTITY_SERVICES = [
   { api_plan_id: 'nin-verify',       label: 'NIN Verify',  icon: Fingerprint, color: '#10B981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.2)' },
   { api_plan_id: 'nin-phone',        label: 'NIN Modify',   icon: Edit3,       color: '#3B82F6', bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.2)' },
-  { api_plan_id: 'nin-tracking',     label: 'VBN Modify',   icon: MapPin,      color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)' },
-  { api_plan_id: 'nin-demographics', label: 'CAC',          icon: BookOpen,    color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.2)' },
+  { api_plan_id: 'nin-tracking',     label: 'BVN Modify',   icon: MapPin,      color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)' },
+  { api_plan_id: 'nin-demographics', label: 'CAC Reg',      icon: BookOpen,    color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.2)' },
   { api_plan_id: 'bvn-verify',       label: 'BVN Verify',  icon: ShieldCheck, color: '#10B981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.2)' },
   { api_plan_id: 'bvn-phone',        label: 'BVN Phone',   icon: Users,       color: '#2563EB', bg: 'rgba(37,99,235,0.08)',   border: 'rgba(37,99,235,0.2)' },
   { api_plan_id: 'nin-modification', label: 'NIN Modify',  icon: Edit3,       color: '#F4B400', bg: 'rgba(244,180,0,0.08)',   border: 'rgba(244,180,0,0.2)' },
@@ -28,7 +30,6 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
   const [showNinModifyModal, setShowNinModifyModal] = useState(false);
   const [showVbnModifyModal, setShowVbnModifyModal] = useState(false);
   const [showCacModal, setShowCacModal] = useState(false);
-  const [vbnModifyStep, setVbnModifyStep] = useState(1);
 
   /**
    * Navigate to /identity/:serviceId (retail) or /reseller/identity/:serviceId.
@@ -42,7 +43,6 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
       return;
     }
     if (api_plan_id === 'nin-tracking') {
-      setVbnModifyStep(1);
       setShowVbnModifyModal(true);
       return;
     }
@@ -121,155 +121,11 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
       )}
 
       {showVbnModifyModal && (
-        <div className="modal-overlay-modern" onClick={() => setShowVbnModifyModal(false)}>
-          <div className="modal-content-modern animate-scale-in" onClick={e => e.stopPropagation()} style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-dark)', margin: 0 }}>
-                {vbnModifyStep === 1 ? 'BVN Modification' : 'Select Option'}
-              </h2>
-              <button className="icon-btn" onClick={() => setShowVbnModifyModal(false)}>
-                <X size={20} />
-              </button>
-            </div>
-            
-            {vbnModifyStep === 1 ? (
-              <>
-                <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '20px' }}>
-                  Choose an agency to process your BVN modification.
-                </p>
-                <button
-                  style={{
-                    display: 'flex', flexDirection: 'column',
-                    padding: '20px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
-                    borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease', width: '100%'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-                  onClick={() => setVbnModifyStep(2)}
-                >
-                  <div style={{ fontWeight: '800', color: 'var(--text-dark)', fontSize: '16px', marginBottom: '8px' }}>Agency Banking</div>
-                  <div style={{ color: 'var(--text-gray)', fontSize: '13px', lineHeight: '1.4' }}>BVN modification processed through a licensed Agency Banking outlet.</div>
-                </button>
-              </>
-            ) : (
-              <>
-                <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '20px' }}>
-                  Choose your preferred modification option below:
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {[
-                    {
-                      title: 'With Court Affidavit',
-                      price: '₦8,500',
-                      features: ['You provide a sworn court affidavit document', 'Lower cost', 'Document upload required', 'Court-sworn document']
-                    },
-                    {
-                      title: 'Without Court Affidavit',
-                      price: '₦10,000',
-                      features: ['No affidavit document required', 'Higher cost', 'No upload needed', 'Quick submission']
-                    }
-                  ].map(opt => (
-                    <button
-                      key={opt.title}
-                      style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '16px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
-                        borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease', width: '100%'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                      onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-                      onClick={() => {
-                        const msg = encodeURIComponent(`Hello, I want to request for BVN Modification: ${opt.title} for ${opt.price}.`);
-                        window.open(`https://wa.me/2347081385387?text=${msg}`, '_blank');
-                      }}
-                    >
-                      <div style={{ paddingRight: '10px', flex: 1 }}>
-                        <div style={{ fontWeight: '800', color: 'var(--text-dark)', fontSize: '15px', marginBottom: '8px' }}>{opt.title}</div>
-                        <ul style={{ color: 'var(--text-gray)', fontSize: '12px', paddingLeft: '16px', margin: 0, lineHeight: '1.5' }}>
-                          {opt.features.map((f, i) => <li key={i}>{f}</li>)}
-                        </ul>
-                      </div>
-                      <div style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '18px', whiteSpace: 'nowrap' }}>
-                        {opt.price}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        <BvnModifyModal onClose={() => setShowVbnModifyModal(false)} />
       )}
 
       {showCacModal && (
-        <div className="modal-overlay-modern" onClick={() => setShowCacModal(false)}>
-          <div className="modal-content-modern animate-scale-in" onClick={e => e.stopPropagation()} style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-dark)', margin: 0 }}>CAC Registration Options</h2>
-              <button className="icon-btn" onClick={() => setShowCacModal(false)}>
-                <X size={20} />
-              </button>
-            </div>
-            <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '20px' }}>
-              Select the type of company or business you want to register.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {[
-                {
-                  title: 'Public Limited Company (PLC)',
-                  desc: 'Register a Public Limited Company',
-                  price: '₦130,000',
-                  delivery: '20-30 working days'
-                },
-                {
-                  title: 'Incorporated Trustee / NGO',
-                  desc: 'Register an Incorporated Trustee or NGO',
-                  price: '₦95,000',
-                  delivery: '20-25 working days'
-                },
-                {
-                  title: 'Business Name',
-                  desc: 'Register Business Name',
-                  price: '₦35,000',
-                  delivery: '10-15 working days'
-                },
-                {
-                  title: 'Private Limited Company',
-                  desc: 'Register a Private Limited Company',
-                  price: '₦70,000',
-                  delivery: '15-20 working days'
-                }
-              ].map(opt => (
-                <button
-                  key={opt.title}
-                  style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '16px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
-                    borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease', width: '100%'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-                  onClick={() => {
-                    const msg = encodeURIComponent(`Hello, I want to request for CAC Registration: ${opt.title} for ${opt.price}.`);
-                    window.open(`https://wa.me/2347081385387?text=${msg}`, '_blank');
-                  }}
-                >
-                  <div style={{ paddingRight: '10px', flex: 1 }}>
-                    <div style={{ fontWeight: '800', color: 'var(--text-dark)', fontSize: '15px', marginBottom: '4px' }}>{opt.title}</div>
-                    <div style={{ color: 'var(--text-gray)', fontSize: '12px', marginBottom: '6px' }}>{opt.desc}</div>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(37,99,235,0.1)', color: '#2563EB', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
-                      ⏱️ {opt.delivery}
-                    </div>
-                  </div>
-                  <div style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '18px', whiteSpace: 'nowrap', textAlign: 'right' }}>
-                    <div style={{ fontSize: '10px', color: 'var(--text-gray)', fontWeight: '600', marginBottom: '2px' }}>STARTING FROM</div>
-                    {opt.price}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <CacModal onClose={() => setShowCacModal(false)} />
       )}
     </div>
   );
