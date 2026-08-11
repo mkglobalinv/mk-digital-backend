@@ -88,14 +88,14 @@ export default function IdentityServiceRequests() {
               ) : (
                 filteredRequests.map(req => (
                   <tr key={req.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                    <td style={{ padding: '16px', fontWeight: '600' }}>{req.id}</td>
-                    <td style={{ padding: '16px' }}>{req.type}</td>
+                    <td style={{ padding: '16px', fontWeight: '600' }}>{req.id || 'N/A'}</td>
+                    <td style={{ padding: '16px' }}>{req.type || 'Unknown'}</td>
                     <td style={{ padding: '16px' }}>{req.formData?.whatsapp || 'N/A'}</td>
-                    <td style={{ padding: '16px' }}>₦{req.price.toLocaleString()}</td>
-                    <td style={{ padding: '16px' }}>{new Date(req.createdAt).toLocaleDateString()}</td>
+                    <td style={{ padding: '16px' }}>₦{(req.price || 0).toLocaleString()}</td>
+                    <td style={{ padding: '16px' }}>{req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'Unknown'}</td>
                     <td style={{ padding: '16px' }}>
                       <span className={`status-badge pending`}>
-                        <Clock size={12} /> {req.status}
+                        <Clock size={12} /> {req.status || 'Pending'}
                       </span>
                     </td>
                     <td style={{ padding: '16px' }}>
@@ -119,7 +119,7 @@ export default function IdentityServiceRequests() {
             </h2>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-              {Object.entries(selectedRequest.formData).map(([key, value]) => {
+              {Object.entries(selectedRequest.formData || {}).map(([key, value]) => {
                 if (key === 'pin') return null;
                 const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                 return (
