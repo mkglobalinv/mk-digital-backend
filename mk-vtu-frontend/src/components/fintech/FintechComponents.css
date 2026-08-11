@@ -727,6 +727,11 @@ body.day-mode .fintech-wallet-card .action-item.primary .action-icon-wrap {
 }
 
 /* Services must be clearly visible in DAY mode */
+body.dark-theme.day-mode .service-card,
+body.day-mode .service-card {
+  background: transparent !important;
+}
+
 body.dark-theme.day-mode .service-card span,
 body.day-mode .service-card span {
   color: #0F172A !important;
@@ -740,6 +745,11 @@ body.day-mode .service-icon-wrap {
 }
 
 /* Identity cards day mode */
+body.dark-theme.day-mode .identity-card,
+body.day-mode .identity-card {
+  background: transparent !important;
+}
+
 body.dark-theme.day-mode .identity-label,
 body.day-mode .identity-label {
   color: #0F172A !important;
