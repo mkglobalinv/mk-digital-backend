@@ -82,8 +82,8 @@ const AdminServiceRequests = () => {
                 <div>Loading requests...</div>
             ) : (
                 <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                        <thead style={{ background: '#f8fafc', textAlign: 'left' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', color: '#1e293b', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                        <thead style={{ background: '#f8fafc', textAlign: 'left', color: '#334155' }}>
                             <tr>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>Reference</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>User</th>
