@@ -3,6 +3,7 @@ import {
   Fingerprint, ShieldCheck, Phone, MapPin,
   Users, Edit3, BookOpen, ChevronDown, ChevronUp, Sparkles, X
 } from 'lucide-react';
+import NinModifyModal from './NinModifyModal';
 import { useNavigate } from 'react-router-dom';
 import './FintechComponents.css';
 
@@ -13,7 +14,7 @@ import './FintechComponents.css';
  */
 const IDENTITY_SERVICES = [
   { api_plan_id: 'nin-verify',       label: 'NIN Verify',  icon: Fingerprint, color: '#10B981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.2)' },
-  { api_plan_id: 'nin-phone',        label: 'NIN Modify',   icon: Phone,       color: '#3B82F6', bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.2)' },
+  { api_plan_id: 'nin-phone',        label: 'NIN Modify',   icon: Edit3,       color: '#3B82F6', bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.2)' },
   { api_plan_id: 'nin-tracking',     label: 'VBN Modify',   icon: MapPin,      color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)' },
   { api_plan_id: 'nin-demographics', label: 'CAC',          icon: BookOpen,    color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.2)' },
   { api_plan_id: 'bvn-verify',       label: 'BVN Verify',  icon: ShieldCheck, color: '#10B981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.2)' },
@@ -113,51 +114,10 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
       </button>
 
       {showNinModifyModal && (
-        <div className="modal-overlay-modern" onClick={() => setShowNinModifyModal(false)}>
-          <div className="modal-content-modern animate-scale-in" onClick={e => e.stopPropagation()} style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-dark)', margin: 0 }}>Select Modification Type</h2>
-              <button className="icon-btn" onClick={() => setShowNinModifyModal(false)}>
-                <X size={20} />
-              </button>
-            </div>
-            <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '20px' }}>
-              Choose the type of update you need on your NIN
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {[
-                { title: 'Name Modification', desc: 'Correct or change name on NIN records', price: '₦6500' },
-                { title: 'Date of Birth Modification', desc: 'Correct date of birth on NIN records', price: '₦37500' },
-                { title: 'Phone Number Modification', desc: 'Update registered phone number', price: '₦6500' },
-                { title: 'Address Modification', desc: 'Update residential address on NIN', price: '₦6500' },
-                { title: 'State & LGA Modification', desc: 'Update state of origin, state of residence & local government areas', price: '₦9500' },
-              ].map(opt => (
-                <button
-                  key={opt.title}
-                  style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '16px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)',
-                    borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-                  onClick={() => {
-                    const msg = encodeURIComponent(`Hello, I want to request for ${opt.title} (${opt.desc}) for ${opt.price}.`);
-                    window.open(`https://wa.me/2347081385387?text=${msg}`, '_blank');
-                  }}
-                >
-                  <div style={{ paddingRight: '10px' }}>
-                    <div style={{ fontWeight: '800', color: 'var(--text-dark)', fontSize: '15px', marginBottom: '4px' }}>{opt.title}</div>
-                    <div style={{ color: 'var(--text-gray)', fontSize: '12px' }}>{opt.desc}</div>
-                  </div>
-                  <div style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '16px', whiteSpace: 'nowrap' }}>
-                    {opt.price}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <NinModifyModal 
+          onClose={() => setShowNinModifyModal(false)} 
+          isReseller={isReseller} 
+        />
       )}
 
       {showVbnModifyModal && (
