@@ -76,7 +76,7 @@ export default function NinModifyModal({ onClose, isReseller }) {
     try {
       const cost = typeDetails.price;
 
-    const currentBalance = parseFloat(localStorage.getItem('mock_wallet_balance') || '50000');
+    const currentBalance = parseFloat(localStorage.getItem('mock_wallet_balance')) || 50000;
     if (currentBalance < cost) {
       showToast('Insufficient wallet balance. Fund your wallet to proceed.', 'error');
       return;
@@ -86,10 +86,10 @@ export default function NinModifyModal({ onClose, isReseller }) {
     if (isReseller) {
       const isPremium = localStorage.getItem('mock_reseller_premium') === 'true';
       if (isPremium) {
-        const resellerWallet = parseFloat(localStorage.getItem('mock_reseller_wallet') || '0');
+        const resellerWallet = parseFloat(localStorage.getItem('mock_reseller_wallet')) || 0;
         localStorage.setItem('mock_reseller_wallet', (resellerWallet + 500).toString());
       } else {
-        const resellerProfit = parseFloat(localStorage.getItem('mock_reseller_profit') || '0');
+        const resellerProfit = parseFloat(localStorage.getItem('mock_reseller_profit')) || 0;
         localStorage.setItem('mock_reseller_profit', (resellerProfit + 150).toString());
       }
     }
@@ -105,9 +105,11 @@ export default function NinModifyModal({ onClose, isReseller }) {
 
       let existingRequests = [];
       try {
-        existingRequests = JSON.parse(localStorage.getItem('identity_requests') || '[]');
+        const parsed = JSON.parse(localStorage.getItem('identity_requests') || '[]');
+        existingRequests = Array.isArray(parsed) ? parsed : [];
       } catch (err) {
         console.error("Failed to parse identity_requests", err);
+        existingRequests = [];
       }
       localStorage.setItem('identity_requests', JSON.stringify([newRequest, ...existingRequests]));
 
