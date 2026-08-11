@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { X, AlertTriangle, Info, Check, Upload, Eye, EyeOff, Send, Calendar, Phone, MapPin, User, ArrowLeft } from 'lucide-react';
+import { X, AlertTriangle, Info, Check, Upload, Eye, EyeOff, Send, Calendar, Smartphone, MapPin, Map, UserCog, ArrowLeft } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
 const MODIFICATION_TYPES = [
-  { id: 'name', title: 'Name Modification', desc: 'Correct or change name on NIN records', price: 6500, priceFormatted: '₦6,500', icon: User, color: '#8B5CF6' },
+  { id: 'name', title: 'Name Modification', desc: 'Correct or change name on NIN records', price: 6500, priceFormatted: '₦6,500', icon: UserCog, color: '#8B5CF6' },
   { id: 'dob', title: 'Date of Birth Modification', desc: 'Correct date of birth on NIN records', price: 37500, priceFormatted: '₦37,500', icon: Calendar, color: '#EC4899' },
-  { id: 'phone', title: 'Phone Number Modification', desc: 'Update registered phone number', price: 6500, priceFormatted: '₦6,500', icon: Phone, color: '#06B6D4' },
+  { id: 'phone', title: 'Phone Number Modification', desc: 'Update registered phone number', price: 6500, priceFormatted: '₦6,500', icon: Smartphone, color: '#06B6D4' },
   { id: 'address', title: 'Address Modification', desc: 'Update residential address on NIN', price: 6500, priceFormatted: '₦6,500', icon: MapPin, color: '#10B981' },
-  { id: 'state_lga', title: 'State & LGA Modification', desc: 'Update state of origin, state of residence & local government areas', price: 9500, priceFormatted: '₦9,500', icon: MapPin, color: '#F59E0B' },
+  { id: 'state_lga', title: 'State & LGA Modification', desc: 'Update state of origin, state of residence & local government areas', price: 9500, priceFormatted: '₦9,500', icon: Map, color: '#F59E0B' },
 ];
 
 const InputField = ({ label, name, type = 'text', placeholder, icon: Icon, rightIcon, rightAction, required = true, onChange }) => (
@@ -131,7 +131,7 @@ export default function NinModifyModal({ onClose, isReseller }) {
         style={{
           width: '100%', padding: '16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px',
           fontSize: '15px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.3)'
+          boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.3)', marginTop: '20px'
         }}
       >
         <Check size={18} /> I Have Read and Understood
@@ -281,8 +281,8 @@ export default function NinModifyModal({ onClose, isReseller }) {
   };
 
   return (
-    <div className="modal-overlay-modern" style={{ overflowY: 'auto' }} onClick={onClose}>
-      <div className="modal-content-modern animate-scale-in" onClick={e => e.stopPropagation()} style={{ padding: '24px', maxWidth: '750px', width: '90%', margin: '40px auto' }}>
+    <div className="modal-overlay-modern" style={{ overflowY: 'auto', alignItems: 'flex-start' }} onClick={onClose}>
+      <div className="modal-content-modern animate-scale-in" onClick={e => e.stopPropagation()} style={{ padding: '24px', maxWidth: '750px', width: '90%', margin: '40px auto', maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
             <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-dark)', margin: '0 0 4px' }}>NIN Modification</h2>
