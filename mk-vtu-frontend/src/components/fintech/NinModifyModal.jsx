@@ -59,7 +59,22 @@ export default function NinModifyModal({ onClose, isReseller }) {
     const typeDetails = MODIFICATION_TYPES.find(t => t.id === selectedType);
     if (!typeDetails) return;
 
-    const cost = typeDetails.price;
+    // Manual Validation
+    const requiredFields = ['ninNumber', 'whatsapp', 'pin'];
+    if (selectedType === 'name') requiredFields.push('surname', 'firstName');
+    if (selectedType === 'phone') requiredFields.push('newPhone');
+    if (selectedType === 'dob') requiredFields.push('attestationNo', 'oldDob', 'newDob');
+    if (selectedType === 'address') requiredFields.push('newAddress');
+    if (selectedType === 'state_lga') requiredFields.push('address', 'townCity', 'lgaOrigin', 'stateOrigin', 'lgaResidence', 'stateResidence');
+
+    const missing = requiredFields.find(field => !formData[field] || formData[field].trim() === '');
+    if (missing) {
+      showToast('Please fill out all required fields.', 'error');
+      return;
+    }
+
+    try {
+      const cost = typeDetails.price;
 
     const currentBalance = parseFloat(localStorage.getItem('mock_wallet_balance') || '50000');
     if (currentBalance < cost) {
@@ -88,11 +103,20 @@ export default function NinModifyModal({ onClose, isReseller }) {
       createdAt: new Date().toISOString()
     };
 
-    const existingRequests = JSON.parse(localStorage.getItem('identity_requests') || '[]');
-    localStorage.setItem('identity_requests', JSON.stringify([newRequest, ...existingRequests]));
+      let existingRequests = [];
+      try {
+        existingRequests = JSON.parse(localStorage.getItem('identity_requests') || '[]');
+      } catch (err) {
+        console.error("Failed to parse identity_requests", err);
+      }
+      localStorage.setItem('identity_requests', JSON.stringify([newRequest, ...existingRequests]));
 
-    showToast(`Request Submitted Successfully. Serial: ${newRequest.id}`, 'success');
-    onClose();
+      showToast(`Request Submitted Successfully. Serial: ${newRequest.id}`, 'success');
+      onClose();
+    } catch (error) {
+      console.error("Submission Error:", error);
+      showToast('An unexpected error occurred during submission.', 'error');
+    }
   };
 
   const renderNoticeSection = () => (
@@ -176,7 +200,7 @@ export default function NinModifyModal({ onClose, isReseller }) {
     const typeDetails = MODIFICATION_TYPES.find(t => t.id === selectedType);
 
     return (
-      <form onSubmit={handleSubmit} className="fade-in" style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+      <form onSubmit={handleSubmit} noValidate className="fade-in" style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--border-light)' }}>
           <button type="button" onClick={() => setStep(1)} className="icon-btn" style={{ background: 'var(--bg-color)', marginRight: '8px' }}>
