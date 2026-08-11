@@ -98,6 +98,7 @@ const AIAssistantControl = lazyWithRetry(() => import("./admin/pages/AIAssistant
 const ReconciliationPanel = lazyWithRetry(() => import("./admin/pages/ReconciliationPanel"));
 const AdminAppRequests = lazyWithRetry(() => import("./admin/pages/AdminAppRequests"));
 const AdminServiceRequests = lazyWithRetry(() => import("./admin/pages/AdminServiceRequests"));
+const IdentityServiceRequests = lazyWithRetry(() => import("./admin/pages/IdentityServiceRequests"));
 const AdminDomainRequests = lazyWithRetry(() => import("./admin/pages/AdminDomainRequests"));
 const PromoCampaignManager = lazyWithRetry(() => import("./admin/pages/PromoCampaignManager"));
 const PromotionGridManager = lazyWithRetry(() => import("./admin/pages/PromotionGridManager"));
@@ -1011,6 +1012,7 @@ function App() {
                           <Route path="operations" element={<OperationsCenter />} />
                           <Route path="app-requests" element={<AdminAppRequests />} />
                           <Route path="service-requests" element={<AdminServiceRequests />} />
+                          <Route path="identity-requests" element={<IdentityServiceRequests />} />
                           <Route path="domain-requests" element={<AdminDomainRequests />} />
                           
                           {/* Super Admin Exact Feature Routes */}
