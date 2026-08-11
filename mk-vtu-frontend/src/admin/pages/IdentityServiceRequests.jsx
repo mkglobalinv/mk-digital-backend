@@ -10,7 +10,11 @@ export default function IdentityServiceRequests() {
   useEffect(() => {
     const saved = localStorage.getItem('identity_requests');
     if (saved) {
-      setRequests(JSON.parse(saved));
+      try {
+        setRequests(JSON.parse(saved));
+      } catch (err) {
+        console.error("Failed to parse identity_requests in admin:", err);
+      }
     }
   }, []);
 
