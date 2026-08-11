@@ -34,7 +34,7 @@ export default function IdentityServiceRequests() {
           <h1>Identity Service Requests</h1>
           <p>Manage submissions for NIN, BVN, and CAC modifications</p>
         </div>
-        <button className="admin-btn-primary">
+        <button style={{ background: 'var(--primary)', color: 'white', padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.2)' }}>
           <Download size={16} /> Export CSV
         </button>
       </div>
@@ -43,7 +43,17 @@ export default function IdentityServiceRequests() {
         {TABS.map(tab => (
           <button
             key={tab.id}
-            className={`admin-tab ${activeTab === tab.id ? 'active' : ''}`}
+            style={{
+              padding: '10px 24px', 
+              background: activeTab === tab.id ? 'var(--primary)' : 'var(--bg-color)', 
+              color: activeTab === tab.id ? 'white' : 'var(--text-gray)', 
+              border: 'none', 
+              borderRadius: '30px', 
+              fontWeight: '700', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s',
+              boxShadow: activeTab === tab.id ? '0 4px 12px rgba(var(--primary-rgb), 0.2)' : 'none'
+            }}
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
@@ -57,7 +67,7 @@ export default function IdentityServiceRequests() {
             <Search size={18} />
             <input type="text" placeholder="Search serial, email or phone..." />
           </div>
-          <button className="admin-btn-secondary">
+          <button style={{ background: 'var(--bg-color)', color: 'var(--text-dark)', padding: '10px 20px', borderRadius: '12px', border: '1px solid var(--border-color)', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Filter size={16} /> Filter
           </button>
         </div>
@@ -99,8 +109,11 @@ export default function IdentityServiceRequests() {
                       </span>
                     </td>
                     <td style={{ padding: '16px' }}>
-                      <button className="action-btn" onClick={() => setSelectedRequest(req)}>
-                        <Eye size={16} /> View Details
+                      <button 
+                        style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px 12px', fontSize: '13px', fontWeight: '600', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }} 
+                        onClick={() => setSelectedRequest(req)}
+                      >
+                        <Eye size={14} /> View Details
                       </button>
                     </td>
                   </tr>
