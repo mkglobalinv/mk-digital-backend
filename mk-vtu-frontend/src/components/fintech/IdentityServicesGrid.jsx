@@ -60,19 +60,21 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
     }
   };
 
+  const isMainSite = !siteInfo?._id;
+
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const availableServices = IDENTITY_SERVICES.filter(svc => {
     if (['bvn-phone', 'nin-modification'].includes(svc.api_plan_id)) {
       return isLocalhost;
     }
     if (svc.api_plan_id === 'nin-phone') {
-      return activatedManualServices.includes('nin_modification');
+      return isMainSite || activatedManualServices.includes('nin_modification');
     }
     if (svc.api_plan_id === 'nin-tracking') {
-      return activatedManualServices.includes('bvn_modification');
+      return isMainSite || activatedManualServices.includes('bvn_modification');
     }
     if (svc.api_plan_id === 'nin-demographics') {
-      return activatedManualServices.includes('cac_registration');
+      return isMainSite || activatedManualServices.includes('cac_registration');
     }
     return true;
   });
