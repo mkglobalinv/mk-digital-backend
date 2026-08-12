@@ -46,7 +46,7 @@ export const openVerificationSlip = (data) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Bank Verification Number (BVN) - ${displayId}</title>
-        <style>
+        <style>` + `
           body {
             font-family: 'Arial', sans-serif;
             background-color: #f1f5f9;
@@ -89,7 +89,7 @@ export const openVerificationSlip = (data) => {
             display: flex;
             flex-direction: column;
           }
-          
+          ` + `
           /* TOP HEADER */
           .header {
             display: flex;
@@ -140,7 +140,7 @@ export const openVerificationSlip = (data) => {
             flex-direction: column;
             align-items: center;
           }
-          
+          ` + `
           /* MIDDLE SECTION */
           .middle {
             display: flex;
@@ -194,7 +194,7 @@ export const openVerificationSlip = (data) => {
             display: flex;
             gap: 25px;
           }
-          
+          ` + `
           /* BOTTOM SECTION */
           .bottom {
             margin-top: auto;
@@ -229,7 +229,7 @@ export const openVerificationSlip = (data) => {
             letter-spacing: 6px;
             font-family: 'Arial', sans-serif;
           }
-
+` + `
           /* BACK CARD */
           .card-back {
             width: 580px;
@@ -310,7 +310,7 @@ export const openVerificationSlip = (data) => {
                 </div>
               </div>
             </div>
-            
+` + `
             <div class="middle">
               <div class="photo">
                 ${data.photo ? '<img src="' + data.photo + '" alt="Photo" />' : '<div class="no-photo">NO PHOTO</div>'}
@@ -340,7 +340,7 @@ export const openVerificationSlip = (data) => {
                 </div>
               </div>
             </div>
-            
+` + `
             <div class="bottom">
               <div class="bottom-left-fp">
                  <svg width="45" height="55" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M12 10a2 2 0 0 0-2 2c0 1.1.9 2 2 2s2-.9 2-2a2 2 0 0 0-2-2z"></path><path d="M12 6a6 6 0 0 0-6 6c0 3.3 2.7 6 6 6s6-2.7 6-6a6 6 0 0 0-6-6z"></path><path d="M12 2a10 10 0 0 0-10 10c0 5.5 4.5 10 10 10s10-4.5 10-10A10 10 0 0 0 12 2z"></path></svg>
@@ -352,7 +352,7 @@ export const openVerificationSlip = (data) => {
             </div>
           </div>
         </div>
-
+` + `
         <!-- BACK -->
         <div class="card-back">
           <div class="card-bg" style="transform: rotate(15deg) scale(1.5);"></div>
@@ -387,7 +387,7 @@ export const openVerificationSlip = (data) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>NIN Verification Slip - ${displayId}</title>
-        <style>
+        <style>` + `
           body {
             font-family: 'Arial', Helvetica, sans-serif;
             background-color: #fff;
@@ -439,7 +439,7 @@ export const openVerificationSlip = (data) => {
             flex-direction: column;
             gap: 6px;
           }
-
+` + `
           .photo-cell {
             padding: 0 !important;
             vertical-align: top;
@@ -489,7 +489,7 @@ export const openVerificationSlip = (data) => {
                 <h3>Federal Republic of Nigeria</h3>
               </td>
             </tr>
-            
+` + `
             <!-- ROW 1 -->
             <tr>
               <td style="width: 25%;">
@@ -514,7 +514,7 @@ export const openVerificationSlip = (data) => {
                 ${data.photo ? `<img src="${data.photo}" alt="Profile Photo" />` : ''}
               </td>
             </tr>
-
+` + `
             <!-- ROW 2 -->
             <tr>
               <td>
@@ -533,7 +533,7 @@ export const openVerificationSlip = (data) => {
                 <div>${val(data.lga)}</div>
               </td>
             </tr>
-
+` + `
             <!-- ROW 3 -->
             <tr>
               <td>
@@ -552,7 +552,7 @@ export const openVerificationSlip = (data) => {
                 <div>${val(data.state)}</div>
               </td>
             </tr>
-
+` + `
             <!-- ROW 4 -->
             <tr>
               <td></td>
@@ -586,6 +586,7 @@ export const openVerificationSlip = (data) => {
                 </div>
                 <div style="font-weight: bold; font-size: 12px;">www.nimc.gov.ng</div>
               </td>
+` + `
               <td style="width: 25%; text-align: center; vertical-align: middle; padding: 15px 5px; border-right: 1px solid #000;">
                 <div style="margin-bottom: 5px;">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
@@ -600,7 +601,7 @@ export const openVerificationSlip = (data) => {
             </tr>
           </table>
         </div>
-        
+` + `
         <div style="max-width: 1100px; margin: 15px auto 0; padding: 0; font-size: 12px; color: #555; display: flex; justify-content: space-between;">
           <div><b>Reference ID:</b> ${val(data.reportId)}</div>
           <div><b>Verification Status:</b> Verified</div>
