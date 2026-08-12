@@ -146,7 +146,7 @@ const IdentityPurchase = ({ user }) => {
     }
 
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (!isLocalhost && ['bvn-verify', 'bvn-phone', 'nin-modification'].includes(serviceId)) {
+    if (!isLocalhost && ['bvn-phone', 'nin-modification'].includes(serviceId)) {
       setPlanError('This service is temporarily unavailable on the live website while we undergo maintenance.');
       setLoadingPlan(false);
       return;
