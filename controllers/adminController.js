@@ -4222,6 +4222,4 @@ export const getServiceRequestDocuments = async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: "Error fetching documents: " + err.message });
     }
-};
-i m p o r t   M a n u a l A p p l i c a t i o n   f r o m   ' . . / m o d e l s / M a n u a l A p p l i c a t i o n . j s ' ;  
- 
+};

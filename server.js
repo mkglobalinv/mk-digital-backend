@@ -81,6 +81,7 @@ import { clearTelemetryCache, getLatestCpuUsage } from "./controllers/adminContr
 import resellerPricingRoutes from "./routes/reseller/resellerPricingRoutes.js";
 import retailPurchaseRoutes from "./routes/retail/retailPurchaseRoutes.js";
 import identityRoutes from "./routes/retail/identityRoutes.js";
+import bvnRoutes from "./routes/bvnRoutes.js";
 import plotRoutes from "./routes/plotRoutes.js";
 import serviceStatusRoutes from "./routes/serviceStatusRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
@@ -515,6 +516,7 @@ app.use("/api/developer", developerRoutes);
 app.use("/api/reseller/v2/pricing", resellerPricingRoutes);
 app.use("/api/retail/purchase", retailPurchaseRoutes);
 app.use("/api/retail/identity", identityRoutes);
+app.use("/api/bvn", bvnRoutes);
 app.use("/api/service-status", serviceStatusRoutes);
 app.use("/api/data-categories", dataCategoryRoutes);
 app.use("/api/management", managementRoutes);
