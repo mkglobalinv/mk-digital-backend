@@ -7,6 +7,7 @@ import NinModifyModal from './NinModifyModal';
 import BvnModifyModal from './BvnModifyModal';
 import CacModal from './CacModal';
 import { useNavigate } from 'react-router-dom';
+import { useBranding } from '../../context/BrandingContext';
 import './FintechComponents.css';
 
 /**
@@ -26,6 +27,8 @@ const IDENTITY_SERVICES = [
 
 const IdentityServicesGrid = ({ isReseller = false }) => {
   const navigate = useNavigate();
+  const siteInfo = useBranding();
+  const activatedManualServices = siteInfo?.activatedManualServices || [];
   const [expanded, setExpanded] = useState(false);
   const [showNinModifyModal, setShowNinModifyModal] = useState(false);
   const [showVbnModifyModal, setShowVbnModifyModal] = useState(false);
@@ -59,8 +62,17 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
 
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const availableServices = IDENTITY_SERVICES.filter(svc => {
-    if (['bvn-verify', 'bvn-phone', 'nin-modification'].includes(svc.api_plan_id)) {
+    if (['bvn-phone', 'nin-modification'].includes(svc.api_plan_id)) {
       return isLocalhost;
+    }
+    if (svc.api_plan_id === 'nin-phone') {
+      return activatedManualServices.includes('nin_modification');
+    }
+    if (svc.api_plan_id === 'nin-tracking') {
+      return activatedManualServices.includes('bvn_modification');
+    }
+    if (svc.api_plan_id === 'nin-demographics') {
+      return activatedManualServices.includes('cac_registration');
     }
     return true;
   });

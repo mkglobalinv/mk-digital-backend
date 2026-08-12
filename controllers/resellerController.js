@@ -1719,6 +1719,8 @@ export const seenBusinessGuide = async (req, res) => {
     }
 };
 
+import { clearResellerCache } from '../middlewares/whiteLabel.js';
+
 export const toggleManualService = async (req, res) => {
     try {
         const { serviceType, enabled } = req.body;
@@ -1745,6 +1747,7 @@ export const toggleManualService = async (req, res) => {
         
         user.activatedManualServices = activated;
         await user.save();
+        clearResellerCache();
         
         return res.json({ 
             status: 'success', 

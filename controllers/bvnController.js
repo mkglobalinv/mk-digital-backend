@@ -1,4 +1,4 @@
-import { verifyBvnWithBillSplash } from '../services/providers/billSplashBvnService.js';
+import { verifyBVNWithBillsplash } from '../services/providers/billsplash.js';
 
 export const verifyBvn = async (req, res) => {
     try {
@@ -27,13 +27,20 @@ export const verifyBvn = async (req, res) => {
         const typeToUse = slip_type || 'standard';
 
         // 2. Call Service
-        const providerData = await verifyBvnWithBillSplash(bvn, typeToUse);
+        const providerResponse = await verifyBVNWithBillsplash(bvn);
+
+        if (!providerResponse.success) {
+            return res.status(400).json({
+                status: 'error',
+                message: providerResponse.message || 'Verification failed'
+            });
+        }
 
         // 3. Return Success based on 9JASUB identity/vtu convention
         return res.json({
             status: 'success',
             message: 'BVN verification successful',
-            data: providerData
+            data: providerResponse.data
         });
 
     } catch (error) {

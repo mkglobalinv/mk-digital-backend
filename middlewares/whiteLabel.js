@@ -173,7 +173,8 @@ export const whiteLabelMiddleware = async (req, res, next) => {
                     footerText: reseller.branding?.footerText
                 },
                 maintenanceMode: reseller.maintenanceMode,
-                serviceControl: reseller.serviceControl
+                serviceControl: reseller.serviceControl,
+                activatedManualServices: reseller.activatedManualServices || []
             };
         }
 

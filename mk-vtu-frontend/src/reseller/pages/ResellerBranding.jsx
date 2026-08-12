@@ -115,7 +115,15 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
             const res = await API.post('/api/reseller/manual-services/toggle', { serviceType, enabled });
             if (res.data.status === 'success') {
                 setSettings({...settings, activatedManualServices: res.data.data.activatedManualServices});
-                toast.success(res.data.message);
+                
+                const serviceNames = {
+                    'nin_modification': 'NIN Modification',
+                    'bvn_modification': 'BVN Modification',
+                    'cac_registration': 'CAC Registration'
+                };
+                const name = serviceNames[serviceType] || 'Service';
+                const action = enabled ? 'added to' : 'removed from';
+                toast.success(`${name} ${action} your website.`);
             }
         } catch (err) {
             toast.error('Failed to toggle service');
@@ -334,35 +342,70 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
                     </button>
                     
                     <div style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-                        <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>Services for My Customers</h2>
-                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>Add more services to your website. Activation is instant and no approval is required.</p>
+                        <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>Add More Services</h2>
+                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '12px' }}>
+                            Optional manual services you can add to your website. Earn when your customer's application is successfully completed.
+                        </p>
                         
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                        <div style={{ 
+                            background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', 
+                            padding: '12px', marginBottom: '24px', fontSize: '13px', color: '#1e3a8a' 
+                        }}>
+                            <strong>Note:</strong> You earn the commission only after your customer's application is successfully completed. Adding a service to your website does not generate a commission.
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
                             {[
-                                { id: 'nin_modification', title: 'NIN Modification' },
-                                { id: 'bvn_modification', title: 'BVN Modification' },
-                                { id: 'cac_registration', title: 'CAC Registration' }
+                                { 
+                                    id: 'nin_modification', 
+                                    title: 'NIN Modification',
+                                    description: 'Help customers modify their NIN details.',
+                                    earning: 'Earn ₦100 for each successfully completed service'
+                                },
+                                { 
+                                    id: 'bvn_modification', 
+                                    title: 'BVN Modification',
+                                    description: 'Assist customers with BVN updates.',
+                                    earning: 'Earn ₦100 for each successfully completed service'
+                                },
+                                { 
+                                    id: 'cac_registration', 
+                                    title: 'CAC Registration',
+                                    description: 'Register businesses for your customers.',
+                                    earning: 'Earn ₦500 for each successfully completed registration'
+                                }
                             ].map(service => {
                                 const isActive = settings.activatedManualServices?.includes(service.id);
                                 return (
-                                    <div key={service.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div key={service.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between' }}>
                                         <div>
-                                            <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 4px' }}>{service.title}</h3>
-                                            <span style={{ fontSize: '12px', color: isActive ? '#10b981' : '#64748b', fontWeight: '500' }}>
-                                                {isActive ? 'ACTIVE' : 'INACTIVE'}
-                                            </span>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                                                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0' }}>{service.title}</h3>
+                                                <span style={{ 
+                                                    fontSize: '11px', padding: '2px 8px', borderRadius: '12px', fontWeight: '600',
+                                                    background: isActive ? '#d1fae5' : '#f1f5f9',
+                                                    color: isActive ? '#059669' : '#64748b'
+                                                }}>
+                                                    {isActive ? 'ACTIVE' : 'INACTIVE'}
+                                                </span>
+                                            </div>
+                                            <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 12px' }}>{service.description}</p>
+                                            <div style={{ fontSize: '13px', fontWeight: '600', color: '#059669', background: '#ecfdf5', padding: '8px', borderRadius: '6px', display: 'inline-block' }}>
+                                                {service.earning}
+                                            </div>
                                         </div>
                                         <button 
                                             type="button"
                                             onClick={() => handleToggleService(service.id, !isActive)}
                                             style={{ 
-                                                padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px',
-                                                background: isActive ? '#fef2f2' : '#eff6ff',
-                                                color: isActive ? '#ef4444' : '#3b82f6',
-                                                border: `1px solid ${isActive ? '#fca5a5' : '#bfdbfe'}`
+                                                padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px',
+                                                background: isActive ? '#fef2f2' : '#3b82f6',
+                                                color: isActive ? '#ef4444' : '#ffffff',
+                                                border: isActive ? '1px solid #fca5a5' : 'none',
+                                                width: '100%', transition: 'all 0.2s', marginTop: 'auto'
                                             }}
                                         >
-                                            {isActive ? 'Remove' : 'Add to My Website'}
+                                            {isActive ? 'Remove from My Website' : 'Add to My Website'}
                                         </button>
                                     </div>
                                 );

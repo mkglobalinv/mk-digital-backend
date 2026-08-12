@@ -1123,7 +1123,8 @@ app.get("/api/site-info", async (req, res) => {
                     maintenanceMode: found.maintenanceMode,
                     serviceControl: found.serviceControl,
                     resellerTier: found.resellerTier,
-                    enabledFuturePlatforms: found.enabledFuturePlatforms
+                    enabledFuturePlatforms: found.enabledFuturePlatforms,
+                    activatedManualServices: found.activatedManualServices || []
                 };
             }
         }
