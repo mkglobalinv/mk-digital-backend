@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, AlertTriangle, Info, Check, Upload, Eye, EyeOff, Send, Calendar, Smartphone, MapPin, Map, UserCog, ArrowLeft } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-import API from "../../api";
+import API from '../../api';
 const MODIFICATION_TYPES = [
   { id: 'name', title: 'Name Modification', desc: 'Correct or change name on NIN records', price: 6500, priceFormatted: '₦6,500', icon: UserCog, color: '#8B5CF6' },
   { id: 'dob', title: 'Date of Birth Modification', desc: 'Correct date of birth on NIN records', price: 37500, priceFormatted: '₦37,500', icon: Calendar, color: '#EC4899' },
