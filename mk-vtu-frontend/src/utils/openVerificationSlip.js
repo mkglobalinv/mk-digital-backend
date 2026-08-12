@@ -313,29 +313,29 @@ export const openVerificationSlip = (data) => {
             
             <div class="middle">
               <div class="photo">
-                \${data.photo ? \`<img src="\${data.photo}" alt="Photo" />\` : \`<div class="no-photo">NO PHOTO</div>\`}
+                ${data.photo ? '<img src="' + data.photo + '" alt="Photo" />' : '<div class="no-photo">NO PHOTO</div>'}
               </div>
               <div class="details">
                 <div class="field">
                   <div class="label">SURNAME</div>
-                  <div class="value">\${val(data.surname) || '—'}</div>
+                  <div class="value">${val(data.surname) || '—'}</div>
                 </div>
                 <div class="field">
                   <div class="label">FIRSTNAME/OTHER NAMES</div>
-                  <div class="value">\${otherNames || '—'}</div>
+                  <div class="value">${otherNames || '—'}</div>
                 </div>
                 <div class="row">
                   <div class="field">
                     <div class="label">DATE OF BIRTH</div>
-                    <div class="value" style="font-size: 14px;">\${dobStr || '—'}</div>
+                    <div class="value" style="font-size: 14px;">${dobStr || '—'}</div>
                   </div>
                   <div class="field">
                     <div class="label">GENDER</div>
-                    <div class="value" style="font-size: 14px;">\${genderShort || '—'}</div>
+                    <div class="value" style="font-size: 14px;">${genderShort || '—'}</div>
                   </div>
                   <div class="field">
                     <div class="label">ISSUE DATE</div>
-                    <div class="value" style="font-size: 14px;">\${todayStr}</div>
+                    <div class="value" style="font-size: 14px;">${todayStr}</div>
                   </div>
                 </div>
               </div>
@@ -347,7 +347,7 @@ export const openVerificationSlip = (data) => {
               </div>
               <div class="bvn-wrapper">
                 <div class="bvn-label">BANK VERIFICATION NUMBER (BVN)</div>
-                <div class="bvn-value">\${formattedBvnSpaced}</div>
+                <div class="bvn-value">${formattedBvnSpaced}</div>
               </div>
             </div>
           </div>
@@ -377,7 +377,7 @@ export const openVerificationSlip = (data) => {
         <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
       </body>
       </html>
-    \`;
+    `;
   } else {
     // STANDARD NIN SLIP LAYOUT (100% PRESERVED)
     slipHTML = `
