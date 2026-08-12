@@ -38,8 +38,8 @@ export const openVerificationSlip = (data) => {
   let slipHTML = '';
 
   if (isBvn) {
-    // ELEGANT OFFICIAL BVN CARD LAYOUT (Matching Billsplash Official BVN Format)
     slipHTML = `
+
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -48,300 +48,336 @@ export const openVerificationSlip = (data) => {
         <title>Bank Verification Number (BVN) - ${displayId}</title>
         <style>
           body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: #f1f5f9;
             margin: 0;
-            padding: 30px 15px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #0f172a;
+            gap: 20px;
           }
-          .bvn-wrapper {
+          .card-container {
+            width: 580px;
+            height: 360px;
+            background: #ffffff;
+            border: 1px solid #94a3b8;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            background-image: 
+              radial-gradient(circle at 50% 50%, rgba(37,99,235,0.03) 0%, transparent 60%);
+          }
+          /* Custom background wavy pattern SVG */
+          .card-bg {
+            position: absolute;
+            top: -50%; left: -50%; right: -50%; bottom: -50%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M0,100 Q50,50 100,100 T200,100" fill="none" stroke="%23cbd5e1" stroke-width="0.5"/><path d="M0,120 Q50,70 100,120 T200,120" fill="none" stroke="%23cbd5e1" stroke-width="0.5"/></svg>') repeat;
+            opacity: 0.6;
+            z-index: 1;
+            transform: rotate(-15deg);
+            pointer-events: none;
+          }
+          .card-content {
+            position: relative;
+            z-index: 2;
             width: 100%;
-            max-width: 580px;
+            height: 100%;
+            padding: 16px 24px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 24px;
           }
-          .bvn-card-front {
-            background: #ffffff;
-            border-radius: 20px;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            padding: 24px;
-            position: relative;
-            box-sizing: border-box;
-            background-image: 
-              radial-gradient(circle at 95% 10%, rgba(37, 99, 235, 0.04) 0%, transparent 40%),
-              radial-gradient(circle at 5% 90%, rgba(37, 99, 235, 0.03) 0%, transparent 40%);
-          }
-          .card-header-top {
+          
+          /* TOP HEADER */
+          .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 20px;
           }
-          .title-block {
-            color: #1e3a8a;
-            font-size: 16px;
-            font-weight: 800;
+          .header-left {
+            display: flex;
+            gap: 4px;
+          }
+          .vertical-text {
+            writing-mode: vertical-lr;
+            transform: rotate(180deg);
+            font-size: 7px;
+            color: #64748b;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
-            line-height: 1.2;
-            width: 160px;
+            margin-top: 5px;
           }
-          .shield-icon-center {
-            width: 38px;
-            height: 38px;
+          .title-text {
+            color: #1e3a8a;
+            font-size: 15px;
+            font-weight: bold;
+            line-height: 1.15;
+            letter-spacing: 0.5px;
+          }
+          .header-center {
+            position: absolute;
+            left: 46%;
+            top: 20px;
+            width: 40px;
+            height: 40px;
+            background: #e2e8f0;
             border-radius: 50%;
-            background: #eff6ff;
-            border: 2px solid #3b82f6;
+            border: 2px solid #94a3b8;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
           }
-          .header-right-graphics {
+          .header-right {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: flex-start;
+            gap: 15px;
           }
-          .thumbs-up-badge {
-            width: 32px;
-            height: 32px;
-            background: #2563eb;
-            border-radius: 8px;
+          .nga-container {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            color: white;
           }
-          .fingerprint-icon {
-            width: 36px;
-            height: 36px;
-            color: #334155;
-          }
-          .nga-text {
-            color: #16a34a;
-            font-weight: 800;
-            font-size: 20px;
-            letter-spacing: 1px;
-          }
-          .card-body-main {
+          
+          /* MIDDLE SECTION */
+          .middle {
             display: flex;
             gap: 20px;
-            margin-bottom: 18px;
+            margin-top: 15px;
           }
-          .photo-container {
+          .photo {
             width: 120px;
             height: 145px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #e2e8f0;
+            background: #cbd5e1;
             border: 1px solid #94a3b8;
-            flex-shrink: 0;
           }
-          .photo-container img {
+          .photo img {
             width: 100%;
             height: 100%;
             object-fit: cover;
           }
-          .no-photo-placeholder {
-            width: 100%;
-            height: 100%;
+          .no-photo {
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 100%;
+            font-size: 10px;
             color: #64748b;
-            font-size: 11px;
             text-align: center;
-            padding: 10px;
-            box-sizing: border-box;
-            font-weight: 600;
           }
-          .info-grid {
-            flex: 1;
+          .details {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            padding-top: 5px;
+            padding-bottom: 5px;
           }
-          .info-group {
+          .field {
             display: flex;
             flex-direction: column;
+            gap: 2px;
           }
-          .info-label {
+          .label {
             font-size: 11px;
-            color: #64748b;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            color: #94a3b8;
+            font-weight: bold;
           }
-          .info-value {
+          .value {
             font-size: 16px;
             color: #0f172a;
-            font-weight: 800;
-            text-transform: uppercase;
+            font-weight: bold;
           }
-          .meta-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            margin-top: 4px;
+          .row {
+            display: flex;
+            gap: 25px;
           }
-          .bvn-number-section {
-            border-top: 1px dashed #cbd5e1;
-            padding-top: 14px;
-            text-align: center;
+          
+          /* BOTTOM SECTION */
+          .bottom {
+            margin-top: auto;
+            display: flex;
+            align-items: flex-end;
+            position: relative;
+            padding-bottom: 5px;
           }
-          .bvn-title-sm {
-            color: #1d4ed8;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+          .bottom-left-fp {
+            position: absolute;
+            left: -5px;
+            bottom: 0px;
+          }
+          .bvn-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-left: 30px;
+          }
+          .bvn-label {
+            color: #1e3a8a;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
             margin-bottom: 4px;
           }
-          .bvn-giant-number {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 32px;
+          .bvn-value {
+            font-size: 38px;
             font-weight: 900;
-            color: #0f172a;
-            letter-spacing: 5px;
+            color: #000;
+            letter-spacing: 6px;
+            font-family: 'Arial', sans-serif;
           }
 
-          .bvn-card-back {
+          /* BACK CARD */
+          .card-back {
+            width: 580px;
+            height: 360px;
             background: #ffffff;
-            border-radius: 20px;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: 1px solid #94a3b8;
+            border-radius: 12px;
             position: relative;
             overflow: hidden;
-            background-image: radial-gradient(circle at 10% 90%, rgba(37, 99, 235, 0.04) 0%, transparent 50%);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
           }
-          .back-brand {
+          .back-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-left: -60px;
+          }
+          .back-logo-row {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 15px;
           }
-          .back-text-block {
+          .back-text {
+            font-size: 22px;
+            font-weight: bold;
             color: #0f172a;
-            font-weight: 800;
-            font-size: 20px;
             line-height: 1.2;
           }
 
-          .actions-area {
-            margin-top: 24px;
-            text-align: center;
-          }
           .print-btn {
             background: #2563eb;
-            color: #ffffff;
+            color: white;
+            padding: 12px 24px;
             border: none;
-            padding: 14px 32px;
+            border-radius: 8px;
             font-size: 16px;
-            border-radius: 10px;
-            font-weight: 700;
+            font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+            box-shadow: 0 4px 6px rgba(37,99,235,0.2);
+            margin-top: 20px;
           }
-          .print-btn:hover { background: #1d4ed8; }
-
           @media print {
-            body { background: #ffffff; padding: 0; }
-            .actions-area { display: none; }
-            .bvn-card-front, .bvn-card-back { box-shadow: none; page-break-inside: avoid; }
+            body { background: white; padding: 0; }
+            .print-btn { display: none; }
+            .card-container, .card-back { box-shadow: none; margin-bottom: 30px; page-break-inside: avoid; }
           }
         </style>
       </head>
       <body>
-        <div class="bvn-wrapper">
-          <!-- FRONT OF CARD -->
-          <div class="bvn-card-front">
-            <div class="card-header-top">
-              <div class="title-block">
-                BANK VERIFICATION NUMBER
+        <!-- FRONT -->
+        <div class="card-container">
+          <div class="card-bg"></div>
+          <div class="card-content">
+            <div class="header">
+              <div class="header-left">
+                <div class="vertical-text">Financial Industry</div>
+                <div class="title-text">BANK<br>VERIFICATION<br>NUMBER</div>
               </div>
-              <div class="shield-icon-center">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <div class="header-center">
+                <!-- Silver shield icon mock -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4" stroke="#1e3a8a"></path></svg>
               </div>
-              <div class="header-right-graphics">
-                <div class="thumbs-up-badge">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                </div>
-                <svg class="fingerprint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 10a2 2 0 0 0-2 2c0 1.1.9 2 2 2s2-.9 2-2a2 2 0 0 0-2-2z"></path><path d="M12 6a6 6 0 0 0-6 6c0 3.3 2.7 6 6 6s6-2.7 6-6a6 6 0 0 0-6-6z"></path><path d="M12 2a10 10 0 0 0-10 10c0 5.5 4.5 10 10 10s10-4.5 10-10A10 10 0 0 0 12 2z"></path></svg>
-                <span class="nga-text">NGA</span>
-              </div>
-            </div>
-
-            <div class="card-body-main">
-              <div class="photo-container">
-                ${data.photo ? `<img src="${data.photo}" alt="Passport Photo" />` : `<div class="no-photo-placeholder">PHOTO NOT AVAILABLE</div>`}
-              </div>
-              <div class="info-grid">
-                <div class="info-group">
-                  <span class="info-label">SURNAME</span>
-                  <span class="info-value">${val(data.surname) || '—'}</span>
-                </div>
-                <div class="info-group">
-                  <span class="info-label">FIRSTNAME/OTHER NAMES</span>
-                  <span class="info-value">${otherNames || '—'}</span>
-                </div>
-                <div class="meta-row">
-                  <div class="info-group">
-                    <span class="info-label">DATE OF BIRTH</span>
-                    <span class="info-value" style="font-size: 13px;">${dobStr || '—'}</span>
-                  </div>
-                  <div class="info-group">
-                    <span class="info-label">GENDER</span>
-                    <span class="info-value" style="font-size: 13px;">${genderShort || '—'}</span>
-                  </div>
-                  <div class="info-group">
-                    <span class="info-label">ISSUE DATE</span>
-                    <span class="info-value" style="font-size: 13px;">${todayStr}</span>
-                  </div>
+              <div class="header-right">
+                <!-- Blue Thumbs up -->
+                <svg width="45" height="45" viewBox="0 0 24 24" fill="#3b82f6" style="margin-top: 10px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                
+                <div class="nga-container">
+                  <!-- Large Fingerprint -->
+                  <svg width="65" height="75" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.2" stroke-linecap="round"><path d="M12 10a2 2 0 0 0-2 2c0 1.1.9 2 2 2s2-.9 2-2a2 2 0 0 0-2-2z"></path><path d="M12 6a6 6 0 0 0-6 6c0 3.3 2.7 6 6 6s6-2.7 6-6a6 6 0 0 0-6-6z"></path><path d="M12 2a10 10 0 0 0-10 10c0 5.5 4.5 10 10 10s10-4.5 10-10A10 10 0 0 0 12 2z"></path><path d="M12 14a4 4 0 0 1 4-4"></path><path d="M12 18a8 8 0 0 1 8-8"></path></svg>
+                  <div style="color: #16a34a; font-weight: bold; font-size: 20px; margin-top: -5px; letter-spacing: 1px;">NGA</div>
                 </div>
               </div>
             </div>
-
-            <div class="bvn-number-section">
-              <div class="bvn-title-sm">BANK VERIFICATION NUMBER (BVN)</div>
-              <div class="bvn-giant-number">${formattedBvnSpaced}</div>
+            
+            <div class="middle">
+              <div class="photo">
+                \${data.photo ? \`<img src="\${data.photo}" alt="Photo" />\` : \`<div class="no-photo">NO PHOTO</div>\`}
+              </div>
+              <div class="details">
+                <div class="field">
+                  <div class="label">SURNAME</div>
+                  <div class="value">\${val(data.surname) || '—'}</div>
+                </div>
+                <div class="field">
+                  <div class="label">FIRSTNAME/OTHER NAMES</div>
+                  <div class="value">\${otherNames || '—'}</div>
+                </div>
+                <div class="row">
+                  <div class="field">
+                    <div class="label">DATE OF BIRTH</div>
+                    <div class="value" style="font-size: 14px;">\${dobStr || '—'}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">GENDER</div>
+                    <div class="value" style="font-size: 14px;">\${genderShort || '—'}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">ISSUE DATE</div>
+                    <div class="value" style="font-size: 14px;">\${todayStr}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bottom">
+              <div class="bottom-left-fp">
+                 <svg width="45" height="55" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M12 10a2 2 0 0 0-2 2c0 1.1.9 2 2 2s2-.9 2-2a2 2 0 0 0-2-2z"></path><path d="M12 6a6 6 0 0 0-6 6c0 3.3 2.7 6 6 6s6-2.7 6-6a6 6 0 0 0-6-6z"></path><path d="M12 2a10 10 0 0 0-10 10c0 5.5 4.5 10 10 10s10-4.5 10-10A10 10 0 0 0 12 2z"></path></svg>
+              </div>
+              <div class="bvn-wrapper">
+                <div class="bvn-label">BANK VERIFICATION NUMBER (BVN)</div>
+                <div class="bvn-value">\${formattedBvnSpaced}</div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- BACK OF CARD -->
-          <div class="bvn-card-back">
-            <div class="back-brand">
-              <div class="thumbs-up-badge" style="width: 54px; height: 54px; border-radius: 14px;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+        <!-- BACK -->
+        <div class="card-back">
+          <div class="card-bg" style="transform: rotate(15deg) scale(1.5);"></div>
+          
+          <div style="position: absolute; right: 0; bottom: 0; opacity: 0.05;">
+             <svg width="300" height="400" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="0.5"><path d="M12 10a2 2 0 0 0-2 2c0 1.1.9 2 2 2s2-.9 2-2a2 2 0 0 0-2-2z"></path><path d="M12 6a6 6 0 0 0-6 6c0 3.3 2.7 6 6 6s6-2.7 6-6a6 6 0 0 0-6-6z"></path><path d="M12 2a10 10 0 0 0-10 10c0 5.5 4.5 10 10 10s10-4.5 10-10A10 10 0 0 0 12 2z"></path></svg>
+          </div>
+
+          <div class="back-content">
+            <svg width="90" height="90" viewBox="0 0 24 24" fill="#3b82f6" style="margin-bottom: -10px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+            <div class="back-logo-row">
+              <div style="width: 45px; height: 45px; background: #e2e8f0; border-radius: 50%; border: 2px solid #94a3b8; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4" stroke="#1e3a8a"></path></svg>
               </div>
-              <div class="shield-icon-center" style="width: 44px; height: 44px;">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-              </div>
-              <div class="back-text-block">
+              <div class="back-text">
                 Bank<br>Verification<br>Number
               </div>
             </div>
           </div>
-
-          <div class="actions-area">
-            <button class="print-btn" onclick="window.print()">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-              Print / Save PDF
-            </button>
-          </div>
         </div>
+
+        <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
       </body>
       </html>
-    `;
+    \`;
   } else {
     // STANDARD NIN SLIP LAYOUT (100% PRESERVED)
     slipHTML = `
