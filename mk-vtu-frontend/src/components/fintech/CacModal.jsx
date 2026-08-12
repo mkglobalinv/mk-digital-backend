@@ -4,7 +4,7 @@ import {
   Check, Upload, ChevronRight, Info, Send, FileText, Plus, Trash2
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-import API from '../../../api';
+import API from '../../api';
 const WHATSAPP_NUMBER = '2347081385387';
 
 const CAC_PACKAGES = [
