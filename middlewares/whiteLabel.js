@@ -160,7 +160,7 @@ export const whiteLabelMiddleware = async (req, res, next) => {
                 customDomain: reseller.customDomain,
                 resellerTier: reseller.resellerTier,
                 branding: {
-                    siteName: reseller.branding?.siteName || reseller.name,
+                    siteName: reseller.branding?.siteName || reseller.onboardingData?.brandName || reseller.onboardingData?.businessName || reseller.name,
                     logo: reseller.branding?.logo,
                     favicon: reseller.branding?.favicon,
                     primaryColor: reseller.branding?.primaryColor || '#3b82f6',

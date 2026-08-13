@@ -10,11 +10,20 @@ dotenv.config();
 const getBrandingForEmail = async (email) => {
     try {
         const user = await User.findOne({ email }).populate('tenantOwnerId').lean();
-        if (user && user.tenantOwnerId && user.tenantOwnerId.branding) {
-            return user.tenantOwnerId.branding;
+        if (user && user.tenantOwnerId) {
+            const tenant = user.tenantOwnerId;
+            return {
+                ...(tenant.branding || {}),
+                siteName: tenant.branding?.siteName || tenant.onboardingData?.brandName || tenant.onboardingData?.businessName || tenant.name,
+                primaryColor: tenant.branding?.primaryColor || "#3B82F6"
+            };
         }
-        if (user && user.branding) {
-            return user.branding;
+        if (user) {
+            return {
+                ...(user.branding || {}),
+                siteName: user.branding?.siteName || user.onboardingData?.brandName || user.onboardingData?.businessName || user.name,
+                primaryColor: user.branding?.primaryColor || "#3B82F6"
+            };
         }
     } catch (e) {
         console.error("Email branding lookup error", e);
