@@ -246,6 +246,51 @@ export const buyCableTVWithPeyflex = async (cableName, packageId, smartcard, pho
 };
 
 /**
+ * Get Education Prices from Peyflex
+ */
+let cachedEducationPrices = null;
+let lastEducationPricesFetch = 0;
+
+export const getEducationPricesFromPeyflex = async () => {
+    if (!PEYFLEX_API_TOKEN) return null;
+
+    // Cache for 10 minutes to avoid spamming the provider
+    if (cachedEducationPrices && (Date.now() - lastEducationPricesFetch) < 600000) {
+        return cachedEducationPrices;
+    }
+
+    try {
+        const response = await peyflexClient.get('/api/education/providers/');
+        const data = response.data;
+
+        if (data && String(data.status).toUpperCase() === 'SUCCESS' && data.providers && data.providers.length > 0) {
+            const eduProvider = data.providers.find(p => p.identifier === 'education');
+            if (eduProvider && eduProvider.plans) {
+                const prices = {};
+                eduProvider.plans.forEach(plan => {
+                    prices[String(plan.plan_id).toLowerCase()] = Number(plan.unit_price);
+                });
+                
+                // Map aliases used by our frontend
+                if (prices['waec']) {
+                    prices['waecdirect'] = prices['waec'];
+                    prices['waec-registration'] = prices['waec'];
+                }
+
+                cachedEducationPrices = prices;
+                lastEducationPricesFetch = Date.now();
+                return prices;
+            }
+        }
+    } catch (error) {
+        console.error(`[PeyFlex V2] Error fetching education prices:`, error.message);
+    }
+    
+    // Return cached if fetch fails
+    return cachedEducationPrices;
+};
+
+/**
  * Buy Education PIN Service
  */
 export const buyEducationWithPeyflex = async (examType, phone, quantity = 1) => {

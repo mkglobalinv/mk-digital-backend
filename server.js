@@ -129,6 +129,7 @@ console.log(`[Startup] Loaded ${JARAPOINT_PLANS.length} Jarapoint plans.`);
 
 
 import { calculateVtuPrice, calculateBulkDataPrices } from './services/pricing/vtuPricing.js';
+import { getEducationPricesFromPeyflex } from './services/providers/peyflexV2.js';
 import queueService from './services/queueService.js';
 import { jobQueue } from './services/jobQueueService.js';
 import { startProviderMonitoring } from './services/providerMonitoringService.js';
@@ -1829,12 +1830,20 @@ app.post("/api/retail/purchase/buy-epin", auth, verifyTransactionPin, transactio
 
 // GET: Authoritative Education pricing — frontend uses this to display prices without hardcoding
 app.get("/api/retail/education/prices", auth, async (req, res) => {
+    // Dynamically fetch from Peyflex
+    const peyflexPrices = await getEducationPricesFromPeyflex() || {
+        'waecdirect': 5350,
+        'waec-registration': 5350,
+        'neco': 5350,
+        'nabteb': 5350
+    };
+
     return res.json({
         plans: [
-            { id: 'waecdirect',        label: 'WAEC Result Checker',  price: 5350 },
-            { id: 'waec-registration', label: 'WAEC Registration',    price: 5350 },
-            { id: 'neco',              label: 'NECO Result Checker',   price: 5350 },
-            { id: 'nabteb',            label: 'NABTEB Result Checker', price: 5350 }
+            { id: 'waecdirect',        label: 'WAEC Result Checker',  price: peyflexPrices['waecdirect'] || 5350 },
+            { id: 'waec-registration', label: 'WAEC Registration',    price: peyflexPrices['waec-registration'] || 5350 },
+            { id: 'neco',              label: 'NECO Result Checker',   price: peyflexPrices['neco'] || 5350 },
+            { id: 'nabteb',            label: 'NABTEB Result Checker', price: peyflexPrices['nabteb'] || 5350 }
         ]
     });
 });
@@ -1847,13 +1856,16 @@ app.post("/api/retail/purchase/buy-education", auth, verifyTransactionPin, trans
 
     // Authoritative server-side pricing for Peyflex Education products.
     // Only Peyflex-confirmed plans are listed here. JAMB is NOT provided by Peyflex.
-    const EDUCATION_PRICES = {
-        'waecdirect':        5350,
-        'waec-registration': 5350,
-        'waec':              5350,
-        'neco':              5350,
-        'nabteb':            5350
-    };
+    let EDUCATION_PRICES = await getEducationPricesFromPeyflex();
+    if (!EDUCATION_PRICES) {
+        EDUCATION_PRICES = {
+            'waecdirect':        5350,
+            'waec-registration': 5350,
+            'waec':              5350,
+            'neco':              5350,
+            'nabteb':            5350
+        };
+    }
 
     // Validate examType — reject JAMB, DE, or any unrecognised product
     const unitPrice = EDUCATION_PRICES[String(examType).toLowerCase()];
