@@ -12,6 +12,19 @@ export const createPlatform = async (req, res) => {
         });
         
         await platform.save();
+
+        // Automatically enable this new platform for all users so it displays on their homepages
+        if (status) {
+            await User.updateMany(
+                {},
+                { $addToSet: { enabledFuturePlatforms: platform._id } }
+            );
+            
+            // Clear the cache to ensure homepages immediately reflect this change
+            const { clearResellerCache } = await import('../middlewares/whiteLabel.js');
+            clearResellerCache();
+        }
+
         res.status(201).json({ message: "Platform created successfully", platform });
     } catch (err) {
         console.error("[CreatePlatform Error]", err);

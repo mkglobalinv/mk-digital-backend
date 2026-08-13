@@ -12,14 +12,15 @@ export const getAllContent = async (req, res) => {
     if (type) query.type = type;
  
     if (reseller && platform !== 'global') {
-        if (reseller.resellerTier === 'premium') {
-            // Premium: Show ONLY their own banners (no global/admin banners)
-            query.resellerId = reseller._id;
-            query.ownerType = 'reseller';
-        } else {
-            // Basic: Show nothing (global is blocked)
-            query._id = null; // Forces empty result
+        let conditions = [];
+        // Premium: Show ONLY their own banners (no global/admin banners)
+        if (reseller.resellerTier === 'premium' || reseller.resellerTier === 'vip' || reseller.resellerTier === 'basic') {
+            conditions.push({ resellerId: reseller._id, ownerType: 'reseller' });
         }
+        // ALWAYS allow admin forced global content to show for all tiers
+        conditions.push({ forceGlobal: true, ownerType: 'admin' });
+        
+        query.$or = conditions;
     } else {
         // Main Platform or platform=global requested: Show only Admin banners
         query.ownerType = 'admin';
