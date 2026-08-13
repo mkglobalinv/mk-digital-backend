@@ -72,7 +72,7 @@ transporter.verify((error, success) => {
 });
 
 // --- 2. Email Flow Logging & SMTP Transport ---
-export const sendEmail = async (to, subject, html) => {
+export const sendEmail = async (to, subject, html, customBranding = null) => {
     try {
         console.log(`========== INITIATING EMAIL SEND ==========`);
         console.log(`SMTP Host: ${process.env.EMAIL_HOST || 'smtp-relay.brevo.com'}`);
@@ -81,7 +81,7 @@ export const sendEmail = async (to, subject, html) => {
         console.log(`Recipient Email: ${to}`);
         console.log(`Subject: ${subject}`);
 
-        const branding = await getBrandingForEmail(to);
+        const branding = customBranding || await getBrandingForEmail(to);
         const senderName = branding?.siteName || "9JASUB";
 
         const info = await transporter.sendMail({
@@ -112,17 +112,17 @@ export const sendEmail = async (to, subject, html) => {
 
 // --- 3. Transport Usage (Unchanged Business Logic) ---
 
-export const sendOTPEmail = async (email, otp) => {
+export const sendOTPEmail = async (email, otp, customBranding = null) => {
     console.log(`[DIAGNOSTICS] sendOTPEmail() entered for ${email} (OTP: ${otp})`);
-    const branding = await getBrandingForEmail(email);
+    const branding = customBranding || await getBrandingForEmail(email);
     const siteName = branding.siteName || "9JASUB";
     const primaryColor = branding.primaryColor || "#4CAF50";
     
-    const subject = `${siteName} OTP Verification`;
+    const subject = `${siteName} - Your Verification Code`;
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-            <h2 style="color: ${primaryColor}; text-align: center;">${siteName} OTP Verification</h2>
-            <p>Your verification OTP is:</p>
+            <h2 style="color: ${primaryColor}; text-align: center;">${siteName}</h2>
+            <p>Your ${siteName} verification code is ${otp}.</p>
             <div style="text-align: center; margin: 20px 0;">
                 <span style="font-size: 24px; font-weight: bold; padding: 10px 20px; background-color: #f4f4f4; border-radius: 5px; letter-spacing: 5px;">${otp}</span>
             </div>
@@ -132,7 +132,7 @@ export const sendOTPEmail = async (email, otp) => {
     `;
     try {
         console.log(`[DIAGNOSTICS] Calling transporter.sendMail via sendEmail for ${email}...`);
-        const result = await sendEmail(email, subject, html);
+        const result = await sendEmail(email, subject, html, customBranding);
         if (result) {
             console.log(`[DIAGNOSTICS] Successfully sent OTP email to ${email}. Brevo accepted.`);
             return true;
@@ -425,10 +425,10 @@ export const sendLoginAlertEmail = async (email, details) => {
     return sendEmail(email, subject, html);
 };
 // === Shared OTP dispatch helper ===
-export const dispatchOTP = async (email, otp) => {
+export const dispatchOTP = async (email, otp, customBranding = null) => {
   console.log(`OTP dispatch started for ${email}`);
   try {
-    const sent = await sendOTPEmail(email, otp);
+    const sent = await sendOTPEmail(email, otp, customBranding);
     if (sent) {
       console.log(`OTP dispatch succeeded for ${email}`);
       return true;

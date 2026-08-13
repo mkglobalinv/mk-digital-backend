@@ -12,10 +12,10 @@ import auditLogService from "../services/auditLogService.js";
 import { performance } from "perf_hooks";
 
 // === Shared OTP dispatch helper ===
-export const dispatchOTP = async (email, otp) => {
+export const dispatchOTP = async (email, otp, customBranding = null) => {
   console.log(`[DISPATCH OTP] Target recipient: ${email}, OTP: ${otp}`);
   try {
-    const sent = await sendEmailOTP(email, otp);
+    const sent = await sendEmailOTP(email, otp, customBranding);
     if (sent) {
       console.log(`[DISPATCH OTP] Success for ${email}`);
       return true;
@@ -104,7 +104,7 @@ export const register = async (req, res) => {
     const emailQueueStart = performance.now();
     console.log('[REGISTRATION] Recipient email:', newUser.email, 'OTP generated:', otp);
     console.log(`[AUTH] Dispatching registration OTP to ${newUser.email}`);
-    const emailSent = await dispatchOTP(newUser.email, otp);
+    const emailSent = await dispatchOTP(newUser.email, otp, req.reseller?.branding);
     const emailQueueTime = performance.now() - emailQueueStart;
 
     const reqTime = performance.now() - reqStart;
@@ -164,7 +164,7 @@ export const requestOTP = async (req, res) => {
     // Directly send OTP and record audit log
         console.log('[REQUEST OTP] Recipient email:', user.email, 'OTP generated:', otp);
         console.log(`[AUTH] Dispatching request OTP to ${user.email}`);
-        const emailSent = await dispatchOTP(user.email, otp);
+        const emailSent = await dispatchOTP(user.email, otp, req.reseller?.branding);
         const attemptsCount = await OTPAuditLog.countDocuments({ email, action: isResend ? "resend" : "request" });
         await OTPAuditLog.create({
           email,
@@ -216,7 +216,7 @@ export const resendEmailOTP = async (req, res) => {
     await OTP.create({ userId: user._id, hashedOtp, expiresAt });
 
     console.log(`[RESEND EMAIL OTP] OTP generated for ${email}. Dispatching...`);
-    const emailSent = await dispatchOTP(user.email, otp);
+    const emailSent = await dispatchOTP(user.email, otp, req.reseller?.branding);
     console.log(`[RESEND EMAIL OTP] Dispatch result for ${email}: ${emailSent ? 'SUCCESS' : 'FAILED'}`);
 
     const attemptsCount = await OTPAuditLog.countDocuments({ email, action: 'resend' });
@@ -750,7 +750,7 @@ export const requestPinOTP = async (req, res) => {
         // Store OTP
         await OTP.create({ userId: user._id, hashedOtp, expiresAt, purpose: 'PIN_RESET' });
         // Send OTP via email
-        const emailSent = await dispatchOTP(user.email, otp);
+        const emailSent = await dispatchOTP(user.email, otp, req.reseller?.branding);
         // Audit log
         await OTPAuditLog.create({ email, action: "request", purpose: "PIN_RESET", deliveryStatus: emailSent ? "sent" : "failed" });
         res.json({ success: true, message: "OTP sent to your email for PIN reset." });

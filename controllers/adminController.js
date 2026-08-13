@@ -148,7 +148,7 @@ export const adminLogin = async (req, res) => {
 
     let emailSent = true;
     try {
-        const sent = await dispatchOTP(user.email, otpCode);
+        const sent = await dispatchOTP(user.email, otpCode, req.reseller?.branding);
         if (!sent) {
             console.error("[Security] Admin OTP dispatch reported failure");
             emailSent = false;
@@ -1348,7 +1348,7 @@ export const initiateWalletAction = async (req, res) => {
         // Awaited OTP dispatch to ensure delivery outcome
         let emailSent = true;
         try {
-            const sent = await dispatchOTP(admin.email, otpCode);
+            const sent = await dispatchOTP(admin.email, otpCode, req.reseller?.branding);
             if (!sent) {
                 console.error("[Security] Admin OTP dispatch reported failure");
                 emailSent = false;
