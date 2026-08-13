@@ -186,13 +186,15 @@ export const generateAppAssets = async (user, jobId = null) => {
             await new Promise(r => setTimeout(r, 100));
         }
 
+        const tenantDomain = user.customDomain ? user.customDomain : (user.subdomain ? `${user.subdomain}.9jasub.com` : 'app.9jasub.com');
+
         // --- 5. GENERATE METADATA & PWA MANIFEST ---
         const metadata = {
             shortDescription: `Top up airtime, data, and pay bills easily with ${appName}.`,
             fullDescription: `${appName} is your one-stop solution for all your VTU needs in Nigeria. Get instant data top-up, airtime, electricity bill payments, and cable TV subscriptions at the best rates. Join thousands of satisfied users today!`,
             supportEmail: user.branding?.contactEmail || user.email,
-            privacyPolicyUrl: `https://${user.subdomain || 'app'}.9jasub.com/privacy-policy`,
-            websiteUrl: `https://${user.subdomain || 'app'}.9jasub.com`
+            privacyPolicyUrl: `https://${tenantDomain}/privacy-policy`,
+            websiteUrl: `https://${tenantDomain}`
         };
 
         const pwaManifest = {
@@ -269,7 +271,7 @@ export const generateAppAssets = async (user, jobId = null) => {
                 fs.mkdirSync(buildDir, { recursive: true });
                 copyRecursiveSync(templateDir, buildDir);
                 
-                const appUrl = `https://${user.subdomain || 'app'}.9jasub.com/dashboard`;
+                const appUrl = `https://${tenantDomain}/`;
                 
                 const stringsPath = path.join(buildDir, 'app', 'src', 'main', 'res', 'values', 'strings.xml');
                 let stringsContent = fs.readFileSync(stringsPath, 'utf8');
@@ -386,7 +388,7 @@ export const generateAppAssets = async (user, jobId = null) => {
             screenshots: screenshots,
             isReady: true,
             lastGeneratedAt: new Date(),
-            pwaUrl: `https://${user.subdomain || 'app'}.9jasub.com`
+            pwaUrl: `https://${tenantDomain}`
         };
 
         // Update AppRequest document

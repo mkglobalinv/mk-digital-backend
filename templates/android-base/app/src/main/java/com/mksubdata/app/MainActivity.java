@@ -15,13 +15,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // --- 10. ADD STARTUP CRASH LOGGING ---
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-            Log.e(TAG, "Fatal unhandled startup crash intercepted: " + throwable.getMessage(), throwable);
-            throwable.printStackTrace();
-            System.exit(2);
-        });
 
         try {
             Log.i(TAG, "Initializing minimal production APK runtime entrypoint...");

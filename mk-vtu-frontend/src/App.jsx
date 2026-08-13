@@ -685,11 +685,13 @@ function App() {
     <ThemeProvider>
       <ToastProvider>
         <BrandingProvider siteInfo={siteInfo}>
-        <PWAInstallPrompt 
-            deferredPrompt={deferredPrompt} 
-            setDeferredPrompt={setDeferredPrompt} 
-            hasBottomNav={Boolean(token && !loadingUser && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/reseller') && !location.pathname.startsWith('/website'))}
-        />
+        {location.pathname === '/' && (
+          <PWAInstallPrompt 
+              deferredPrompt={deferredPrompt} 
+              setDeferredPrompt={setDeferredPrompt} 
+              hasBottomNav={Boolean(token && !loadingUser && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/reseller') && !location.pathname.startsWith('/website'))}
+          />
+        )}
         {isWarningOpen && (
           <div className="inactivity-warning-overlay animate-fade-in" style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
