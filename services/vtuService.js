@@ -1,8 +1,7 @@
 import axios from "axios";
-import { smartBuyAirtime, smartBuyData, smartBuyElectricity, smartBuyCableTV } from "./switcher.js";
+import { smartBuyAirtime, smartBuyData, smartBuyElectricity, smartBuyCableTV, smartBuyEducation } from "./switcher.js";
 import { 
-    buyEPINWithClubkonnect, 
-    buyEducationWithClubkonnect 
+    buyEPINWithClubkonnect 
 } from "./providers/clubkonnect.js";
 
 // Helper to generate unique request ID
@@ -34,8 +33,8 @@ export const buyEPIN = async (network, value, quantity) => {
 // ========================
 // EDUCATION PIN (WAEC/JAMB)
 // ========================
-export const buyEducation = async (examType, phone) => {
-    return await buyEducationWithClubkonnect(examType, phone);
+export const buyEducation = async (examType, phone, option = 'smart') => {
+    return await smartBuyEducation(examType, phone, option);
 };
 
 // ========================

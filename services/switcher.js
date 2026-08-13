@@ -1,6 +1,6 @@
 import { buyAirtimeWithClubkonnect, buyDataWithClubkonnect, fetchDataPlansFromClubkonnect, buyElectricityWithClubkonnect, buyCableTVWithClubkonnect } from "./providers/clubkonnect.js";
 import { buyAirtimeWithReloadly, buyDataWithReloadly } from "./providers/reloadly.js";
-import { buyAirtimeWithPeyflex, buyDataWithPeyflex, buyElectricityWithPeyflex, buyCableTVWithPeyflex } from "./providers/peyflexV2.js";
+import { buyAirtimeWithPeyflex, buyDataWithPeyflex, buyElectricityWithPeyflex, buyCableTVWithPeyflex, buyEducationWithPeyflex } from "./providers/peyflexV2.js";
 import {
     verifyNINWithBillsplash,
     verifyBVNWithBillsplash,
@@ -203,6 +203,19 @@ export const smartBuyCableTV = async (cableId, packageId, smartcard, phone, opti
         }
         return result;
     } catch (err) { return { status: "failed", message: err.message }; }
+};
+
+export const smartBuyEducation = async (examType, phone, option = 'smart') => {
+    const transactionId = 'TXN-' + Date.now();
+    console.log(`[Switcher] [${transactionId}] Education: ${examType} via Peyflex`);
+
+    try {
+        // Force Peyflex for Education as per Phase 4 Migration
+        const result = await buyEducationWithPeyflex(examType, phone);
+        return result;
+    } catch (err) { 
+        return { status: "failed", message: err.message }; 
+    }
 };
 
 export const smartFetchDataPlans = async (network, option = 'smart') => {

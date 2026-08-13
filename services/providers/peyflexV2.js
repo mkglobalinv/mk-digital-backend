@@ -219,12 +219,13 @@ export const buyCableTVWithPeyflex = async (cableName, packageId, smartcard, pho
     if (!PEYFLEX_API_TOKEN) return { success: false, status: "failed", message: "API Token missing" };
 
     const payload = {
-        cablename: String(cableName).toUpperCase(),
-        cableplan: packageId,
-        smart_card_number: smartcard
+        identifier: String(cableName).toUpperCase(),
+        plan: packageId,
+        iuc: smartcard,
+        phone: phone || "08000000000"
     };
 
-    const result = await postWithRetry('/api/cable/purchase/', payload);
+    const result = await postWithRetry('/api/cable/subscribe/', payload);
 
     if (result.success) {
         const data = result.data;
@@ -235,6 +236,53 @@ export const buyCableTVWithPeyflex = async (cableName, packageId, smartcard, pho
                 status: "success",
                 data: data,
                 reference: data.reference || data.id || `PFX-${Date.now()}`
+            };
+        }
+        
+        return { status: "failed", message: data.msg || data.message || "Transaction failed", data };
+    }
+
+    return { status: result.status, message: result.message, data: result.data };
+};
+
+/**
+ * Buy Education PIN Service
+ */
+export const buyEducationWithPeyflex = async (examType, phone, quantity = 1) => {
+    if (!PEYFLEX_API_TOKEN) return { success: false, status: "failed", message: "API Token missing" };
+
+    const examMap = {
+        'waecdirect': 'waec',
+        'waec-registration': 'waec',
+        'waec': 'waec',
+        'neco': 'neco',
+        'nabteb': 'nabteb'
+    };
+    
+    const plan_id = examMap[String(examType).toLowerCase()];
+    if (!plan_id) {
+        return { success: false, status: "failed", message: `Education service '${examType}' is not currently supported by Peyflex.` };
+    }
+
+    const payload = {
+        identifier: "education",
+        plan_id: plan_id,
+        quantity: String(quantity),
+        phone: phone || "08000000000" // fallback if phone is missing, though frontend provides it
+    };
+
+    const result = await postWithRetry('/api/education/purchase/', payload);
+
+    if (result.success) {
+        const data = result.data;
+        const statusValue = String(data.Status || data.status || "").toLowerCase();
+        
+        if (statusValue === "success" || data.status === true || statusValue === "successful") {
+            return {
+                status: "success",
+                data: data,
+                reference: data.reference || data.id || `PFX-${Date.now()}`,
+                token: data.pin || data.token || data.carddetails || (data.pins ? JSON.stringify(data.pins) : null) || null
             };
         }
         
