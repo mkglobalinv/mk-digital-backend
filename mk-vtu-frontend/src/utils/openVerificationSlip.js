@@ -58,8 +58,8 @@ export const openVerificationSlip = (data) => {
             gap: 20px;
           }
           .card-container {
-            width: 580px;
-            height: 360px;
+            width: 100%;
+            max-width: 580px;
             background: #ffffff;
             border: 1px solid #94a3b8;
             border-radius: 12px;
@@ -83,11 +83,11 @@ export const openVerificationSlip = (data) => {
             position: relative;
             z-index: 2;
             width: 100%;
-            height: 100%;
             padding: 16px 24px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            gap: 15px;
           }
           ` + `
           /* TOP HEADER */
@@ -145,7 +145,8 @@ export const openVerificationSlip = (data) => {
           .middle {
             display: flex;
             gap: 20px;
-            margin-top: 15px;
+            margin-top: 5px;
+            flex-wrap: wrap;
           }
           .photo {
             width: 120px;
@@ -192,12 +193,13 @@ export const openVerificationSlip = (data) => {
           }
           .row {
             display: flex;
-            gap: 25px;
+            gap: 15px;
+            flex-wrap: wrap;
           }
           ` + `
           /* BOTTOM SECTION */
           .bottom {
-            margin-top: auto;
+            margin-top: 10px;
             display: flex;
             align-items: flex-end;
             position: relative;
@@ -223,17 +225,19 @@ export const openVerificationSlip = (data) => {
             margin-bottom: 4px;
           }
           .bvn-value {
-            font-size: 38px;
+            font-size: clamp(24px, 6vw, 38px);
             font-weight: 900;
             color: #000;
-            letter-spacing: 6px;
+            letter-spacing: 4px;
             font-family: 'Arial', sans-serif;
+            text-align: center;
           }
 ` + `
           /* BACK CARD */
           .card-back {
-            width: 580px;
-            height: 360px;
+            width: 100%;
+            max-width: 580px;
+            height: 140px;
             background: #ffffff;
             border: 1px solid #94a3b8;
             border-radius: 12px;
