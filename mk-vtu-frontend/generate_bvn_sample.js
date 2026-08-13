@@ -34,26 +34,40 @@ const getFirstAvailableValue = (obj, keys) => {
 const normalizeIdentityResponse = (result, params = {}, serviceId = '') => {
   if (!result || !result.data) return null;
   const providerResponse = result.data || {};
-  const level1 = providerResponse?.data || providerResponse;
-  const level2 = level1?.data || level1;
-  const idData = level2?.verification_data?.user_data?.response?.[0] || level2?.verification_data?.user_data || level2?.data || level2;
 
-  const rawPhoto = getFirstAvailableValue(idData, ['photo', 'photoUrl', 'photo_url', 'base64Image', 'image', 'imageUrl', 'image_url']);
+  const flatData = {};
+  const flatten = (obj) => {
+    if (!obj || typeof obj !== 'object') return;
+    for (const [key, val] of Object.entries(obj)) {
+      if (val && typeof val === 'object' && !Array.isArray(val)) {
+        flatten(val);
+      } else if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') {
+        flatten(val[0]);
+      } else {
+        if (flatData[key] === undefined && val !== null && val !== '') {
+          flatData[key] = val;
+        }
+      }
+    }
+  };
+  flatten(providerResponse);
+  const idData = flatData;
+
+  const rawPhoto = getFirstAvailableValue(idData, ['photo', 'photoUrl', 'photo_url', 'base64Image', 'image', 'imageUrl', 'image_url', 'passport', 'picture', 'base64_image']);
   const firstName = getFirstAvailableValue(idData, ['firstName', 'firstname', 'first_name', 'givenName', 'given_name']);
   const middleName = getFirstAvailableValue(idData, ['middleName', 'middlename', 'middle_name']);
-  const surname = getFirstAvailableValue(idData, ['surname', 'lastName', 'lastname', 'last_name']);
+  const surname = getFirstAvailableValue(idData, ['surname', 'lastName', 'lastname', 'last_name', 'family_name']);
   const rawFullName = getFirstAvailableValue(idData, ['fullName', 'full_name', 'name']);
   
   const computedFullName = rawFullName || [firstName, middleName, surname].filter(Boolean).join(' ');
   const ninVal = getFirstAvailableValue(idData, ['nin', 'NIN', 'ninNumber', 'nin_number']) || params.nin;
   const bvnVal = getFirstAvailableValue(idData, ['bvn', 'BVN', 'bvnNumber', 'bvn_number']) || params.bvn;
-  const rawPhone = getFirstAvailableValue(idData, ['phoneNumber1', 'phone1', 'phone', 'mobile']);
+  const rawPhone = getFirstAvailableValue(idData, ['phoneNumber1', 'phone1', 'phone', 'mobile', 'phoneNumber', 'phone_number', 'mobile_number']);
   
   const isBvn = (String(serviceId || params.serviceId || '').toLowerCase().includes('bvn')) || !!params.bvn || (!!bvnVal && !ninVal);
 
   return {
     reportId: getFirstAvailableValue(providerResponse, ['reportID', 'reportId', 'report_id', 'reference', 'transactionId']) 
-              || getFirstAvailableValue(level2, ['reference', 'transactionId', 'reportId'])
               || getFirstAvailableValue(idData, ['reportID', 'reportId', 'report_id', 'reference', 'transactionId', 'transactionReference']),
     trackingId: getFirstAvailableValue(idData, ['trackingId', 'tracking_id', 'trackingID', 'trackingNumber', 'tracking_number']),
     photo: rawPhoto,
