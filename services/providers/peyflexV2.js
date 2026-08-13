@@ -299,28 +299,30 @@ export const buyElectricityWithPeyflex = async (discoId, meterType, meterNumber,
     if (!PEYFLEX_API_TOKEN) return { success: false, status: "failed", message: "API Token missing" };
 
     const payload = {
-        disco_name: discoId,
-        amount: Number(amount),
-        meter_number: meterNumber,
-        MeterType: meterType
+        identifier: "electricity",
+        meter: meterNumber,
+        plan: discoId,
+        amount: String(amount),
+        type: String(meterType).toLowerCase(),
+        phone: phone || "08000000000"
     };
 
-    const result = await postWithRetry('/api/electricity/purchase/', payload);
+    const result = await postWithRetry('/api/electricity/subscribe/', payload);
 
     if (result.success) {
         const data = result.data;
-        const statusValue = String(data.Status || data.status || "").toLowerCase();
+        const statusValue = String(data.Status || data.status || "").toUpperCase();
         
-        if (statusValue === "success" || data.status === true) {
+        if (statusValue === "SUCCESS" || data.status === true) {
             return {
                 status: "success",
                 data: data,
                 reference: data.reference || data.id || `PFX-${Date.now()}`,
-                token: data.pin || data.token || null
+                token: data.token || data.pin || null
             };
         }
         
-        return { status: "failed", message: data.msg || data.message || "Transaction failed", data };
+        return { status: "failed", message: data.msg || data.message || "Transaction failed at provider", data };
     }
 
     return { status: result.status, message: result.message, data: result.data };
