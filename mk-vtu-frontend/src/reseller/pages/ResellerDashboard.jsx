@@ -496,8 +496,7 @@ const ResellerDashboard = ({ user }) => {
             </div>
 
             {/* How Do You Earn Info Card */}
-            {(!user?.resellerTier || user?.resellerTier === 'basic') && (
-                <div className="dashboard-main-grid" style={{ display: 'block', marginBottom: '24px' }}>
+            <div className="dashboard-main-grid" style={{ display: 'block', marginBottom: '24px' }}>
                     <div className="business-card" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', color: 'white', border: 'none', position: 'relative', overflow: 'hidden' }}>
                         <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'rgba(59, 130, 246, 0.2)', borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none' }}></div>
                         <div className="card-title-bar" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
@@ -548,9 +547,8 @@ const ResellerDashboard = ({ user }) => {
                                 </p>
                             </div>
                         </div>
-                    </div>
                 </div>
-            )}
+            </div>
 
             {/* Growth Analytics Chart */}
             <div className="dashboard-main-grid">
