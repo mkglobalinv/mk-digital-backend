@@ -46,7 +46,9 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   const [quantity, setQuantity] = useState('1');
   
   // Education state
-  const [examType, setEexamType] = useState('waecdirect');
+  const [examType, setExamType] = useState('waecdirect');
+  // Authoritative education prices fetched from backend — never hardcoded client-side
+  const [educationPlans, setEducationPlans] = useState([]);
 
   // International state
   const [isInternational, setIsInternational] = useState(false);
@@ -90,6 +92,12 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
       .catch(err => console.error("Error fetching data categories", err));
   }, [siteInfo]);
 
+  // Helper: look up the server-authoritative price for the selected exam type (display only)
+  const getEducationPrice = (type) => {
+    const plan = educationPlans.find(p => p.id === type);
+    return plan ? plan.price : null;
+  };
+
   const visibleBanners = banners.filter(banner => checkBannerVisibility(banner, user));
 
   useEffect(() => {
@@ -122,6 +130,32 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
       if (af.dataPlan) setDataPlan(af.dataPlan);
     }
   }, [location]);
+
+  // Fetch authoritative education prices from backend when Education tab is activated
+  useEffect(() => {
+    if (activeTab === 'education' && educationPlans.length === 0) {
+      API.get('/api/retail/education/prices', { headers: { Authorization: token } })
+        .then(res => {
+          if (res.data && res.data.plans) {
+            setEducationPlans(res.data.plans);
+            // Default to first plan
+            if (res.data.plans.length > 0 && !examType) {
+              setExamType(res.data.plans[0].id);
+            }
+          }
+        })
+        .catch(err => console.error('[Education] Failed to fetch education prices:', err));
+    }
+  }, [activeTab, token]);
+
+  // When switching to Education tab: clear shared amount and reset quantity to 1
+  // This prevents Airtime/EPIN amounts from leaking into the Education purchase modal
+  useEffect(() => {
+    if (activeTab === 'education') {
+      setAmount('');
+      setQuantity('1');
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     // Auto-detect network based on phone number prefix (Nigeria ONLY)
@@ -373,9 +407,18 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
       }
       else if (activeTab === 'education') {
         if (!examType || !phone) throw new Error("Missing education details");
-        res = await API.post('/api/retail/purchase/buy-education', { ...commonPayload, examType, phone, amount: 2000 }, { headers: { Authorization: token } }); 
-        rData.desc = `Education PIN ${examType}`;
-        rData.amount = 2000;
+        const eduQuantity = Number(quantity) || 1;
+        const eduPlan = educationPlans.find(p => p.id === examType);
+        // Do NOT send amount — backend determines debit amount from its own pricing map
+        res = await API.post('/api/retail/purchase/buy-education', {
+          ...commonPayload,
+          examType,
+          phone,
+          quantity: eduQuantity
+          // NOTE: amount is intentionally omitted — server is single source of truth
+        }, { headers: { Authorization: token } });
+        rData.desc = `Education PIN ${examType.toUpperCase()} (Qty: ${eduQuantity})`;
+        rData.amount = eduPlan ? eduPlan.price * eduQuantity : 'N/A';
         if (res.data.token) {
             setResultToken(`PIN/Serial: ${res.data.token}`);
             rData.token = res.data.token;
@@ -859,24 +902,56 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
           <>
             <div className="purchase-input-group">
               <label>Exam Type</label>
-              <select className="purchase-input" value={examType} onChange={(e) => {
-                const val = e.target.value;
-                setEexamType(val);
-                if (phone && phone.length >= 10) {
-                  setShowPinModal(true);
-                  setTransactionPin('');
-                }
-              }} required>
-                <option value="waecdirect">WAEC Result Checker</option>
-                <option value="waec-registration">WAEC Registration</option>
-                <option value="jamb">JAMB UTME</option>
-                <option value="de">JAMB Direct Entry</option>
-              </select>
+              {educationPlans.length === 0 ? (
+                <div style={{ padding: '12px', textAlign: 'center', color: '#888', fontSize: '14px' }}>
+                  Loading available plans...
+                </div>
+              ) : (
+                <select
+                  className="purchase-input"
+                  value={examType}
+                  onChange={(e) => {
+                    setExamType(e.target.value);
+                  }}
+                  required
+                >
+                  {educationPlans.map(plan => (
+                    <option key={plan.id} value={plan.id}>
+                      {plan.label} — ₦{plan.price.toLocaleString()}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="purchase-input-group">
-              <label>Phone Number (Receives PIN)</label>
-              <input type="tel" className="purchase-input" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+              <label>Quantity</label>
+              <input
+                type="number"
+                className="purchase-input"
+                max="10"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                required
+              />
             </div>
+            <div className="purchase-input-group">
+              <label>Phone Number (Receives PIN notification)</label>
+              <input
+                type="tel"
+                className="purchase-input"
+                placeholder="e.g. 08012345678"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+            </div>
+            {/* Show the server-authoritative price for the selected plan */}
+            {educationPlans.length > 0 && (
+              <div style={{ padding: '10px 14px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '10px', fontSize: '13px', color: '#059669', fontWeight: 600 }}>
+                ✓ Price is server-verified: ₦{((getEducationPrice(examType) || 0) * (Number(quantity) || 1)).toLocaleString()} for {Number(quantity) || 1} pin(s)
+              </div>
+            )}
           </>
         );
       
@@ -1075,6 +1150,10 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                   ? (amount ? `₦${Number(amount).toLocaleString()}` : '₦0')
                   : activeTab === 'epin'
                   ? `₦${(Number(epinValue)*Number(quantity)).toLocaleString()}`
+                  : activeTab === 'education'
+                  ? (getEducationPrice(examType) != null
+                      ? `₦${((getEducationPrice(examType)) * (Number(quantity) || 1)).toLocaleString()}`
+                      : 'Loading...')
                   : 'Requires Validation'
                 }
               </span>
@@ -1114,7 +1193,11 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                               <span style={{ color: '#888' }}>Amount:</span>
-                              <span style={{ fontWeight: 'bold', color: '#10B981', fontSize: '17.6px' }}>₦{Number(amount || (Number(epinValue)*Number(quantity))).toLocaleString()}</span>
+                              <span style={{ fontWeight: 'bold', color: '#10B981', fontSize: '17.6px' }}>
+                                ₦{activeTab === 'education'
+                                  ? ((getEducationPrice(examType) || 0) * (Number(quantity) || 1)).toLocaleString()
+                                  : Number(amount || (Number(epinValue)*Number(quantity))).toLocaleString()}
+                              </span>
                           </div>
                       </div>
                   </div>

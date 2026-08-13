@@ -278,11 +278,35 @@ export const buyEducationWithPeyflex = async (examType, phone, quantity = 1) => 
         const statusValue = String(data.Status || data.status || "").toLowerCase();
         
         if (statusValue === "success" || data.status === true || statusValue === "successful") {
+            // Extract and validate the PIN/token from the provider response
+            const rawToken = data.pin || data.token || data.carddetails || (data.pins ? JSON.stringify(data.pins) : null) || null;
+            
+            // Guard: reject well-known placeholder/fake tokens that Peyflex sometimes returns
+            // when the PIN has not actually been dispensed
+            const FAKE_TOKEN_PATTERNS = [
+                /please\s+contact\s+admin/i,
+                /contact.*for.*token/i,
+                /^null$/i,
+                /^undefined$/i
+            ];
+            const isFakeToken = rawToken && FAKE_TOKEN_PATTERNS.some(p => p.test(String(rawToken)));
+            
+            if (isFakeToken) {
+                console.error(`[PeyFlex V2 Education] Fake/placeholder token detected from Peyflex: "${rawToken}". Treating as FAILED.`);
+                return {
+                    success: false,
+                    status: "failed",
+                    message: "Peyflex returned an invalid PIN placeholder. Please contact support.",
+                    data: data,
+                    provider: 'peyflex'
+                };
+            }
+            
             return {
                 status: "success",
                 data: data,
                 reference: data.reference || data.id || `PFX-${Date.now()}`,
-                token: data.pin || data.token || data.carddetails || (data.pins ? JSON.stringify(data.pins) : null) || null
+                token: rawToken
             };
         }
         

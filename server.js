@@ -1827,55 +1827,169 @@ app.post("/api/retail/purchase/buy-epin", auth, verifyTransactionPin, transactio
     }
 });
 
+// GET: Authoritative Education pricing — frontend uses this to display prices without hardcoding
+app.get("/api/retail/education/prices", auth, async (req, res) => {
+    return res.json({
+        plans: [
+            { id: 'waecdirect',        label: 'WAEC Result Checker',  price: 5350 },
+            { id: 'waec-registration', label: 'WAEC Registration',    price: 5350 },
+            { id: 'neco',              label: 'NECO Result Checker',   price: 5350 },
+            { id: 'nabteb',            label: 'NABTEB Result Checker', price: 5350 }
+        ]
+    });
+});
+
 app.post("/api/retail/purchase/buy-education", auth, verifyTransactionPin, transactionIdempotency, async (req, res) => {
-    const { examType, phone, amount } = req.body;
-    const finalAmount = Number(amount) || 2000;
+    // IMPORTANT: The server is the SINGLE SOURCE OF TRUTH for education pricing.
+    // req.body.amount is NEVER used to determine the debit amount.
+    const { examType, phone, quantity } = req.body;
+    const finalQuantity = Number(quantity) || 1;
+
+    // Authoritative server-side pricing for Peyflex Education products.
+    // Only Peyflex-confirmed plans are listed here. JAMB is NOT provided by Peyflex.
+    const EDUCATION_PRICES = {
+        'waecdirect':        5350,
+        'waec-registration': 5350,
+        'waec':              5350,
+        'neco':              5350,
+        'nabteb':            5350
+    };
+
+    // Validate examType — reject JAMB, DE, or any unrecognised product
+    const unitPrice = EDUCATION_PRICES[String(examType).toLowerCase()];
+    if (!unitPrice) {
+        return res.status(400).json({ message: `Education product '${examType}' is not currently available. Supported: WAEC, NECO, NABTEB.` });
+    }
+
+    if (finalQuantity < 1 || finalQuantity > 10) {
+        return res.status(400).json({ message: "Quantity must be between 1 and 10." });
+    }
+
+    // Server-computed amount — the client CANNOT influence this figure
+    const finalAmount = unitPrice * finalQuantity;
+
+    console.log(`[Education] examType=${examType} | qty=${finalQuantity} | serverPrice=₦${unitPrice} | total=₦${finalAmount}`);
 
     // Safety guard: Check provider availability BEFORE locking user or debiting
     const isAvailable = await checkProviderAvailability('education', examType, 'value', 'NG');
     if (!isAvailable) {
-        return res.status(400).json({ message: "Service temporarily unavailable. Please try again later." });
+        return res.status(400).json({ message: "Education service is temporarily unavailable. Please try again later." });
     }
 
-    const lockedUser = await User.findOneAndUpdate({ _id: req.user.id, isProcessingTx: false }, { isProcessingTx: true }, { new: true });
-    if (!lockedUser) return res.status(400).json({ message: "Transaction in progress" });
+    const lockedUser = await User.findOneAndUpdate(
+        { _id: req.user.id, isProcessingTx: false },
+        { isProcessingTx: true },
+        { new: true }
+    );
+    if (!lockedUser) return res.status(400).json({ message: "A transaction is already in progress. Please wait." });
 
     let transaction = null;
     try {
+        // Pre-debit balance check
         if (lockedUser.totalBalance < finalAmount) {
             await User.findByIdAndUpdate(req.user.id, { isProcessingTx: false });
-            return res.status(400).json({ message: "Insufficient balance" });
+            return res.status(400).json({ message: `Insufficient balance. Required: ₦${finalAmount.toLocaleString()}.` });
         }
 
-        transaction = await Transaction.create({ 
-            userId: req.user.id, type: "debit", status: "pending", amount: finalAmount, phone, 
-            description: `Education: ${examType}`, reference: `EDU-PND-${Date.now()}`
+        // Create a pending transaction record BEFORE calling provider
+        transaction = await Transaction.create({
+            userId: req.user.id,
+            type: "debit",
+            status: "pending",
+            amount: finalAmount,
+            phone,
+            description: `Education: ${examType.toUpperCase()} (Qty: ${finalQuantity})`,
+            reference: `EDU-PND-${Date.now()}`,
+            provider: 'peyflex'
         });
 
-        const vtu = await buyEducation(examType, phone);
+        // Call Peyflex via switcher (Education is Peyflex-ONLY — no ClubKonnect fallback)
+        const vtu = await buyEducation(examType, phone, finalQuantity);
+        console.log(`[Education] Peyflex result:`, JSON.stringify(vtu));
+
         if (vtu && vtu.status === "success") {
-            const deducted = await deductBalance(req.user.id, finalAmount);
+            // === CONFIRMED SUCCESS ===
+            // Only deduct wallet AFTER confirmed provider success
+            await deductBalance(req.user.id, finalAmount);
+
+            // Guard against fake/placeholder tokens
+            const rawToken = vtu.token;
+            const FAKE_TOKEN_PATTERNS = [
+                /please\s+contact\s+admin/i,
+                /contact.*for.*token/i,
+                /^null$/i,
+                /^undefined$/i
+            ];
+            const isFakeToken = rawToken && FAKE_TOKEN_PATTERNS.some(p => p.test(String(rawToken)));
+
+            if (isFakeToken) {
+                // Provider returned a fake/placeholder token — treat as ambiguous
+                console.error(`[Education] WARNING: Fake/placeholder token received from Peyflex: "${rawToken}". Marking as pending for manual review.`);
+                transaction.status = "pending";
+                transaction.token = null;
+                transaction.api_response = { warning: 'Fake token received', raw: vtu.data };
+                transaction.description += " [PENDING REVIEW - Fake Token]";
+                await transaction.save();
+                sendTransactionNotification(transaction);
+                return res.status(202).json({
+                    message: "Transaction submitted but PIN delivery is pending review. Please contact support.",
+                    reference: transaction.reference,
+                    status: 'pending'
+                });
+            }
+
             transaction.status = "success";
-            transaction.token = vtu.token;
+            transaction.token = rawToken;
             transaction.api_response = vtu.data;
             await transaction.save();
             sendTransactionNotification(transaction);
-            return res.json({ message: "Success", token: vtu.token, reference: transaction.reference });
-        } else {
-            transaction.status = "failed";
-            transaction.api_response = vtu?.data || { error: vtu?.message || "Purchase failed" };
+
+            return res.json({
+                message: "Education PIN purchased successfully.",
+                token: rawToken,
+                reference: transaction.reference
+            });
+
+        } else if (vtu && vtu.status === "unknown") {
+            // === AMBIGUOUS / TIMEOUT ===
+            // Wallet has NOT been debited. Mark transaction as pending for manual reconciliation.
+            console.warn(`[Education] Peyflex returned unknown status. Marking pending. Message: ${vtu.message}`);
+            transaction.status = "pending";
+            transaction.api_response = { status: 'unknown', message: vtu.message };
             await transaction.save();
             sendTransactionNotification(transaction);
-            return res.status(400).json({ message: vtu?.message || "Purchase failed" });
+
+            return res.status(202).json({
+                message: "Transaction is being processed. You will be notified once confirmed. Your wallet has NOT been debited.",
+                reference: transaction.reference,
+                status: 'pending'
+            });
+
+        } else {
+            // === CONFIRMED FAILURE ===
+            // Wallet has NOT been debited. Mark failed immediately.
+            transaction.status = "failed";
+            transaction.api_response = vtu?.data || { error: vtu?.message || "Provider rejected the purchase" };
+            await transaction.save();
+            sendTransactionNotification(transaction);
+
+            return res.status(400).json({
+                message: vtu?.message || "Education PIN purchase failed. Please try again."
+            });
         }
+
     } catch (err) {
         console.error("[Education Error]", err);
         try {
             if (transaction && transaction._id) {
-                await Transaction.findByIdAndUpdate(transaction._id, { status: 'failed', description: `Education: ${examType}`, api_response: { error: err.message } });
+                await Transaction.findByIdAndUpdate(transaction._id, {
+                    status: 'failed',
+                    description: `Education: ${examType} [Exception]`,
+                    api_response: { error: err.message }
+                });
             }
         } catch (e) {}
-        return res.status(500).json({ message: "System error" });
+        return res.status(500).json({ message: "A system error occurred. Please try again or contact support." });
     } finally {
         await User.findByIdAndUpdate(req.user.id, { isProcessingTx: false });
     }
