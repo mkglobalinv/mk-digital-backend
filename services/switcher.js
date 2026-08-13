@@ -205,13 +205,13 @@ export const smartBuyCableTV = async (cableId, packageId, smartcard, phone, opti
     } catch (err) { return { status: "failed", message: err.message }; }
 };
 
-export const smartBuyEducation = async (examType, phone, option = 'smart') => {
+export const smartBuyEducation = async (examType, phone, quantity = 1, option = 'smart') => {
     const transactionId = 'TXN-' + Date.now();
-    console.log(`[Switcher] [${transactionId}] Education: ${examType} via Peyflex`);
+    console.log(`[Switcher] [${transactionId}] Education: ${examType} via Peyflex (Qty: ${quantity})`);
 
     try {
         // Force Peyflex for Education as per Phase 4 Migration
-        const result = await buyEducationWithPeyflex(examType, phone);
+        const result = await buyEducationWithPeyflex(examType, phone, quantity);
         return result;
     } catch (err) { 
         return { status: "failed", message: err.message }; 

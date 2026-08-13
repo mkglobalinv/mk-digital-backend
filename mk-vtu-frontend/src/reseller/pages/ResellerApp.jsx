@@ -249,26 +249,32 @@ const ResellerApp = ({ user, refreshUser }) => {
     }
 
     // Lifecycle timeline stage calculation
-    const currentStatus = requestData?.status || 'Submitted';
-    const sLower = currentStatus.toLowerCase();
+    const currentStatus = requestData?.status || 'Pending Review';
     let activeStageIndex = 0;
-    if (sLower.includes('preparing') || sLower.includes('generating')) activeStageIndex = 1;
-    else if (sLower.includes('sending')) activeStageIndex = 2;
-    else if (sLower.includes('progress') || sLower.includes('building') || sLower.includes('packaging')) activeStageIndex = 3;
-    else if (sLower.includes('testing') || sLower.includes('finalizing') || sLower.includes('revision')) activeStageIndex = 4;
-    else if (sLower.includes('ready') || sLower.includes('delivered') || sLower.includes('apk ready')) activeStageIndex = 5;
+    if (currentStatus === 'Building Application') activeStageIndex = 1;
+    else if (currentStatus === 'Testing Application') activeStageIndex = 2;
+    else if (currentStatus === 'Revision Required') activeStageIndex = 3;
+    else if (currentStatus === 'Ready') activeStageIndex = 4;
 
     const timelineStages = [
-        { title: "Request Submitted", desc: "Identity settings securely stored" },
-        { title: "Generating Assets", desc: "Organizing your brand graphics and high-res icon profiles" },
-        { title: "Sending to Builder", desc: "Transferring package configurations to compiler node" },
-        { title: "Build in Progress", desc: "Compiling native binary layout components and resources" },
-        { title: "Finalizing Package", desc: "Applying digital signatures and verifying integrity" },
-        { title: "APK Ready", desc: "Branded app packaged and hosted for immediate installation" }
+        { title: "App Request Submitted", desc: "Pending Review" },
+        { title: "Your app is being prepared", desc: "Building Application" },
+        { title: "Your app is being tested", desc: "Testing Application" },
+        { title: "Your app requires an update before release", desc: "Revision Required" },
+        { title: "Your Mobile App is Ready", desc: "Ready" }
     ];
 
-    const isSuccessStatus = requestData?.status === 'Delivered' || requestData?.status === 'Ready' || requestData?.status === 'Ready for Delivery' || requestData?.status === 'APK Ready';
-    const isErrorStatus = requestData?.status === 'Failed' || requestData?.status === 'Failed Build' || requestData?.status === 'Build Failed';
+    const isSuccessStatus = currentStatus === 'Ready';
+    const isErrorStatus = currentStatus === 'Revision Required';
+
+    const getStatusMessage = (status) => {
+        if (status === 'Pending Review') return 'App Request Submitted';
+        if (status === 'Building Application') return 'Your app is being prepared';
+        if (status === 'Testing Application') return 'Your app is being tested';
+        if (status === 'Revision Required') return 'Your app requires an update before release';
+        if (status === 'Ready') return 'Your Mobile App is Ready';
+        return status || 'App Request Submitted';
+    };
 
     // Core Screen UI Rendering
     return (
@@ -604,7 +610,7 @@ const ResellerApp = ({ user, refreshUser }) => {
                         {/* Status Label Pill */}
                         <div className={`lifecycle-status-pill ${isSuccessStatus ? 'success' : isErrorStatus ? 'error' : 'processing'}`}>
                             <span className="status-dot"></span>
-                            <strong>Status:</strong> {requestData.status || 'Preparing Assets'}
+                            <strong>Status:</strong> {getStatusMessage(currentStatus)}
                         </div>
                     </div>
 
@@ -729,25 +735,14 @@ const ResellerApp = ({ user, refreshUser }) => {
                                     <div className="success-check-badge" style={{ backgroundColor: '#fee2e2', borderColor: '#fca5a5' }}>
                                         <AlertTriangle size={28} color="#EF4444" />
                                     </div>
-                                    <h3>Build Process Failed</h3>
-                                    <p>The automated compilation pipeline encountered a fatal error during packaging.</p>
+                                    <h3>Action Required</h3>
+                                    <p>Your app requires an update before release.</p>
                                     
                                     {requestData.adminNotes && (
                                         <div className="error-reason-box" style={{ background: '#fef2f2', padding: '12px', borderRadius: '6px', borderLeft: '3px solid #ef4444', margin: '12px 0', fontSize: '0.875rem', color: '#b91c1c', textAlign: 'left' }}>
-                                            <strong>Reason:</strong> {requestData.adminNotes}
+                                            <strong>Admin Feedback:</strong> {requestData.adminNotes}
                                         </div>
                                     )}
-
-                                    <div className="download-action-stack">
-                                        <button 
-                                            className="primary-dl-btn" 
-                                            style={{ backgroundColor: '#EF4444', cursor: 'pointer' }}
-                                            onClick={handleRetryBuild}
-                                            disabled={loading}
-                                        >
-                                            {loading ? <><Loader2 className="animate-spin" size={18} /> RETRYING BUILD...</> : <><RefreshCw size={18} /> RETRY BUILD PIPELINE</>}
-                                        </button>
-                                    </div>
                                 </div>
                             )}
 

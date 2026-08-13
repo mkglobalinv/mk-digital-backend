@@ -1,16 +1,18 @@
 import mongoose from 'mongoose';
-import FuturePlatform from './models/FuturePlatform.js';
 import dotenv from 'dotenv';
+import DataPlan from './models/DataPlan.js';
+
 dotenv.config();
 
-async function check() {
-    try {
-        await mongoose.connect(process.env.MONGO_URI);
-        const p = await FuturePlatform.find();
-        console.log("All platforms:", p.map(x => x.name));
-    } catch(e) {
-        console.error("DB Error:", e.message);
-    }
-    process.exit(0);
-}
-check();
+mongoose.connect(process.env.MONGO_URI)
+    .then(async () => {
+        const eduPlans = await DataPlan.find({ category: /education/i });
+        console.log("Education plans in DB:");
+        console.log(eduPlans);
+        
+        process.exit(0);
+    })
+    .catch(err => {
+        console.error(err);
+        process.exit(1);
+    });

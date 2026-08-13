@@ -1,0 +1,33 @@
+{
+  "status": "SUCCESS",
+  "providers": [
+    {
+      "identifier": "education",
+      "name": "EDUCATION PIN",
+      "discount_mode": "fixed",
+      "plans": [
+        {
+          "unit_price": "5350",
+          "service_id": "WAEC",
+          "plan_id": "waec",
+          "plan_code": "WAEC-EPIN",
+          "display_name": "WAEC Result Checker PIN"
+        },
+        {
+          "unit_price": "2500",
+          "service_id": "NECO",
+          "plan_id": "neco",
+          "plan_code": "NECO-EPIN",
+          "display_name": "NECO Result Checker PIN"
+        },
+        {
+          "unit_price": "1500",
+          "service_id": "NABTEB",
+          "plan_id": "nabteb",
+          "plan_code": "NABTEB-EPIN",
+          "display_name": "NABTEB Result Checker PIN"
+        }
+      ]
+    }
+  ]
+}

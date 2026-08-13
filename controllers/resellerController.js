@@ -1202,7 +1202,7 @@ export const submitAppRequest = async (req, res) => {
             request.manifestConfig = computedManifest;
             request.packageMetadata = computedMetadata;
 
-            request.status = 'Generating...';
+            request.status = 'Pending Review';
             request.estimatedDeliveryTime = estTime;
             await request.save();
         } else {
@@ -1220,17 +1220,10 @@ export const submitAppRequest = async (req, res) => {
                 packageIdentifiers: { packageName: computedPackageName, bundleId: computedPackageName },
                 manifestConfig: computedManifest,
                 packageMetadata: computedMetadata,
-                status: 'Generating...',
+                status: 'Pending Review',
                 estimatedDeliveryTime: estTime
             });
         }
-
-        // Automatically trigger PWAA build service via job queue
-        const job = await jobQueue.enqueueJob(
-            user._id,
-            appName,
-            computedPackageName
-        );
 
         // Sync branding to user doc for universal dashboard consistency
         if (!user.branding) user.branding = {};
@@ -1251,8 +1244,7 @@ export const submitAppRequest = async (req, res) => {
                 secondary: primaryColor || '#2563eb',
                 accent: accentColor || '#f59e0b'
             },
-            managedStatus: request.status,
-            lastBuildJob: job._id
+            managedStatus: request.status
         };
 
         user.markModified('branding');
@@ -1261,13 +1253,13 @@ export const submitAppRequest = async (req, res) => {
 
         // Emit socket updates to dashboard
         socketService.emitAppBuildStatus(user._id, {
-            status: 'Generating...',
+            status: 'Pending Review',
             appName: request.appName
         });
 
         res.json({
             status: 'success',
-            message: 'App request submitted successfully. Automated build pipeline has started.',
+            message: 'App request submitted successfully. Our team will review your application.',
             request
         });
     } catch (err) {

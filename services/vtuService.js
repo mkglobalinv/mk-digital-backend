@@ -33,8 +33,8 @@ export const buyEPIN = async (network, value, quantity) => {
 // ========================
 // EDUCATION PIN (WAEC/JAMB)
 // ========================
-export const buyEducation = async (examType, phone, option = 'smart') => {
-    return await smartBuyEducation(examType, phone, option);
+export const buyEducation = async (examType, phone, quantity = 1, option = 'smart') => {
+    return await smartBuyEducation(examType, phone, quantity, option);
 };
 
 // ========================

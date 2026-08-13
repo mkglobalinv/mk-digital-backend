@@ -211,7 +211,7 @@ const AdminAppRequests = () => {
     };
 
     const getStatusStep = (status) => {
-        const steps = ["Pending Review", "Generating Assets", "Building Application", "Testing Application", "Ready for Delivery", "Delivered"];
+        const steps = ["Pending Review", "Building Application", "Testing Application", "Revision Required", "Ready"];
         const index = steps.indexOf(status);
         return index === -1 ? 0 : index;
     };
@@ -222,8 +222,8 @@ const AdminAppRequests = () => {
         
         if (filterStatus === 'All') return matchSearch;
         if (filterStatus === 'Pending') return matchSearch && req.status === 'Pending Review';
-        if (filterStatus === 'Processing') return matchSearch && !['Pending Review', 'Delivered'].includes(req.status);
-        if (filterStatus === 'Completed') return matchSearch && req.status === 'Delivered';
+        if (filterStatus === 'Processing') return matchSearch && !['Pending Review', 'Ready'].includes(req.status);
+        if (filterStatus === 'Completed') return matchSearch && req.status === 'Ready';
         return matchSearch;
     });
 
@@ -295,15 +295,15 @@ const AdminAppRequests = () => {
                     <div className="stat-premium-card">
                         <div className="stat-icon-box" style={{ background: '#F5F3FF', color: '#8B5CF6' }}><Zap size={24} /></div>
                         <div>
-                            <div className="stat-value">{requests.filter(r => !['Pending Review', 'Delivered'].includes(r.status)).length}</div>
+                            <div className="stat-value">{requests.filter(r => !['Pending Review', 'Ready'].includes(r.status)).length}</div>
                             <div className="stat-label">In Production</div>
                         </div>
                     </div>
                     <div className="stat-premium-card">
                         <div className="stat-icon-box" style={{ background: '#D1FAE5', color: '#059669' }}><CheckCircle size={24} /></div>
                         <div>
-                            <div className="stat-value">{requests.filter(r => r.status === 'Delivered').length}</div>
-                            <div className="stat-label">Ready/Delivered</div>
+                            <div className="stat-value">{requests.filter(r => r.status === 'Ready').length}</div>
+                            <div className="stat-label">Ready</div>
                         </div>
                     </div>
                 </div>
@@ -336,7 +336,23 @@ const AdminAppRequests = () => {
                 <div className="build-list">
                     {filteredRequests.map(req => {
                         const state = editStates[req._id] || {};
-                        const progress = (getStatusStep(state.status) + 1) * 16.6;
+                        const progress = (getStatusStep(state.status) + 1) * 20;
+
+                        const antigravityPrompt = `Please generate a production Android APK for the following client application.
+
+App Information:
+- App Name: ${req.appName || ''}
+- Site/Brand Name: ${req.resellerId?.branding?.siteName || req.appName || ''}
+- Tenant/Subdomain: ${req.resellerId?.subdomain || ''}
+- Custom Domain: ${req.resellerId?.customDomain || 'N/A'}
+- Final Website URL: https://${req.resellerId?.subdomain || ''}.9jasub.com
+- Reseller ID: ${req.resellerId?._id || ''}
+
+Instructions:
+1. Build the Android APK using the provided branding and logo information.
+2. Ensure the app strictly belongs only to this tenant (${req.resellerId?.subdomain || ''}).
+3. Test installation and startup of the generated APK.
+4. Output the final APK file for upload.`;
                         
                         return (
                             <div key={req._id} className="build-card animate-scale-in">
@@ -355,7 +371,7 @@ const AdminAppRequests = () => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                        <span className={`badge ${state.status === 'Delivered' ? 'badge-success' : 'badge-warning'}`}>
+                                        <span className={`badge ${state.status === 'Ready' ? 'badge-success' : 'badge-warning'}`}>
                                             {state.status}
                                         </span>
                                         <div style={{ display: 'flex', gap: '8px' }}>
@@ -394,19 +410,21 @@ const AdminAppRequests = () => {
                                         </div>
 
                                         <div style={{ marginTop: '24px' }}>
-                                            <span className="section-label">Operational Actions</span>
-                                            <div style={{ display: 'flex', gap: '12px' }}>
-                                                <button className="premium-btn premium-btn-primary" onClick={() => handleGenerateAssets(req._id)} disabled={generatingAssets[req._id]}>
-                                                    {generatingAssets[req._id] ? <RefreshCw className="animate-spin" size={16} /> : <Sparkles size={16} />}
-                                                    {generatingAssets[req._id] ? 'Computing...' : 'Generate Assets'}
-                                                </button>
-                                                <a 
-                                                    href={`${import.meta.env.VITE_API_URL || window.location.origin || ''}/api/admin/app-requests/${req._id || 'missing_id'}/assets/download?token=${(localStorage.getItem('superAdminToken') || localStorage.getItem('adminToken'))}`}
-                                                    className="premium-btn premium-btn-secondary"
-                                                    style={{ textDecoration: 'none' }}
+                                            <span className="section-label">Antigravity App Generation</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                                <div style={{ fontSize: '13px', color: 'var(--text-gray)', fontFamily: 'monospace', whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto' }}>
+                                                    {antigravityPrompt}
+                                                </div>
+                                                <button 
+                                                    className="premium-btn premium-btn-primary" 
+                                                    style={{ width: '100%', justifyContent: 'center' }}
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(antigravityPrompt);
+                                                        showToast('Antigravity prompt copied to clipboard!', 'success');
+                                                    }}
                                                 >
-                                                    <Download size={16} /> Download ZIP
-                                                </a>
+                                                    <Copy size={16} /> Copy Antigravity Prompt
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -459,7 +477,7 @@ const AdminAppRequests = () => {
                                                     value={state.status}
                                                     onChange={e => handleStateChange(req._id, 'status', e.target.value)}
                                                 >
-                                                    {["Pending Review", "Generating Assets", "Building Application", "Testing Application", "Ready for Delivery", "Delivered"].map(s => (
+                                                    {["Pending Review", "Building Application", "Testing Application", "Revision Required", "Ready"].map(s => (
                                                         <option key={s} value={s}>{s}</option>
                                                     ))}
                                                 </select>
@@ -483,7 +501,7 @@ const AdminAppRequests = () => {
                                         <div className="progress-fill" style={{ width: `${progress}%` }}></div>
                                     </div>
                                     <div className="progress-steps">
-                                        {["Draft", "Assets", "Build", "Test", "Ready", "Done"].map((s, i) => (
+                                        {["Review", "Building", "Testing", "Revision", "Ready"].map((s, i) => (
                                             <div key={i} className={`mini-step ${i <= getStatusStep(state.status) ? 'active' : ''}`}>{s}</div>
                                         ))}
                                     </div>

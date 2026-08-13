@@ -1,0 +1,23 @@
+{
+  "siteInfo": {
+    "status": "success",
+    "systemMaintenance": {
+      "maintenanceMode": false,
+      "maintenanceMessage": "system is currently under maintenance",
+      "maintenanceTarget": "all"
+    }
+  },
+  "matches": [
+    "/* Elegant spinning ring around the logo */",
+    ".ann-banner-warning {",
+    ".ann-banner-warning .ann-banner-icon { color: #d97706; }",
+    "border: 1px solid #fecaca;",
+    ".warning-status {",
+    ".reseller-toast--warning {",
+    ".toast-icon--warning {",
+    "--reseller-warning: #f59e0b;",
+    "--warning: #F59E0B;",
+    "--warning-light: rgba(245, 158, 11, 0.1);",
+    ".badge-warning { background: var(--warning-light); color: #92400E; }"
+  ]
+}
