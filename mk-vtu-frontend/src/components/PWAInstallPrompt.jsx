@@ -55,10 +55,10 @@ const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt, hasBottomNav }) =
     <div style={{
       position: 'fixed',
       bottom: hasBottomNav ? 'calc(env(safe-area-inset-bottom, 16px) + 85px)' : 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
-      left: '50%',
-      transform: 'translateX(-50%)',
+      left: '24px',
+      right: '24px',
+      margin: '0 auto',
       zIndex: 99999,
-      width: 'calc(100% - 48px)',
       maxWidth: '400px',
       animation: 'fadeInUp 0.5s ease-out'
     }}>
@@ -113,8 +113,8 @@ const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt, hasBottomNav }) =
       </div>
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translate(-50%, 20px); }
-          to { opacity: 1; transform: translate(-50%, 0); }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
