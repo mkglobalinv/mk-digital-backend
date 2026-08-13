@@ -121,8 +121,9 @@ const postWithRetry = async (endpoint, payload, maxRetries = 2) => {
             console.error(`[Billsplash] POST ${endpoint} error:`, error.message, httpStatus || '');
 
             // Retry on rate-limit and server errors with exponential backoff
-            const isRetryable = isTimeout ||
-                                httpStatus === 429 ||
+            // IMPORTANT: Do NOT retry on isTimeout (ECONNABORTED) for non-idempotent POST requests, 
+            // because the provider may have already processed it and deducted the balance.
+            const isRetryable = httpStatus === 429 ||
                                 (httpStatus >= 500 && httpStatus <= 504);
 
             if (attempt < maxRetries && isRetryable) {

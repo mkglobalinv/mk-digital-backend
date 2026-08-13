@@ -159,8 +159,33 @@ PROVIDER RESPONSE MESSAGE: ${providerResponse.message || 'OK'}
                 message: `${plan.plan_name} completed successfully`,
                 data: providerResponse.data || providerResponse
             });
+        } else if (providerResponse.status === 'unknown') {
+            // 5a. Provider status is unknown (e.g. timeout). DO NOT REFUND blindly.
+            // Leave the transaction in 'unknown' state for manual reconciliation.
+            transaction.status = 'unknown';
+            transaction.api_response = providerResponse.message || 'Transaction processing / Status unconfirmed';
+            await transaction.save();
+            idempotencyService.releaseLock(idempotencyKey);
+
+            console.log(`
+=========================================
+IDENTITY SERVICE: ${serviceId.toUpperCase()}
+SELECTED PROVIDER: ${plan.provider}
+PROVIDER METHOD: POST
+ENDPOINT: /api/${serviceId === 'nin' ? 'nin_verification.php' : 'bvn_verification.php'}
+WALLET DEDUCTION: SUCCESS (₦${cost}) -> NOT REFUNDED (HELD)
+PROVIDER REQUEST SENT: YES
+PROVIDER RESPONSE STATUS: UNKNOWN / AMBIGUOUS
+PROVIDER RESPONSE MESSAGE: ${providerResponse.message}
+=========================================`);
+
+            return res.status(202).json({
+                status: 'success',
+                message: 'Your verification is processing. Please check your dashboard in a few minutes to view the status.',
+                data: { status: 'processing' }
+            });
         } else {
-            // 5. Refund on Provider Failure
+            // 5b. Refund on Provider Definitive Failure
             await refundBalance(userId, cost, transaction);
             transaction.status = 'failed';
             transaction.api_response = providerResponse.message;
