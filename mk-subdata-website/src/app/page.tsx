@@ -1,18 +1,17 @@
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
-import Stats from '@/components/Stats';
+import WebsiteShowcase from '@/components/WebsiteShowcase';
 import HowItWorks from '@/components/HowItWorks';
 import Features from '@/components/Features';
-import Pricing from '@/components/Pricing';
-import Security from '@/components/Security';
-import MobileApp from '@/components/MobileApp';
+import Services from '@/components/Services';
 import Referrals from '@/components/Referrals';
-import FaqAndAbout from '@/components/FaqAndAbout';
+import MobileApp from '@/components/MobileApp';
+import FinalCTA from '@/components/FinalCTA';
 import Footer from '@/components/Footer';
 
 export const metadata = {
-  title: '9JASUB - Power Nigeria\'s Digital Business | VTU Website Creator',
-  description: 'Launch your own fully automated, branded VTU website in minutes. Sell Data, Airtime, Electricity, and Exam Pins with zero coding required.',
+  title: '9JASUB - Own Your VTU Website & App',
+  description: 'Launch your own fully automated, branded digital services business in just 5 minutes with zero coding required.',
 };
 
 export default function Home() {
@@ -21,14 +20,13 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <Stats />
+        <WebsiteShowcase />
         <HowItWorks />
         <Features />
-        <Pricing />
+        <Services />
         <Referrals />
         <MobileApp />
-        <Security />
-        <FaqAndAbout />
+        <FinalCTA />
       </main>
       <Footer />
     </div>
