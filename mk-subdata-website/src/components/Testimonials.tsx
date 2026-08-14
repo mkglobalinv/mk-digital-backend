@@ -1,29 +1,39 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Star, ChevronDown } from 'lucide-react';
+import { Globe, Users, DollarSign, Wallet, Activity, Smartphone, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
-const testimonials = [
+const benefits = [
   {
-    name: "Oluwaseun A.",
-    role: "VTU Vendor in Lagos",
-    content: "9JASUB completely changed my business. Before, I was manually sending data to customers. Now my website runs on autopilot even when I'm sleeping. The ₦5,000 monthly fee is nothing compared to what I make."
+    icon: Globe,
+    title: "Your Own Branded Website",
+    content: "Get a professional, modern VTU website with your own domain name and branding. Completely white-labeled."
   },
   {
-    name: "Chidi N.",
-    role: "Student Entrepreneur",
-    content: "I started my VTU website from my hostel with just my smartphone. Within 2 months, I've processed over 500 orders. The setup was instant, exactly as promised."
+    icon: Users,
+    title: "Your Own Customers",
+    content: "Build your own customer base. Users register on your site, and you own the relationship."
   },
   {
-    name: "Aisha F.",
-    role: "POS Business Owner",
-    content: "I integrated the VTU website alongside my POS shop. My customers trust my brand because it's my own domain name. The API never fails during peak hours."
+    icon: DollarSign,
+    title: "Your Own Pricing & Markup",
+    content: "You have full control over your pricing. Set your own markup on all services and keep the profits."
   },
   {
-    name: "Tunde O.",
-    role: "Digital Marketer",
-    content: "The cheapest data rates I've seen. I resell at a solid margin and keep 100% of my profits. No coding needed, the dashboard is incredibly easy to use."
+    icon: Wallet,
+    title: "Customer Wallet System",
+    content: "Fully automated wallet funding. Customers fund their wallets directly without any manual intervention from you."
+  },
+  {
+    icon: Activity,
+    title: "Business Dashboard",
+    content: "Track sales, monitor profits, manage users, and view transaction history from a powerful admin dashboard."
+  },
+  {
+    icon: Smartphone,
+    title: "Optional Mobile App",
+    content: "Expand your reach by requesting a branded Android app for your business to publish on the Play Store."
   }
 ];
 
@@ -54,10 +64,10 @@ export default function Testimonials() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <section className="py-24 relative bg-slate-950/80 border-t border-slate-800/50" id="testimonials">
+    <section className="py-24 relative bg-slate-950/80 border-t border-slate-800/50" id="benefits">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         
-        {/* Testimonials */}
+        {/* Benefits */}
         <div className="mb-24">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <motion.h2 
@@ -66,30 +76,25 @@ export default function Testimonials() {
               viewport={{ once: true }}
               className="text-3xl md:text-5xl font-bold text-white mb-6"
             >
-              Loved by <span className="text-blue-400">Nigerian Entrepreneurs</span>
+              What <span className="text-blue-400">Business Owners</span> Get
             </motion.h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map((testimonial, idx) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {benefits.map((benefit, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col h-full"
+                className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col h-full hover:border-slate-700 transition-colors"
               >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                  ))}
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-6">
+                  <benefit.icon size={24} />
                 </div>
-                <p className="text-slate-300 italic mb-6 flex-1">"{testimonial.content}"</p>
-                <div>
-                  <h4 className="font-bold text-white">{testimonial.name}</h4>
-                  <p className="text-sm text-slate-500">{testimonial.role}</p>
-                </div>
+                <h4 className="font-bold text-white mb-3 text-lg">{benefit.title}</h4>
+                <p className="text-slate-400 leading-relaxed flex-1">{benefit.content}</p>
               </motion.div>
             ))}
           </div>

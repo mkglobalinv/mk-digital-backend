@@ -207,6 +207,11 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
+    localStorage.setItem('hasCompletedFirstEntry', 'true');
+    if (window.AndroidApp && window.AndroidApp.markFirstEntryComplete) {
+      window.AndroidApp.markFirstEntryComplete();
+    }
+
     fetchSiteInfo();
     const handlePrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); window.deferredPrompt = e; };
     window.addEventListener('beforeinstallprompt', handlePrompt);
@@ -914,12 +919,13 @@ function App() {
                 <Route path="/business/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : (token ? <Navigate to="/reseller" replace /> : <BusinessSignup setToken={setToken} siteInfo={siteInfo} />)} />
                 
                 <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/login" element={<Login setToken={setToken} siteInfo={siteInfo} />} />
-                <Route path="/signup" element={<Signup setToken={setToken} siteInfo={siteInfo} />} />
-                <Route path="/register" element={<Signup setToken={setToken} siteInfo={siteInfo} />} />
-                <Route path="/forgot-password" element={<ForgotPassword siteInfo={siteInfo} />} />
+                {/* Public / Entry Routes (Guard against authenticated users) */}
+                <Route path="/login" element={token ? <Navigate to="/home" replace /> : <Login setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/signup" element={token ? <Navigate to="/home" replace /> : <Signup setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/register" element={token ? <Navigate to="/home" replace /> : <Signup setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/forgot-password" element={token ? <Navigate to="/home" replace /> : <ForgotPassword siteInfo={siteInfo} />} />
                 <Route path="/forgot-pin" element={<ForgotPin siteInfo={siteInfo} />} />
-                <Route path="/verify-email" element={<VerifyEmail setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/verify-email" element={token ? <Navigate to="/home" replace /> : <VerifyEmail setToken={setToken} siteInfo={siteInfo} />} />
                 <Route path="/continue-signup" element={<ContinueSignup siteInfo={siteInfo} />} />
                 <Route path="/reseller/onboarding" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/home" replace /> : (token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />)} />
                 <Route path="/app" element={<AppDownload />} />
@@ -1063,12 +1069,12 @@ function App() {
               </>
             )}
 
-            {isOffline && (
+            {/* {isOffline && (
               <div className="offline-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', zIndex: 30000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                 <ShieldAlert size={64} color="#EF4444" />
                 <h2 style={{ marginTop: '20px' }}>Connection Lost</h2>
               </div>
-            )}
+            )} */}
 
             {isSlowNetwork && !isOffline && (
               <div className="slow-network-banner" style={{ position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(245, 158, 11, 0.85)', color: 'white', padding: '6px 12px', borderRadius: '20px', zIndex: 30001, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)', fontSize: '11.5px', fontWeight: '700', animation: 'statusPulse 2s infinite ease-out' }}>

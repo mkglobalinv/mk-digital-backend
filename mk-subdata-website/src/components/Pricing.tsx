@@ -33,7 +33,7 @@ export default function Pricing() {
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto items-center">
           
-          {/* Basic Reseller Plan */}
+          {/* Basic Business Plan */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}

@@ -1,11 +1,24 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, User, Briefcase, ArrowRight } from 'lucide-react';
 
 export default function GetStarted() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const hasCompletedFirstEntry = localStorage.getItem('hasCompletedFirstEntry');
+
+    if (token) {
+      window.location.replace('/home');
+    } else if (hasCompletedFirstEntry === 'true') {
+      window.location.replace('/login');
+    } else {
+      localStorage.setItem('hasCompletedFirstEntry', 'true');
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 font-sans">
@@ -22,7 +35,7 @@ export default function GetStarted() {
 
           <div className="space-y-4">
             <button 
-              onClick={() => window.location.assign('/signup')}
+              onClick={() => window.location.assign('/onboarding')}
               className="group block w-full p-6 bg-white border-2 border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer relative overflow-hidden text-left"
             >
               <div className="flex items-center gap-4 relative z-10">

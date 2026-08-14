@@ -32,7 +32,7 @@ export default function Hero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-lg md:text-xl text-slate-400 mb-6 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
             >
-              Start your own branded digital services business with a 3-day free trial.
+              Start your own branded digital services business with a 3-day free trial. After your 3-day trial, pay just ₦5,000 one-time activation fee to keep your website live and continue selling.
             </motion.p>
             
             <motion.div

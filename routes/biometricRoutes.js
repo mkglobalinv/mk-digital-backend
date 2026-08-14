@@ -47,7 +47,7 @@ router.get("/register-challenge", protect, async (req, res) => {
             },
             rp: {
                 name: "MK Digital VTU",
-                id: req.hostname 
+                id: "9jasub.com" 
             }
         });
     } catch (error) {

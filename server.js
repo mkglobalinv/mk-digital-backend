@@ -237,6 +237,19 @@ app.get("/api/health", healthHandler);
 app.use(whiteLabelMiddleware);
 app.use(maintenanceMiddleware);
 
+// --- DIGITAL ASSET LINKS FOR WEBAUTHN (ANDROID WEBVIEW) ---
+app.get("/.well-known/assetlinks.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.json([{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.ninejasub.app",
+            "sha256_cert_fingerprints": ["37:A5:A7:40:C1:D4:C9:9E:A2:0A:4F:D0:5F:68:1E:1D:B4:A8:E6:6B:A6:83:42:7C:02:4C:0D:FD:4E:A5:5A:A5"]
+        }
+    }]);
+});
+
 // --- DYNAMIC MULTI-TENANT PWA MANIFEST GENERATION ---
 app.get("/manifest.json", async (req, res) => {
     try {

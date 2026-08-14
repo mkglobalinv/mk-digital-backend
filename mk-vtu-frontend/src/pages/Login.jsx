@@ -10,7 +10,9 @@ import { isBiometricAvailable, authenticateBiometric } from '../services/biometr
 import { isWhiteLabelSite } from '../utils/whiteLabelHelper';
 
 const Login = ({ setToken, siteInfo }) => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => {
+    return localStorage.getItem('lastEmail') || '';
+  });
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,8 @@ const Login = ({ setToken, siteInfo }) => {
     if (siteInfo) {
       setAccountView('retail');
     }
-  }, [siteInfo]);
+
+  }, [siteInfo, navigate, setToken]);
 
   useEffect(() => {
     if (localStorage.getItem('hasLoggedInBefore') === 'true') {
@@ -168,6 +171,7 @@ const Login = ({ setToken, siteInfo }) => {
 
       if (loginRes.data.token) {
         localStorage.setItem('token', loginRes.data.token);
+        localStorage.setItem('hasLoggedInBefore', 'true');
         setToken(loginRes.data.token);
         navigate('/home');
       } else {
