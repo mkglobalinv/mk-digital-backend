@@ -101,8 +101,9 @@ const Login = ({ setToken, siteInfo }) => {
         localStorage.setItem('hasLoggedInBefore', 'true');
         localStorage.setItem('lastEmail', email);
         localStorage.setItem('userType', 'retail');
-        setToken(res.data.token);
+        if (setToken) setToken(res.data.token);
         sessionStorage.setItem('justLoggedIn', 'true');
+        sessionStorage.setItem('appUnlocked', 'true');
         if (res.data.loginAlertStatus) {
           sessionStorage.setItem('login_alert', res.data.loginAlertStatus);
         }
@@ -173,6 +174,7 @@ const Login = ({ setToken, siteInfo }) => {
         localStorage.setItem('token', loginRes.data.token);
         localStorage.setItem('hasLoggedInBefore', 'true');
         setToken(loginRes.data.token);
+        sessionStorage.setItem('appUnlocked', 'true');
         navigate('/home');
       } else {
         setErrorMsg('Biometric authentication failed.');

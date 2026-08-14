@@ -93,6 +93,7 @@ const Signup = ({ setToken, siteInfo }) => {
              localStorage.setItem('userType', 'retail');
              if (setToken) setToken(loginRes.data.token);
              sessionStorage.setItem('justLoggedIn', 'true');
+             sessionStorage.setItem('appUnlocked', 'true');
              
              navigate('/home');
              return;

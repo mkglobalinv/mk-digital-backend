@@ -150,8 +150,10 @@ function App() {
       return saved ? JSON.parse(saved) : null;
     } catch (e) { return null; }
   });
-    const [loadingUser, setLoadingUser] = useState(!!token);
+  const [loadingUser, setLoadingUser] = useState(!!token);
   const [isAppLocked, setIsAppLocked] = useState(false);
+  const [unlockPin, setUnlockPin] = useState("");
+  const [unlockPinLoading, setUnlockPinLoading] = useState(false);
   const [biometricLoading, setBiometricLoading] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -517,11 +519,13 @@ function App() {
     const checkLock = async () => {
       const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
       const alreadyUnlocked = sessionStorage.getItem('appUnlocked') === 'true';
-      if (token && biometricEnabled && !alreadyUnlocked) {
-        const supported = await isBiometricAvailable();
-        if (supported && localStorage.getItem('lastEmail')) {
-          setIsAppLocked(true);
-          setTimeout(() => { handleAppUnlock(); }, 500);
+      if (token && !alreadyUnlocked) {
+        setIsAppLocked(true);
+        if (biometricEnabled) {
+          const supported = await isBiometricAvailable();
+          if (supported && localStorage.getItem('lastEmail')) {
+            setTimeout(() => { handleAppUnlock(); }, 500);
+          }
         }
       }
     };
@@ -822,7 +826,7 @@ function App() {
                     Welcome back.<br/>Verify your identity to continue.
                   </p>
                   
-                  <button onClick={handleAppUnlock} disabled={biometricLoading} style={{
+                  <button onClick={handleAppUnlock} disabled={biometricLoading || unlockPinLoading} style={{
                     width: '100%', padding: '16px', borderRadius: '16px', border: 'none', 
                     background: 'var(--primary-gradient)', color: '#fff', fontWeight: 'bold', 
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
@@ -833,19 +837,51 @@ function App() {
                     Unlock with Biometrics
                   </button>
                   
+                  <div style={{ marginTop: '24px', position: 'relative' }}>
+                      <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'var(--border-color)', zIndex: 1 }}></div>
+                      <span style={{ position: 'relative', zIndex: 2, background: 'var(--bg-card)', padding: '0 16px', color: 'var(--text-gray)', fontSize: '13px', fontWeight: '600' }}>OR</span>
+                  </div>
+
+                  <div style={{ marginTop: '24px', textAlign: 'left' }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--text-dark)', marginBottom: '8px' }}>Enter your 4-digit PIN</label>
+                      <input 
+                          type="password" 
+                          placeholder="_ _ _ _" 
+                          maxLength={4}
+                          value={unlockPin}
+                          onChange={(e) => setUnlockPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          style={{
+                              width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)',
+                              background: 'var(--bg-color)', color: 'var(--text-dark)', fontSize: '24px', letterSpacing: '8px',
+                              textAlign: 'center', fontWeight: 'bold', outline: 'none'
+                          }}
+                      />
+                  </div>
+
                   <button onClick={() => {
-                    const pin = prompt("Enter your 4-digit Transaction PIN to unlock:");
-                    if (pin && pin.length === 4) {
-                       API.post('/api/auth/verify-pin', { pin }, { headers: { Authorization: token } })
-                         .then(res => { if(res.data.success) { sessionStorage.setItem('appUnlocked', 'true'); setIsAppLocked(false); } else alert("Invalid PIN"); })
-                         .catch(err => alert("Error verifying PIN"));
+                    if (unlockPin && unlockPin.length === 4) {
+                       setUnlockPinLoading(true);
+                       API.post('/api/auth/verify-pin', { pin: unlockPin }, { headers: { Authorization: `Bearer ${token}` } })
+                         .then(res => { 
+                             if(res.data.success) { 
+                                 sessionStorage.setItem('appUnlocked', 'true'); 
+                                 setIsAppLocked(false); 
+                                 setUnlockPin('');
+                             } else {
+                                 alert("Invalid PIN"); 
+                             }
+                         })
+                         .catch(err => alert("Error verifying PIN"))
+                         .finally(() => setUnlockPinLoading(false));
                     }
-                  }} style={{
+                  }} disabled={unlockPin.length !== 4 || unlockPinLoading || biometricLoading} style={{
                     width: '100%', marginTop: '16px', padding: '16px', borderRadius: '16px', 
-                    border: '1px solid var(--border-color)', background: 'transparent', 
-                    color: 'var(--text-dark)', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer'
+                    border: 'none', background: unlockPin.length === 4 ? 'var(--primary-color, #3B82F6)' : 'var(--border-color)', 
+                    color: unlockPin.length === 4 ? '#fff' : 'var(--text-gray)', fontWeight: 'bold', fontSize: '16px', 
+                    cursor: unlockPin.length === 4 ? 'pointer' : 'not-allowed', transition: 'all 0.3s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}>
-                    Use PIN
+                    {unlockPinLoading ? <Loader2 className="animate-spin" size={20} /> : 'Unlock App'}
                   </button>
 
                   <button onClick={logout} style={{ 
