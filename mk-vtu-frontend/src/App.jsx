@@ -1046,10 +1046,7 @@ function App() {
                 <Route path="/" element={
                   token 
                     ? <Navigate to="/home" /> 
-                    : (isWhiteLabelSite(siteInfo) 
-                        ? <ResellerMarketingHome siteInfo={siteInfo} /> 
-                        : (localStorage.getItem("seenOnboarding") === "true" ? <Navigate to="/login" /> : <Navigate to="/onboarding" />)
-                      )
+                    : <ResellerMarketingHome siteInfo={siteInfo} />
                 } />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
