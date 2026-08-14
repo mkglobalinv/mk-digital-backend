@@ -79,12 +79,7 @@ export default function Footer() {
             © 2026 9JASUB. All Rights Reserved.
           </p>
           <div className="flex gap-4">
-            <div className="h-8 px-3 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-xs font-semibold text-slate-400">
-              Secured by Paystack
-            </div>
-            <div className="h-8 px-3 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-xs font-semibold text-slate-400">
-              Monnify Integration
-            </div>
+            {/* Payment badges removed as requested */}
           </div>
         </div>
       </div>
