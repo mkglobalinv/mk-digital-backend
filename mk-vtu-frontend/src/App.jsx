@@ -541,7 +541,10 @@ function App() {
       await authenticateBiometric(challengeRes.data);
       sessionStorage.setItem('appUnlocked', 'true');
       setIsAppLocked(false);
-    } catch (err) { console.error("App unlock failed"); }
+    } catch (err) { 
+        console.error("App unlock failed", err); 
+        alert("Biometric unlock is not supported or failed. Please use your 4-digit PIN.");
+    }
     finally { setBiometricLoading(false); }
   };
 
