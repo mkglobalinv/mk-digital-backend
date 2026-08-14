@@ -45,6 +45,7 @@ import AdminLogin from "./admin/pages/AdminLogin";
 import AdminLayout from "./admin/components/AdminLayout";
 import BusinessLogin from "./reseller/pages/BusinessLogin";
 import ResellerMarketingHome from "./pages/ResellerMarketingHome";
+import PlatformMarketingHome from "./pages/PlatformMarketingHome";
 import BusinessSignup from "./reseller/pages/BusinessSignup";
 import ResellerLayout from "./reseller/components/ResellerLayout";
 import { io } from "socket.io-client";
@@ -1048,7 +1049,7 @@ function App() {
                     ? <Navigate to="/home" /> 
                     : (isWhiteLabelSite(siteInfo) 
                         ? <ResellerMarketingHome siteInfo={siteInfo} /> 
-                        : (localStorage.getItem("seenOnboarding") === "true" ? <Navigate to="/login" /> : <Navigate to="/onboarding" />)
+                        : <PlatformMarketingHome siteInfo={siteInfo} />
                       )
                 } />
                 <Route path="*" element={<Navigate to="/" />} />
