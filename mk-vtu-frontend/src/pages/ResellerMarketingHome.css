@@ -105,7 +105,7 @@
 .saas-mobile-cta a { width: 100%; justify-content: center; }
 
 /* 1. HERO SECTION */
-.saas-hero { padding: 180px 24px 100px; position: relative; overflow: hidden; max-width: 1200px; margin: 0 auto; text-align: center; }
+.saas-hero { padding: 160px 24px 80px; position: relative; overflow: hidden; max-width: 1200px; margin: 0 auto; text-align: center; }
 .saas-hero-bg-gradient {
   position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 1000px; height: 1000px;
   background: radial-gradient(circle, var(--theme-primary-light) 0%, rgba(255,255,255,0) 65%); z-index: -2; pointer-events: none;
@@ -119,108 +119,152 @@
   border: 1px solid rgba(226,232,240,0.8); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: var(--gray-800);
   margin-bottom: 24px; box-shadow: var(--shadow-sm);
 }
-.saas-hero-title { font-size: 4.8rem; line-height: 1.1; font-weight: 800; letter-spacing: -0.04em; margin: 0 0 24px 0; color: var(--gray-900); }
+.saas-hero-title { font-size: 4.5rem; line-height: 1.1; font-weight: 800; letter-spacing: -0.04em; margin: 0 0 24px 0; color: var(--gray-900); }
 .saas-gradient-text { background: linear-gradient(135deg, var(--theme-primary) 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.saas-hero-subtitle { font-size: 1.3rem; line-height: 1.6; color: var(--gray-500); margin: 0 auto 40px; max-width: 650px; font-weight: 400; }
+.saas-hero-subtitle { font-size: 1.25rem; line-height: 1.6; color: var(--gray-500); margin: 0 auto 24px; max-width: 680px; font-weight: 400; }
+.saas-hero-pricing-tag {
+  font-size: 1.1rem; color: var(--theme-primary); margin: 0 auto 40px; font-weight: 500;
+  background: var(--theme-primary-light); display: inline-block; padding: 10px 20px; border-radius: 30px;
+}
+.saas-hero-pricing-tag strong { font-weight: 800; }
 .saas-hero-actions { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
 @media (max-width: 768px) {
-  .saas-hero { padding: 140px 24px 60px; }
-  .saas-hero-title { font-size: 3rem; }
+  .saas-hero { padding: 120px 24px 60px; }
+  .saas-hero-title { font-size: 2.8rem; }
   .saas-hero-subtitle { font-size: 1.1rem; }
+  .saas-hero-pricing-tag { font-size: 0.95rem; padding: 8px 16px; display: block; max-width: 300px; margin: 0 auto 30px; }
   .saas-hero-actions { flex-direction: column; width: 100%; }
   .saas-hero-actions .saas-btn-large { width: 100%; }
 }
 
-/* 2. TRUSTED SERVICES */
-.saas-trust { border-top: 1px solid var(--gray-100); border-bottom: 1px solid var(--gray-100); background: linear-gradient(to right, #fafafa, #ffffff, #fafafa); padding: 48px 24px; }
-.saas-trust-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 32px; }
-.saas-trust-stat { text-align: center; }
-.saas-trust-val { font-size: 2.5rem; font-weight: 800; color: var(--gray-900); margin: 0 0 4px; letter-spacing: -0.02em; }
-.saas-trust-label { font-size: 0.9rem; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
-.saas-trust-networks { display: flex; gap: 32px; align-items: center; justify-content: center; opacity: 0.5; filter: grayscale(100%); transition: all 0.4s ease; }
-.saas-trust-networks:hover { filter: grayscale(0%); opacity: 1; }
-.saas-network-badge { font-size: 1.3rem; font-weight: 800; color: var(--gray-900); letter-spacing: -0.03em; }
-@media (max-width: 768px) { .saas-trust-networks { display: none; } }
-
 /* SECTION HEADERS */
-.saas-section { padding: 110px 24px; max-width: 1200px; margin: 0 auto; }
-.saas-section-header { text-align: center; margin-bottom: 64px; max-width: 700px; margin-inline: auto; }
+.saas-section { padding: 90px 24px; max-width: 1200px; margin: 0 auto; }
+.saas-section-header { text-align: center; margin-bottom: 60px; max-width: 750px; margin-inline: auto; }
 .saas-section-title { font-size: 2.5rem; font-weight: 800; color: var(--gray-900); margin: 0 0 16px; letter-spacing: -0.03em; }
 .saas-section-subtitle { font-size: 1.15rem; color: var(--gray-500); margin: 0; line-height: 1.6; }
-@media (max-width: 768px) { .saas-section { padding: 70px 24px; } .saas-section-title { font-size: 2rem; } }
+@media (max-width: 768px) { .saas-section { padding: 70px 24px; } .saas-section-title { font-size: 2rem; } .saas-section-header { margin-bottom: 40px; } }
 
-/* 3. CORE FEATURES */
-.saas-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
-.saas-feature-card {
-  background: white; border: 1px solid var(--gray-100); border-radius: 24px; padding: 36px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
-  position: relative; overflow: hidden;
+/* 2. CAROUSEL SECTION */
+.saas-showcase-section { background: var(--gray-50); padding: 80px 0; border-top: 1px solid var(--gray-100); border-bottom: 1px solid var(--gray-100); overflow: hidden; }
+.saas-showcase-section .saas-section-header { padding: 0 24px; }
+.saas-carousel-container { width: 100%; position: relative; overflow: hidden; padding: 20px 0; }
+.saas-carousel-track {
+  display: flex; gap: 32px; padding: 0 32px; width: max-content;
+  animation: scrollCarousel 30s linear infinite;
 }
-.saas-feature-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-xl); border-color: rgba(99,102,241,0.2); }
-.saas-feature-icon {
-  width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, var(--gray-50) 0%, var(--theme-primary-light) 100%);
-  display: flex; align-items: center; justify-content: center; color: var(--theme-primary); margin-bottom: 24px;
+.saas-carousel-track:hover { animation-play-state: paused; }
+.saas-carousel-item {
+  width: 600px; flex-shrink: 0;
 }
-.saas-feature-card h3 { font-size: 1.3rem; font-weight: 700; margin: 0 0 12px; color: var(--gray-900); letter-spacing: -0.01em; }
-.saas-feature-card p { font-size: 1.05rem; color: var(--gray-500); line-height: 1.6; margin: 0; }
-@media (max-width: 992px) { .saas-features-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 768px) { .saas-features-grid { grid-template-columns: 1fr; gap: 24px; } .saas-feature-card { padding: 32px; } }
+.saas-carousel-card {
+  position: relative; background: white; border-radius: 20px; padding: 12px; border: 1px solid var(--gray-200); box-shadow: var(--shadow-md); transition: transform 0.3s;
+}
+.saas-carousel-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-xl); }
+.saas-carousel-card img { width: 100%; height: auto; border-radius: 12px; display: block; border: 1px solid var(--gray-100); }
+.saas-carousel-label {
+  position: absolute; top: 24px; left: 24px; background: rgba(0,0,0,0.7); color: white;
+  padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(4px);
+}
+@keyframes scrollCarousel { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-100% / 2 - 16px)); } }
+@media (max-width: 768px) {
+  .saas-carousel-item { width: 85vw; max-width: 400px; }
+  .saas-carousel-track { gap: 16px; padding: 0 16px; }
+  .saas-carousel-card { padding: 8px; }
+  .saas-carousel-label { top: 16px; left: 16px; }
+}
 
-/* 4. PLATFORM PREVIEW */
-.saas-preview-section { background: var(--gray-50); position: relative; border-radius: 40px; overflow: hidden; padding: 100px 24px 0; margin: 0 24px 100px; border: 1px solid var(--gray-100); box-shadow: inset 0 2px 20px rgba(0,0,0,0.02); text-align: center; }
-.saas-preview-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at center top, rgba(99,102,241,0.05) 0%, rgba(255,255,255,0) 60%); z-index: 1; pointer-events: none; }
-.saas-preview-wrapper { max-width: 1000px; margin: 40px auto 0; position: relative; z-index: 2; padding: 0 20px; }
-.saas-device-frame {
-  background: white; border-radius: 20px 20px 0 0; padding: 16px 16px 0;
-  box-shadow: 0 -20px 40px rgba(0,0,0,0.08); border: 1px solid var(--gray-200); border-bottom: none;
-  display: inline-block; width: 100%;
-}
-.saas-preview-img { width: 100%; height: auto; border-radius: 12px 12px 0 0; display: block; border: 1px solid var(--gray-100); border-bottom: none; }
-@media (max-width: 768px) { .saas-preview-section { margin: 0 0 60px; border-radius: 0; border-left: none; border-right: none; padding-top: 80px; } .saas-device-frame { padding: 12px 12px 0; border-radius: 16px 16px 0 0; } }
-
-/* 5. HOW IT WORKS */
-.saas-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; position: relative; }
-.saas-step-item { text-align: center; position: relative; z-index: 1; padding: 24px; background: white; border-radius: 24px; border: 1px solid transparent; transition: all 0.3s ease; }
-.saas-step-item:hover { border-color: var(--gray-100); box-shadow: var(--shadow-md); transform: translateY(-4px); }
+/* 3. HOW IT WORKS */
+.saas-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; position: relative; margin-top: 20px; }
+.saas-step-item { text-align: center; position: relative; z-index: 1; padding: 32px 24px; background: white; border-radius: 24px; border: 1px solid var(--gray-200); transition: all 0.3s ease; box-shadow: var(--shadow-sm); }
+.saas-step-item:hover { border-color: var(--theme-primary-light); box-shadow: var(--shadow-lg); transform: translateY(-4px); }
 .saas-step-number {
-  width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--theme-primary) 0%, #8b5cf6 100%); color: white;
-  display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800;
-  margin: 0 auto 24px; box-shadow: 0 10px 20px rgba(99,102,241,0.25); border: 6px solid white;
+  width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, var(--gray-50) 0%, var(--theme-primary-light) 100%);
+  display: flex; align-items: center; justify-content: center; color: var(--theme-primary); margin: 0 auto 20px;
 }
+.saas-step-badge { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--theme-primary); letter-spacing: 0.05em; margin-bottom: 8px; }
 .saas-step-item h3 { font-size: 1.3rem; font-weight: 700; margin: 0 0 12px; color: var(--gray-900); }
 .saas-step-item p { font-size: 1.05rem; color: var(--gray-500); line-height: 1.6; margin: 0; }
-.saas-steps-line { position: absolute; top: 56px; left: 16%; right: 16%; height: 2px; background: linear-gradient(to right, transparent, var(--theme-primary-light) 20%, var(--theme-primary-light) 80%, transparent); z-index: 0; }
-@media (max-width: 768px) { .saas-steps { grid-template-columns: 1fr; gap: 32px; } .saas-steps-line { display: none; } .saas-step-item { padding: 16px; border: 1px solid var(--gray-100); box-shadow: var(--shadow-sm); } }
+.saas-steps-line { position: absolute; top: 68px; left: 16%; right: 16%; height: 2px; background: linear-gradient(to right, transparent, var(--theme-primary-light) 20%, var(--theme-primary-light) 80%, transparent); z-index: 0; border-top: 2px dashed var(--gray-300); }
+@media (max-width: 768px) { .saas-steps { grid-template-columns: 1fr; gap: 24px; } .saas-steps-line { display: none; } .saas-step-item { padding: 24px 16px; } }
 
-/* 6. WHY CHOOSE US & BENEFITS */
-.saas-benefits-section { background: var(--gray-50); border-radius: 40px; margin: 0 24px 100px; padding-bottom: 100px; }
-.saas-benefits-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 1000px; margin: 0 auto; }
+/* 4. START WITHOUT LARGE CAPITAL */
+.saas-capital-section { background: var(--gray-900); color: white; border-radius: 40px; margin: 40px 24px; padding: 80px 48px; box-shadow: var(--shadow-xl); position: relative; overflow: hidden; }
+.saas-capital-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 2; }
+.saas-capital-content .saas-section-title { color: white; }
+.saas-capital-lead { font-size: 1.4rem; font-weight: 600; color: var(--theme-primary); margin-bottom: 24px; }
+.saas-capital-desc { font-size: 1.15rem; color: var(--gray-200); line-height: 1.6; margin-bottom: 32px; }
+.saas-capital-list { list-style: none; padding: 0; margin: 0 0 40px 0; display: flex; flex-direction: column; gap: 16px; }
+.saas-capital-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 1.05rem; color: var(--gray-100); line-height: 1.5; }
+.saas-capital-list li svg { flex-shrink: 0; margin-top: 2px; }
+.saas-capital-ownership { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; font-size: 1.15rem; font-weight: 500; text-align: center; color: #a78bfa; }
+.saas-flow-visual { display: flex; flex-direction: column; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 40px 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); }
+.flow-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 16px 24px; border-radius: 12px; width: 100%; max-width: 320px; display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.05rem; justify-content: center; backdrop-filter: blur(8px); }
+.flow-arrow { color: var(--gray-500); font-size: 1.2rem; font-weight: bold; }
+.flow-card.highlight { background: var(--theme-primary); border-color: var(--theme-primary-hover); color: white; transform: scale(1.05); font-weight: 700; }
+@media (max-width: 992px) {
+  .saas-capital-grid { grid-template-columns: 1fr; gap: 40px; }
+  .saas-capital-section { padding: 60px 24px; margin: 20px 16px; border-radius: 32px; }
+}
+
+/* 5. SERVICES */
+.saas-features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.saas-feature-card {
+  background: white; border: 1px solid var(--gray-200); border-radius: 20px; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;
+  transition: all 0.3s ease; box-shadow: var(--shadow-sm);
+}
+.saas-feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--theme-primary); }
+.saas-feature-icon {
+  width: 56px; height: 56px; border-radius: 16px; background: var(--gray-50);
+  display: flex; align-items: center; justify-content: center; color: var(--gray-800); transition: all 0.3s ease;
+}
+.saas-feature-card:hover .saas-feature-icon { background: var(--theme-primary-light); color: var(--theme-primary); }
+.saas-feature-card h3 { font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--gray-900); }
+@media (max-width: 992px) { .saas-features-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .saas-features-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } .saas-feature-card { padding: 20px 12px; } .saas-feature-card h3 { font-size: 1rem; } }
+
+/* 6. YOUR BUSINESS, YOUR BRAND */
+.saas-benefits-section { background: var(--gray-50); border-radius: 40px; margin: 0 24px 80px; padding: 80px 24px; }
+.saas-benefits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 1200px; margin: 0 auto; }
 .saas-benefit-card {
-  display: flex; gap: 20px; align-items: flex-start; background: white; padding: 32px;
+  display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center; background: white; padding: 24px;
   border-radius: 20px; border: 1px solid var(--gray-200); transition: all 0.3s ease; box-shadow: var(--shadow-sm);
 }
-.saas-benefit-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: rgba(99,102,241,0.2); }
-.saas-benefit-icon { color: var(--theme-primary); flex-shrink: 0; background: var(--theme-primary-light); padding: 12px; border-radius: 12px; width: 56px; height: 56px; box-sizing: border-box; }
-.saas-benefit-content h3 { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0 0 12px; }
-.saas-benefit-content p { font-size: 1rem; color: var(--gray-500); line-height: 1.6; margin: 0; }
-@media (max-width: 992px) { .saas-benefits-grid { grid-template-columns: 1fr; } }
-@media (max-width: 768px) { .saas-benefits-section { margin: 0 0 60px; border-radius: 0; padding-bottom: 60px; } .saas-benefit-card { padding: 24px; flex-direction: column; gap: 16px; } }
+.saas-benefit-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: rgba(99,102,241,0.2); }
+.saas-benefit-icon { color: var(--theme-primary); background: var(--theme-primary-light); padding: 12px; border-radius: 16px; width: 56px; height: 56px; box-sizing: border-box; }
+.saas-benefit-content h3 { font-size: 1.1rem; font-weight: 700; color: var(--gray-900); margin: 0; }
+@media (max-width: 992px) { .saas-benefits-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .saas-benefits-section { margin: 0 0 60px; border-radius: 0; } .saas-benefits-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
 
-/* 7. FAQ */
-.saas-faq { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-.saas-faq-item { background: white; border: 1px solid var(--gray-200); border-radius: 20px; padding: 32px; transition: all 0.3s ease; box-shadow: var(--shadow-sm); }
-.saas-faq-item:hover { border-color: var(--theme-primary-light); box-shadow: var(--shadow-md); transform: translateX(4px); }
-.saas-faq-q { font-size: 1.2rem; font-weight: 700; color: var(--gray-900); margin: 0 0 16px; display: flex; align-items: center; gap: 12px; }
-.saas-faq-q::before { content: '?'; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--theme-primary-light); color: var(--theme-primary); border-radius: 50%; font-size: 14px; font-weight: 800; flex-shrink: 0; }
-.saas-faq-a { font-size: 1.05rem; color: var(--gray-500); line-height: 1.6; margin: 0 0 0 40px; }
-@media (max-width: 768px) { .saas-faq-item { padding: 24px; } .saas-faq-a { margin-left: 0; margin-top: 16px; } .saas-faq-q { flex-direction: row; align-items: flex-start; } }
+/* 7. PREMIUM MOBILE APP */
+.saas-preview-section { background: white; border-top: 1px solid var(--gray-100); border-bottom: 1px solid var(--gray-100); position: relative; overflow: hidden; padding: 100px 24px; margin: 0; }
+.saas-preview-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at center right, rgba(99,102,241,0.05) 0%, rgba(255,255,255,0) 60%); z-index: 1; pointer-events: none; }
+.saas-preview-layout { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 2; }
+.saas-app-features { display: flex; flex-direction: column; gap: 16px; margin-top: 32px; }
+.app-feature-badge { display: inline-flex; align-items: center; gap: 12px; font-size: 1.15rem; font-weight: 600; color: var(--gray-800); background: var(--gray-50); padding: 16px 24px; border-radius: 12px; border: 1px solid var(--gray-200); }
+.app-feature-badge svg { color: var(--theme-primary); }
+.saas-preview-img-container { display: flex; justify-content: center; }
+.saas-app-mockup { max-width: 100%; height: auto; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1)); border-radius: 32px; }
+@media (max-width: 992px) {
+  .saas-preview-layout { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+  .saas-preview-text h2, .saas-preview-text p { text-align: center !important; }
+  .saas-app-features { align-items: center; }
+  .saas-app-mockup { max-height: 500px; }
+}
 
 /* 8. FINAL CTA */
-.saas-cta { position: relative; background: linear-gradient(135deg, var(--theme-primary) 0%, #4f46e5 100%); border-radius: 40px; padding: 100px 40px; margin: 0 24px 100px; text-align: center; color: white; overflow: hidden; box-shadow: 0 24px 48px -12px rgba(99,102,241,0.4); }
+.saas-cta { position: relative; background: linear-gradient(135deg, var(--theme-primary) 0%, #4f46e5 100%); border-radius: 40px; padding: 100px 40px; margin: 80px 24px; text-align: center; color: white; overflow: hidden; box-shadow: 0 24px 48px -12px rgba(99,102,241,0.4); }
 .saas-cta-glow { position: absolute; top: -50%; left: -10%; width: 50%; height: 200%; background: radial-gradient(ellipse at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%); transform: rotate(30deg); pointer-events: none; }
-.saas-cta h2 { font-size: 3.2rem; font-weight: 800; margin: 0 0 24px; letter-spacing: -0.03em; position: relative; z-index: 1; }
-.saas-cta p { font-size: 1.3rem; opacity: 0.9; margin: 0 auto 48px; max-width: 700px; position: relative; z-index: 1; font-weight: 400; line-height: 1.6; }
-@media (max-width: 768px) { .saas-cta { padding: 60px 24px; margin: 0 0 60px; border-radius: 0; } .saas-cta h2 { font-size: 2.25rem; } .saas-cta p { font-size: 1.15rem; } }
+.saas-cta h2 { font-size: 3rem; font-weight: 800; margin: 0 0 20px; letter-spacing: -0.03em; position: relative; z-index: 1; }
+.saas-cta p { font-size: 1.3rem; opacity: 0.9; margin: 0 auto 24px; max-width: 700px; position: relative; z-index: 1; font-weight: 400; line-height: 1.6; }
+.saas-cta-pricing { display: inline-block; background: rgba(0,0,0,0.2); padding: 12px 24px; border-radius: 30px; font-size: 1.1rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 1; }
+.saas-cta-pricing strong { color: #fde047; font-weight: 800; }
+@media (max-width: 768px) {
+  .saas-cta { padding: 60px 24px; margin: 40px 16px; border-radius: 32px; } 
+  .saas-cta h2 { font-size: 2.25rem; } 
+  .saas-cta p { font-size: 1.15rem; }
+  .saas-cta-pricing { font-size: 0.95rem; display: block; }
+}
 
 /* 9. FOOTER */
 .saas-footer { background: white; border-top: 1px solid var(--gray-100); padding: 80px 24px 40px; }
