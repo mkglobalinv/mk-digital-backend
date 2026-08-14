@@ -1084,7 +1084,7 @@ function App() {
                 rel="noopener noreferrer" 
                 className="floating-whatsapp"
                 style={{
-                    position: 'fixed', right: '16px', bottom: '76px',
+                    position: 'fixed', right: '16px', bottom: '90px',
                     background: '#25D366', color: 'white', width: '42px', height: '42px', 
                     borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: '0 4px 12px rgba(37, 211, 102, 0.25)', zIndex: 999, transition: 'all 0.3s ease'

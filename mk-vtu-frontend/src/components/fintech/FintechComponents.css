@@ -626,39 +626,40 @@ body.dark-theme .sheet-list-item { background: rgba(255,255,255,0.03); }
    11. FLOATING BOTTOM NAV
    ----------------------------------------------------------- */
 .fintech-floating-nav {
-  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-  width: 90%; max-width: 400px; z-index: 900;
+  position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 24px); max-width: 400px; z-index: 900;
 }
 .fintech-nav-glass {
-  display: flex; justify-content: space-between; align-items: center;
-  background: rgba(255,255,255,0.88);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  padding: 10px 20px; border-radius: 32px;
-  border: 1px solid rgba(18,60,115,0.12);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  display: flex; justify-content: space-around; align-items: center;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  padding: 8px 12px; border-radius: 24px;
+  border: 1px solid rgba(18,60,115,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,0.5) inset;
 }
 body.dark-theme .fintech-nav-glass {
-  background: rgba(18,18,22,0.9);
-  border-color: rgba(255,255,255,0.1);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  background: rgba(20,20,24,0.85);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset;
 }
 .fintech-nav-item {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
   text-decoration: none; color: var(--text-gray); transition: all 0.25s ease;
+  width: 60px;
 }
 .fintech-nav-item .nav-icon {
-  width: 36px; height: 36px; border-radius: 18px;
+  width: 34px; height: 34px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.25s ease;
+  transition: all 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
 }
-.fintech-nav-item span { font-size: 10px; font-weight: 700; opacity: 0.75; transition: all 0.25s ease; }
+.fintech-nav-item span { font-size: 9px; font-weight: 700; opacity: 0.75; transition: all 0.25s ease; letter-spacing: 0.2px; }
 .fintech-nav-item.active .nav-icon {
-  background: #F4B400; color: #0B0B0B;
-  transform: translateY(-4px);
-  box-shadow: 0 4px 14px rgba(244,180,0,0.35);
+  background: var(--primary, #2563EB); color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
 }
-.fintech-nav-item.active span { color: #123C73; opacity: 1; transform: translateY(-2px); }
-body.dark-theme .fintech-nav-item.active span { color: #F4B400; }
+.fintech-nav-item.active span { color: var(--primary, #2563EB); opacity: 1; font-weight: 800; transform: translateY(-1px); }
+body.dark-theme .fintech-nav-item.active span { color: #FFFFFF; }
 
 /* -----------------------------------------------------------
    12. UTILITY CLASSES & ANIMATIONS
