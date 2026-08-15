@@ -526,7 +526,7 @@ export const login = async (req, res) => {
     const reqTime = performance.now() - reqStart;
     console.log(`[Perf] Login: QueueAlert=${emailQueueTime.toFixed(2)}ms, Total=${reqTime.toFixed(2)}ms`);
 
-    res.json({ token, balance: user.totalBalance, user: { name: user.name, email: user.email, role: tokenRole, emergencyId: user.emergencyId, isEmailVerified: user.isEmailVerified, isSignupComplete: user.isSignupComplete }, loginAlertStatus });
+    res.json({ token, balance: user.totalBalance, user: { name: user.name, email: user.email, role: tokenRole, emergencyId: user.emergencyId, isEmailVerified: user.isEmailVerified, isSignupComplete: user.isSignupComplete, whiteLabelStatus: user.whiteLabelStatus, resellerActivationStatus: user.resellerActivationStatus, apiLevel: user.apiLevel, subdomain: user.subdomain }, loginAlertStatus });
   } catch (err) { 
     console.error("Login Error:", err);
     res.status(500).json({ message: "Login failed due to a server error." }); 
