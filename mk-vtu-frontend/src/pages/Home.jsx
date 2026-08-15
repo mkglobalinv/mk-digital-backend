@@ -177,35 +177,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
             <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '6px', borderRadius: '8px', display: 'flex' }}>
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             </div>
-            <marquee style={{ flex: 1, fontSize: '13px', fontWeight: '600', letterSpacing: '0.3px' }}>{marquee.message}</marquee>
-          </div>
-        )}
-
-        {/* Banners Render */}
-        {banners.length > 0 && (
-          <div className="custom-banner-slider" style={{ marginBottom: '20px', borderRadius: '16px', overflow: 'hidden', position: 'relative', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
-            {banners.map((banner, idx) => (
-               <a 
-                 key={banner._id} 
-                 href={banner.link || '#'} 
-                 target={banner.link_type === 'external' ? "_blank" : "_self"} 
-                 rel="noreferrer"
-                 style={{ display: idx === currentBannerIndex ? 'block' : 'none' }}
-               >
-                 <img 
-                   src={banner.image} 
-                   alt={banner.title} 
-                   style={{ width: '100%', height: 'auto', maxHeight: '180px', objectFit: 'cover', display: 'block' }} 
-                 />
-               </a>
-            ))}
-            {banners.length > 1 && (
-              <div style={{ position: 'absolute', bottom: '10px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                {banners.map((_, idx) => (
-                  <div key={idx} style={{ width: '6px', height: '6px', borderRadius: '50%', background: idx === currentBannerIndex ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'background 0.3s' }}></div>
-                ))}
-              </div>
-            )}
+            <marquee style={{ flex: 1, fontSize: '13px', fontWeight: '600', letterSpacing: '0.3px' }}>{marquee.title} {marquee.message}</marquee>
           </div>
         )}
 
@@ -239,6 +211,34 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
           transactions={transactions} 
           isLoading={isLoadingTx} 
         />
+
+        {/* Banners Render (Moved to bottom, width 70%) */}
+        {banners.length > 0 && (
+          <div className="custom-banner-slider" style={{ marginBottom: '20px', marginTop: '20px', width: '70%', margin: '20px auto', borderRadius: '16px', overflow: 'hidden', position: 'relative', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+            {banners.map((banner, idx) => (
+               <a 
+                 key={banner._id} 
+                 href={banner.link || '#'} 
+                 target={banner.link_type === 'external' ? "_blank" : "_self"} 
+                 rel="noreferrer"
+                 style={{ display: idx === currentBannerIndex ? 'block' : 'none' }}
+               >
+                 <img 
+                   src={banner.image} 
+                   alt={banner.title} 
+                   style={{ width: '100%', height: 'auto', maxHeight: '180px', objectFit: 'cover', display: 'block' }} 
+                 />
+               </a>
+            ))}
+            {banners.length > 1 && (
+              <div style={{ position: 'absolute', bottom: '10px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                {banners.map((_, idx) => (
+                  <div key={idx} style={{ width: '6px', height: '6px', borderRadius: '50%', background: idx === currentBannerIndex ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'background 0.3s' }}></div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <BottomSheet 
