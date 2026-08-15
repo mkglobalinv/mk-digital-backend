@@ -966,7 +966,7 @@ function App() {
                 <Route path="/register" element={token ? <Navigate to="/home" replace /> : <Signup setToken={setToken} siteInfo={siteInfo} />} />
                 <Route path="/forgot-password" element={token ? <Navigate to="/home" replace /> : <ForgotPassword siteInfo={siteInfo} />} />
                 <Route path="/forgot-pin" element={<ForgotPin siteInfo={siteInfo} />} />
-                <Route path="/verify-email" element={token ? <Navigate to="/home" replace /> : <VerifyEmail setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/verify-email" element={<VerifyEmail setToken={setToken} siteInfo={siteInfo} />} />
                 <Route path="/continue-signup" element={<ContinueSignup siteInfo={siteInfo} />} />
                 <Route path="/reseller/onboarding" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/home" replace /> : (token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />)} />
                 <Route path="/app" element={<AppDownload />} />
