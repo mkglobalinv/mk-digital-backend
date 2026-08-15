@@ -212,9 +212,9 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
           isLoading={isLoadingTx} 
         />
 
-        {/* Banners Render (Moved to bottom, width 70%) */}
+        {/* Banners Render (Moved to bottom) */}
         {banners.length > 0 && (
-          <div className="custom-banner-slider" style={{ marginBottom: '20px', marginTop: '20px', width: '70%', margin: '20px auto', borderRadius: '16px', overflow: 'hidden', position: 'relative', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+          <div className="custom-banner-slider" style={{ marginTop: '20px', marginBottom: '20px', width: '100%', borderRadius: '16px', overflow: 'hidden', position: 'relative', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
             {banners.map((banner, idx) => (
                <a 
                  key={banner._id} 
