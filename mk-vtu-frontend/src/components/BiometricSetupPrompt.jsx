@@ -56,8 +56,8 @@ const BiometricSetupPrompt = ({ user }) => {
       // We could also reload, but since they just logged in, silently updating is smoother
     } catch (err) {
       console.error('Failed to setup biometric:', err);
-      alert('Biometric setup failed. You can try again from your Profile settings later.');
-      setIsVisible(false); // Hide anyway to not block the user
+      // Silently dismiss — user can enable from Profile > Security later
+      setIsVisible(false);
     } finally {
       setLoading(false);
     }
@@ -89,9 +89,9 @@ const BiometricSetupPrompt = ({ user }) => {
               </div>
             </div>
 
-            <h3 className="bio-prompt-title">Enable Fingerprint Login</h3>
+            <h3 className="bio-prompt-title">Secure Your Account</h3>
             <p className="bio-prompt-desc">
-              Use your fingerprint to sign in.
+              Protect your account with fingerprint authentication for faster and safer access.
             </p>
 
             <div className="bio-prompt-actions">
@@ -100,7 +100,7 @@ const BiometricSetupPrompt = ({ user }) => {
                 onClick={handleEnable}
                 disabled={loading}
               >
-                {loading ? 'Setting up...' : 'Enable Fingerprint'}
+                {loading ? 'Setting up...' : 'Activate Fingerprint'}
               </button>
               <button 
                 className="bio-btn-dismiss" 
