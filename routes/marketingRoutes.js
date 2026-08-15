@@ -105,7 +105,7 @@ router.post("/analytics/view", async (req, res) => {
         deviceInfo: req.headers['user-agent']
       });
     } else if (announcementId) {
-      await MarketingAnnouncement.findByIdAndUpdate(announcementId, { $inc: { views: 1 } });
+      await MarketingCampaign.findByIdAndUpdate(announcementId, { $inc: { views: 1 } });
       await MarketingAnalytics.create({
         announcementId,
         actionType: 'view',
@@ -194,7 +194,7 @@ router.delete("/admin/campaigns/:id", adminAuth, async (req, res) => {
 // ----- ANNOUNCEMENTS -----
 router.get("/admin/announcements", adminAuth, async (req, res) => {
   try {
-    const items = await MarketingAnnouncement.find().sort({ createdAt: -1 });
+    const items = await MarketingCampaign.find({ campaignType: "Announcement" }).sort({ createdAt: -1 });
     res.json(items);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch announcements" });
@@ -203,7 +203,7 @@ router.get("/admin/announcements", adminAuth, async (req, res) => {
 
 router.post("/admin/announcements", adminAuth, async (req, res) => {
   try {
-    const newItem = new MarketingAnnouncement(req.body);
+    const newItem = new MarketingCampaign({ ...req.body, campaignType: "Announcement" });
     const savedItem = await newItem.save();
     res.status(201).json(savedItem);
   } catch (error) {
@@ -213,8 +213,8 @@ router.post("/admin/announcements", adminAuth, async (req, res) => {
 
 router.put("/admin/announcements/:id", adminAuth, async (req, res) => {
   try {
-    const updatedItem = await MarketingAnnouncement.findByIdAndUpdate(
-      req.params.id,
+    const updatedItem = await MarketingCampaign.findOneAndUpdate(
+      { _id: req.params.id, campaignType: "Announcement" },
       req.body,
       { new: true, runValidators: true }
     );
@@ -227,7 +227,7 @@ router.put("/admin/announcements/:id", adminAuth, async (req, res) => {
 
 router.delete("/admin/announcements/:id", adminAuth, async (req, res) => {
   try {
-    const deletedItem = await MarketingAnnouncement.findByIdAndDelete(req.params.id);
+    const deletedItem = await MarketingCampaign.findOneAndDelete({ _id: req.params.id, campaignType: "Announcement" });
     if (!deletedItem) return res.status(404).json({ error: "Announcement not found" });
     res.json({ message: "Announcement deleted successfully" });
   } catch (error) {
@@ -238,9 +238,18 @@ router.delete("/admin/announcements/:id", adminAuth, async (req, res) => {
 // ----- ANALYTICS -----
 router.get("/admin/analytics", adminAuth, async (req, res) => {
   try {
-    const totalCampaignViews = await MarketingCampaign.aggregate([{ $group: { _id: null, total: { $sum: "$views" } } }]);
-    const totalCampaignClicks = await MarketingCampaign.aggregate([{ $group: { _id: null, total: { $sum: "$clicks" } } }]);
-    const totalAnnouncementViews = await MarketingAnnouncement.aggregate([{ $group: { _id: null, total: { $sum: "$views" } } }]);
+    const totalCampaignViews = await MarketingCampaign.aggregate([
+      { $match: { campaignType: { $ne: "Announcement" } } },
+      { $group: { _id: null, total: { $sum: "$views" } } }
+    ]);
+    const totalCampaignClicks = await MarketingCampaign.aggregate([
+      { $match: { campaignType: { $ne: "Announcement" } } },
+      { $group: { _id: null, total: { $sum: "$clicks" } } }
+    ]);
+    const totalAnnouncementViews = await MarketingCampaign.aggregate([
+      { $match: { campaignType: "Announcement" } },
+      { $group: { _id: null, total: { $sum: "$views" } } }
+    ]);
 
     res.json({
       campaignViews: totalCampaignViews[0]?.total || 0,
