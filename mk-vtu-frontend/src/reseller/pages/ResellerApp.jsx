@@ -26,9 +26,6 @@ const ResellerApp = ({ user, refreshUser }) => {
     const [estimatedTime, setEstimatedTime] = useState("72 hours");
     const [isStudioMode, setIsStudioMode] = useState(false);
 
-    const logoInputRef = useRef(null);
-    const splashInputRef = useRef(null);
-
     const [formData, setFormData] = useState({
         appName: user?.branding?.siteName || '',
         logo: user?.branding?.logo || '',
@@ -357,11 +354,10 @@ const ResellerApp = ({ user, refreshUser }) => {
 
                             <div className="studio-input-group">
                                 <label>Upload App Logo</label>
-                                <div className="studio-dropzone" onClick={() => logoInputRef.current.click()}>
+                                <label className="studio-dropzone" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                                     <input 
                                         type="file" 
-                                        ref={logoInputRef} 
-                                        hidden 
+                                        style={{ display: 'none' }}
                                         accept="image/*" 
                                         onChange={(e) => handleFileUpload(e, 'logo')}
                                     />
@@ -377,16 +373,15 @@ const ResellerApp = ({ user, refreshUser }) => {
                                             <span className="dropzone-specs">PNG • Max 2MB</span>
                                         </div>
                                     )}
-                                </div>
+                                </label>
                             </div>
 
                             <div className="studio-input-group">
                                 <label>Opening App Image (Optional)</label>
-                                <div className="studio-dropzone small" onClick={() => splashInputRef.current.click()}>
+                                <label className="studio-dropzone small" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                                     <input 
                                         type="file" 
-                                        ref={splashInputRef} 
-                                        hidden 
+                                        style={{ display: 'none' }}
                                         accept="image/*" 
                                         onChange={(e) => handleFileUpload(e, 'splashScreen')}
                                     />
@@ -401,7 +396,7 @@ const ResellerApp = ({ user, refreshUser }) => {
                                             <span className="dropzone-title-small">Select launch image</span>
                                         </div>
                                     )}
-                                </div>
+                                </label>
                                 <span className="input-hint">Displays momentarily while loading your platform natively.</span>
                             </div>
                         </div>
