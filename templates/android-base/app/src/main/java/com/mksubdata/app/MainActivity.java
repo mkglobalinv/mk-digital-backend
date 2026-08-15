@@ -7,6 +7,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.webkit.WebSettingsCompat;
+import androidx.webkit.WebViewFeature;
+import android.content.pm.PackageInfo;
+import androidx.webkit.WebViewCompat;
 
 public class MainActivity extends AppCompatActivity {
     private WebView webView;
@@ -18,6 +22,24 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             Log.i(TAG, "Initializing minimal production APK runtime entrypoint...");
+
+            // --- DIAGNOSTIC LOGGING ---
+            Log.i(TAG, "[Biometric Diagnostic] Android API level: " + Build.VERSION.SDK_INT);
+            
+            try {
+                PackageInfo webViewPackage = WebViewCompat.getCurrentWebViewPackage(this);
+                if (webViewPackage != null) {
+                    Log.i(TAG, "[Biometric Diagnostic] WebView version: " + webViewPackage.versionName);
+                } else {
+                    Log.i(TAG, "[Biometric Diagnostic] WebView package is null");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "[Biometric Diagnostic] Error getting WebView version", e);
+            }
+            
+            boolean hasWebAuthn = WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION);
+            Log.i(TAG, "[Biometric Diagnostic] WebAuthn support level (WebViewFeature.WEB_AUTHENTICATION): " + hasWebAuthn);
+
             webView = new WebView(this);
             setContentView(webView);
 
@@ -26,6 +48,13 @@ public class MainActivity extends AppCompatActivity {
             webSettings.setDomStorageEnabled(true);
             webSettings.setDatabaseEnabled(true);
             webSettings.setAllowFileAccess(true);
+            
+            if (hasWebAuthn) {
+                Log.i(TAG, "[Biometric Diagnostic] Enabling WEB_AUTHENTICATION_SUPPORT_FOR_APP");
+                WebSettingsCompat.setWebAuthenticationSupport(webSettings, WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP);
+            } else {
+                Log.i(TAG, "[Biometric Diagnostic] WebAuthn is NOT supported in this WebView version, skipping setup.");
+            }
             
             // Safe fallback compilation handling for SDK version limits
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

@@ -18,7 +18,10 @@ const FintechHeader = ({ user, greeting: propGreeting, unreadCount = 0 }) => {
     return user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const [isDayMode, setIsDayMode] = useState(() => localStorage.getItem('fintech_day_mode') === 'true');
+  const [isDayMode, setIsDayMode] = useState(() => {
+    const stored = localStorage.getItem('fintech_day_mode');
+    return stored !== 'false';
+  });
 
   useEffect(() => {
     if (isDayMode) {

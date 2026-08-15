@@ -766,14 +766,15 @@ body.day-mode .activity-item {
   background: #FFFFFF !important;
   border-color: #E2E8F0 !important;
 }
-body.day-mode .activity-label {
+body.day-mode .activity-details h5 {
   color: #0F172A !important;
 }
-body.day-mode .activity-sub {
+body.day-mode .activity-details p {
   color: #64748B !important;
 }
-body.day-mode .amount-credit { color: #059669 !important; }
-body.day-mode .amount-debit  { color: #DC2626 !important; }
+body.day-mode .amt-credit { color: #059669 !important; }
+body.day-mode .amt-debit  { color: #DC2626 !important; }
+body.day-mode .amt-failed { color: #64748B !important; }
 
 /* Promo cards */
 body.day-mode .promo-card-title,

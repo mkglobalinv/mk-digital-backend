@@ -49,7 +49,7 @@ const TransactionHistory = ({ transactions = [], isLoading, isReseller = false }
               </div>
               <div className="activity-right">
                 <p className={`activity-amt ${tx.status === 'failed' ? 'amt-failed' : (tx.type === 'credit' ? 'amt-credit' : 'amt-debit')}`}>
-                  {tx.type === 'credit' ? '+' : '-'},{tx.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  {tx.type === 'credit' ? '+' : '-'}₦{tx.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </p>
                 <span className={`activity-status status-${tx.status}`}>{tx.status}</span>
               </div>
