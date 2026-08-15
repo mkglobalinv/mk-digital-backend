@@ -48,6 +48,7 @@ const ResellerDashboard = ({ user }) => {
     const [copied, setCopied] = useState(false);
     const [showShareMore, setShowShareMore] = useState(false);
     const [settingUpSubdomain, setSettingUpSubdomain] = useState(false);
+    const [isActivating, setIsActivating] = useState(false);
 
     const [showWebsiteReady, setShowWebsiteReady] = useState(() => {
         return document.cookie.includes('showWelcome=true');
@@ -189,15 +190,19 @@ const ResellerDashboard = ({ user }) => {
     const isTrialExpired = !isUserActivated && daysRemaining <= 0;
 
     const handlePayActivation = async () => {
+        if (isActivating) return;
         const confirmText = `Confirm Website Activation\n\nYou are about to activate your Website. A Website Setup & Activation Fee of ₦5,000 will be deducted from your balance.\n\nDo you want to continue?`;
         
         if (window.confirm(confirmText)) {
+            setIsActivating(true);
             try {
                 const res = await API.post('/api/reseller/pay-activation');
                 alert(res.data.message);
                 window.location.reload();
             } catch (err) {
                 alert(err.response?.data?.message || 'Activation failed. Ensure you have enough balance.');
+            } finally {
+                setIsActivating(false);
             }
         }
     };
@@ -265,12 +270,12 @@ const ResellerDashboard = ({ user }) => {
                     </div>
 
                     <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '32px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <button onClick={handlePayActivation} style={{
-                            padding: '16px', borderRadius: '12px', border: 'none', background: '#3b82f6',
-                            color: '#fff', fontWeight: '800', fontSize: '16px', cursor: 'pointer', transition: 'all 0.2s',
+                        <button onClick={handlePayActivation} disabled={isActivating} style={{
+                            padding: '16px', borderRadius: '12px', border: 'none', background: isActivating ? '#93c5fd' : '#3b82f6',
+                            color: '#fff', fontWeight: '800', fontSize: '16px', cursor: isActivating ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
                             boxShadow: '0 4px 12px rgba(59,130,246,0.3)'
                         }}>
-                            Website Setup & Activation Fee
+                            {isActivating ? '⏳ Preparing payment...' : 'Website Setup & Activation Fee'}
                         </button>
                         <button onClick={closeWebsiteReady} style={{
                             padding: '16px', borderRadius: '12px', border: 'none', background: 'transparent',
@@ -344,7 +349,9 @@ const ResellerDashboard = ({ user }) => {
                         <h3>{isTrialActive ? `Free Trial: ${daysRemaining} Days Remaining` : 'Trial Expired'}</h3>
                         <p>{isTrialActive ? 'Activate your website now to ensure uninterrupted service after the trial ends.' : 'Your website is currently in a grace period/suspended. Pay the Website Setup & Activation Fee to restore services.'}</p>
                     </div>
-                    <button className="banner-btn" onClick={handlePayActivation}>Pay Setup & Activation (₦5,000)</button>
+                    <button className="banner-btn" onClick={handlePayActivation} disabled={isActivating}>
+                        {isActivating ? '⏳ Processing...' : 'Pay Setup & Activation (₦5,000)'}
+                    </button>
                 </div>
             )}
 

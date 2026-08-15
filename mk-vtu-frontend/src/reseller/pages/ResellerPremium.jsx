@@ -155,8 +155,8 @@ const ResellerPremium = ({ user, refreshUser }) => {
             </div>
 
             {confirmModal.show && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
-                    <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '400px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 9999, padding: '20px', overflowY: 'auto' }}>
+                    <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '400px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', maxHeight: '90vh', overflowY: 'auto', marginTop: 'auto', marginBottom: 'auto' }}>
                         <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', marginBottom: '16px', textAlign: 'center' }}>Upgrade Subscription</h2>
                         <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.6', marginBottom: '16px', textAlign: 'center' }}>
                             Your subscription fee of <strong>₦{(confirmModal.duration === '6months' ? pricing.sixMonths : pricing.yearly).toLocaleString()}</strong> will be deducted from your <strong>Main Wallet (Operating Balance)</strong>.

@@ -71,7 +71,7 @@ export const restrictToRetailSession = (req, res, next) => {
 
 export const restrictToBusinessSession = (req, res, next) => {
   if (req.user.role !== 'admin' && req.session_type !== 'business') {
-    return res.status(403).json({ message: "Access Denied: Business Session Required." });
+    return res.status(403).json({ message: "Your website administration session has expired. Please sign in again to continue managing your website." });
   }
   next();
 };
