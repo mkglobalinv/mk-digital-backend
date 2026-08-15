@@ -519,7 +519,9 @@ function App() {
     const checkLock = async () => {
       const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
       const alreadyUnlocked = sessionStorage.getItem('appUnlocked') === 'true';
-      if (token && !alreadyUnlocked) {
+      const userType = localStorage.getItem('userType');
+      
+      if (token && !alreadyUnlocked && userType !== 'business') {
         setIsAppLocked(true);
         if (biometricEnabled) {
           const supported = await isBiometricAvailable();
