@@ -520,14 +520,14 @@ function App() {
       const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
       const alreadyUnlocked = sessionStorage.getItem('appUnlocked') === 'true';
       const userType = localStorage.getItem('userType');
-      
-      if (token && !alreadyUnlocked && userType !== 'business') {
+
+      // ONLY lock if user has explicitly enabled biometric authentication.
+      // Do NOT lock users who have never registered biometric.
+      if (token && biometricEnabled && !alreadyUnlocked && userType !== 'business') {
         setIsAppLocked(true);
-        if (biometricEnabled) {
-          const supported = await isBiometricAvailable();
-          if (supported && localStorage.getItem('lastEmail')) {
-            setTimeout(() => { handleAppUnlock(); }, 500);
-          }
+        const supported = await isBiometricAvailable();
+        if (supported && localStorage.getItem('lastEmail')) {
+          setTimeout(() => { handleAppUnlock(); }, 500);
         }
       }
     };

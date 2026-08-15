@@ -1,6 +1,7 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { login, register, requestOTP, verifyOTP, resetPassword, verifyEmail, resendEmailOTP, verifySecurityQuestions, resetTransactionPin, changeTransactionPin, requestPinOTP } from "../controllers/authController.js";
+import { verifyTransactionPin } from "../middlewares/pinMiddleware.js";
 
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -42,5 +43,10 @@ import { auth } from "../middlewares/auth.js";
 
 router.post("/change-pin", auth, changeTransactionPin);
 router.post("/request-pin-otp", auth, otpLimiter, requestPinOTP);
+
+// App Lock PIN unlock — uses existing PIN verification middleware
+router.post("/verify-pin", auth, verifyTransactionPin, (req, res) => {
+  res.json({ success: true, message: "PIN verified" });
+});
 
 export default router;
