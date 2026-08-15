@@ -33,10 +33,12 @@ import API from '../../api';
 import { supabase } from '../../supabaseClient';
 import ResellerBusinessProfile from '../components/ResellerBusinessProfile';
 import ResellerWelcomeModal from '../components/ResellerWelcomeModal.jsx';
+import { useToast } from '../../context/ToastContext';
 import './ResellerDashboard.css';
 
 const ResellerDashboard = ({ user }) => {
     const navigate = useNavigate();
+    const { showToast, updateToast } = useToast();
 
     const [loginAlert, setLoginAlert] = useState(() => {
         const alert = sessionStorage.getItem('login_alert');
@@ -191,19 +193,28 @@ const ResellerDashboard = ({ user }) => {
 
     const handlePayActivation = async () => {
         if (isActivating) return;
-        const confirmText = `Confirm Website Activation\n\nYou are about to activate your Website. A Website Setup & Activation Fee of ₦5,000 will be deducted from your balance.\n\nDo you want to continue?`;
         
-        if (window.confirm(confirmText)) {
-            setIsActivating(true);
-            try {
-                const res = await API.post('/api/reseller/pay-activation');
-                alert(res.data.message);
+        setIsActivating(true);
+        const toastId = await showToast('Processing activation payment...', 'loading');
+        
+        try {
+            const res = await API.post('/api/reseller/pay-activation');
+            updateToast(toastId, { message: 'Website activated successfully.', type: 'success' });
+            setTimeout(() => {
                 window.location.reload();
-            } catch (err) {
-                alert(err.response?.data?.message || 'Activation failed. Ensure you have enough balance.');
-            } finally {
-                setIsActivating(false);
+            }, 1500);
+        } catch (err) {
+            const status = err.response?.status;
+            let errorMsg = 'Activation failed. Ensure you have enough balance.';
+            
+            if (status === 400 || status === 402 || (err.response?.data?.message || '').toLowerCase().includes('balance')) {
+                errorMsg = 'Insufficient Main Wallet balance. Please fund your wallet and try again.';
+            } else if (err.response?.data?.message) {
+                errorMsg = err.response.data.message;
             }
+            
+            updateToast(toastId, { message: errorMsg, type: 'error' });
+            setIsActivating(false);
         }
     };
 
