@@ -25,10 +25,27 @@ function bufferToBase64url(buffer) {
 }
 
 /**
+ * Returns true if the App is using the Native Android Biometric Bridge
+ */
+export function isNativeBiometric() {
+    return !!window.AndroidBiometric;
+}
+
+/**
  * Check if the browser supports WebAuthn and if biometrics are available.
  */
 export async function isBiometricAvailable() {
-    console.log("[Biometric] Checking availability...");
+    const ua = navigator.userAgent;
+    console.log("[Biometric Diagnostic] UserAgent:", ua);
+    console.log("[Biometric Diagnostic] current WebView URL:", window.location.href);
+
+    if (window.AndroidBiometric) {
+        console.log("[Biometric Diagnostic] Native AndroidBiometric bridge detected!");
+        return window.AndroidBiometric.isBiometricAvailable();
+    }
+
+    console.log("[Biometric Diagnostic] PublicKeyCredential exists:", !!window.PublicKeyCredential);
+
     if (!window.PublicKeyCredential) {
         console.warn("[Biometric] WebAuthn NOT supported in this browser.");
         return false;
@@ -37,11 +54,13 @@ export async function isBiometricAvailable() {
     try {
         if (window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
             const available = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-            console.log("[Biometric] Platform authenticator available:", available);
+            console.log("[Biometric Diagnostic] isUserVerifyingPlatformAuthenticatorAvailable():", available);
             return available;
+        } else {
+            console.log("[Biometric Diagnostic] isUserVerifyingPlatformAuthenticatorAvailable does NOT exist on PublicKeyCredential");
         }
     } catch (e) {
-        console.error("[Biometric] Availability check error:", e);
+        console.error("[Biometric Diagnostic] Availability check error:", e);
     }
     
     return false;
@@ -102,6 +121,25 @@ export async function registerBiometric(challengeData) {
  */
 export async function authenticateBiometric(challengeData) {
     console.log("[Biometric] Starting authentication flow...");
+
+    if (window.AndroidBiometric) {
+        console.log("[Biometric Diagnostic] Using Native AndroidBiometric authentication.");
+        return new Promise((resolve, reject) => {
+            const callbackId = "bio_" + Date.now();
+            window.onBiometricResult = (id, success, message) => {
+                if (id === callbackId) {
+                    delete window.onBiometricResult;
+                    if (success) {
+                        resolve({ nativeUnlock: true });
+                    } else {
+                        reject(new Error(message));
+                    }
+                }
+            };
+            window.AndroidBiometric.authenticate(callbackId);
+        });
+    }
+
     if (!challengeData || !challengeData.challenge || !challengeData.allowCredentials) {
         throw new Error("Invalid authentication challenge data received from server.");
     }
@@ -129,7 +167,7 @@ export async function authenticateBiometric(challengeData) {
             clientDataJSON: bufferToBase64url(assertion.response.clientDataJSON)
         };
     } catch (err) {
-        console.error("[Biometric] Native authentication failed:", err);
+        console.error("[Biometric Diagnostic] Native authentication failed. DOMException name:", err.name, "message:", err.message, "stack:", err.stack);
         throw err;
     }
 }

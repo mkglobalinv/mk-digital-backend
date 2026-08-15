@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fingerprint, ShieldCheck, X, Loader2 } from 'lucide-react';
 import API from '../api';
-import { isBiometricAvailable, registerBiometric } from '../services/biometricService';
+import { isBiometricAvailable, registerBiometric, isNativeBiometric } from '../services/biometricService';
 import './BiometricSetupPrompt.css';
 
 const BiometricSetupPrompt = ({ user }) => {
@@ -43,9 +43,11 @@ const BiometricSetupPrompt = ({ user }) => {
   const handleEnable = async () => {
     setLoading(true);
     try {
-      const challengeRes = await API.get('/api/biometric/register-challenge');
-      const regData = await registerBiometric(challengeRes.data);
-      await API.post('/api/biometric/register-verify', regData);
+      if (!isNativeBiometric()) {
+        const challengeRes = await API.get('/api/biometric/register-challenge');
+        const regData = await registerBiometric(challengeRes.data);
+        await API.post('/api/biometric/register-verify', regData);
+      }
       
       localStorage.setItem('biometricEnabled', 'true');
       setIsVisible(false);

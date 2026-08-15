@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Zap, Loader2, ShieldAlert, CheckCircle, Share2, Download, Copy, Lock, Fingerprint, ShieldCheck, X } from 'lucide-react';
 import API from '../api';
-import { isBiometricAvailable, authenticateBiometric } from '../services/biometricService';
+import { isBiometricAvailable, authenticateBiometric, isNativeBiometric } from '../services/biometricService';
 import { isActiveReseller, isPremiumReseller, checkBannerVisibility } from '../utils/bannerHelper';
 import { useTransactionBanner } from '../context/TransactionBannerContext';
 import './Purchase.css';
@@ -1215,7 +1215,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                     />
                   </div>
 
-                  {biometricSupported && user?.biometricEnabled && (
+                  {biometricSupported && user?.biometricEnabled && !isNativeBiometric() && (
                     <button 
                         type="button"
                         className="biometric-auth-btn"
