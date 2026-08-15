@@ -39,6 +39,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
   const [transactions, setTransactions] = useState([]);
   const [banners, setBanners] = useState([]);
   const [marquee, setMarquee] = useState(null);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [announcements, setAnnouncements] = useState([]);
   const [serviceStatuses, setServiceStatuses] = useState([]);
   const [selectedTx, setSelectedTx] = useState(null);
@@ -96,6 +97,20 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
                   setReferralAnalytics(res.data.data);
               }
            }).catch(() => {});
+
+         // Fetch custom content (Banners & Marquee)
+         API.get('/api/content?activeOnly=true')
+           .then(res => {
+              const data = res.data;
+              if (data && Array.isArray(data)) {
+                const visibleData = data.filter(c => checkBannerVisibility(c, user));
+                setBanners(visibleData.filter(c => c.type === 'banner'));
+                const marquees = visibleData.filter(c => c.type === 'marquee');
+                const resellerMarquee = marquees.find(c => c.ownerType === 'reseller');
+                const adminMarquee = marquees.find(c => c.ownerType === 'admin');
+                setMarquee(resellerMarquee || adminMarquee || null);
+              }
+           }).catch(err => console.error("Content fetch error:", err));
            
          // If a refresh is triggered via WebSocket, fetch latest user balance
          if (refreshUser && typeof refreshUser === 'function') {
@@ -116,6 +131,15 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
       window.removeEventListener('wallet:funded', handleWalletEvent);
     };
   }, [token, refreshUser]);
+
+  // Banner Slider Logic
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex(prev => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [banners.length]);
 
   // Dynamic Mini Activity Summary metrics helper
   const getMiniSummaryMetrics = () => {
@@ -146,6 +170,44 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
 
       <div className="fintech-content-area animate-fade-in">
         <FintechHeader user={user} greeting={greeting} unreadCount={unreadCount} />
+
+        {/* Marquee Render */}
+        {marquee && (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-dark)', padding: '10px 16px', borderRadius: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+            <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '6px', borderRadius: '8px', display: 'flex' }}>
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            </div>
+            <marquee style={{ flex: 1, fontSize: '13px', fontWeight: '600', letterSpacing: '0.3px' }}>{marquee.message}</marquee>
+          </div>
+        )}
+
+        {/* Banners Render */}
+        {banners.length > 0 && (
+          <div className="custom-banner-slider" style={{ marginBottom: '20px', borderRadius: '16px', overflow: 'hidden', position: 'relative', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+            {banners.map((banner, idx) => (
+               <a 
+                 key={banner._id} 
+                 href={banner.link || '#'} 
+                 target={banner.link_type === 'external' ? "_blank" : "_self"} 
+                 rel="noreferrer"
+                 style={{ display: idx === currentBannerIndex ? 'block' : 'none' }}
+               >
+                 <img 
+                   src={banner.image} 
+                   alt={banner.title} 
+                   style={{ width: '100%', height: 'auto', maxHeight: '180px', objectFit: 'cover', display: 'block' }} 
+                 />
+               </a>
+            ))}
+            {banners.length > 1 && (
+              <div style={{ position: 'absolute', bottom: '10px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                {banners.map((_, idx) => (
+                  <div key={idx} style={{ width: '6px', height: '6px', borderRadius: '50%', background: idx === currentBannerIndex ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'background 0.3s' }}></div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {user && user.isEmailVerified === false && (
            <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '12px', borderRadius: '12px', color: '#ef4444', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
