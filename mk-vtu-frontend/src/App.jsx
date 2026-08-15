@@ -1020,7 +1020,7 @@ function App() {
                         </Routes>
                       </Suspense>
                     </ResellerLayout>
-                  ) : <Navigate to="/login" />
+                  ) : <Navigate to="/business/login" />
                 } />
 
                          <Route path="/admin/*" element={

@@ -6,7 +6,7 @@ import './Auth.css'; // Shared premium UI
 import '../reseller/pages/BusinessConsole.css'; // Account selector + popup styles
 import BrandLogo from '../components/BrandLogo';
 import logoDefault from '../assets/9jasub.jpg';
-import { isBiometricAvailable, authenticateBiometric } from '../services/biometricService';
+import { isBiometricAvailable, authenticateBiometric, isNativeBiometric } from '../services/biometricService';
 import { isWhiteLabelSite } from '../utils/whiteLabelHelper';
 
 const Login = ({ setToken, siteInfo }) => {
@@ -64,7 +64,7 @@ const Login = ({ setToken, siteInfo }) => {
       const lastEmail = localStorage.getItem('lastEmail');
       const alreadyTriedThisSession = sessionStorage.getItem('biometricAutoTried') === 'true';
 
-      if (supported && isEnabled && lastEmail && !alreadyTriedThisSession) {
+      if (supported && isEnabled && lastEmail && !alreadyTriedThisSession && !isNativeBiometric()) {
         sessionStorage.setItem('biometricAutoTried', 'true');
         setTimeout(() => {
           handleBiometricLogin();
@@ -309,7 +309,7 @@ const Login = ({ setToken, siteInfo }) => {
               {/* Website Admin */}
               <div 
                 className="account-type-card business compact" 
-                onClick={() => navigate('/business/login')}
+                onClick={() => navigate('/business/signup')}
                 id="btn-business-console"
               >
                 <div className="account-type-icon">
@@ -452,7 +452,7 @@ const Login = ({ setToken, siteInfo }) => {
                   <button 
                     type="button"
                     className="quick-access-btn solid-primary"
-                    onClick={() => navigate('/business/login')}
+                    onClick={() => navigate('/business/signup')}
                   >
                     Create
                   </button>
