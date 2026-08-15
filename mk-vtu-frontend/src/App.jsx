@@ -634,7 +634,7 @@ function App() {
     } else if (isAdmin) {
       navigate('/admin/login');
     } else if (isResellerLogout) {
-      navigate('/reseller/login');
+      navigate('/business/login');
     } else {
       navigate('/login');
     }

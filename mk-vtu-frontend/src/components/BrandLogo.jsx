@@ -18,9 +18,16 @@ const BrandLogo = ({ siteInfo, className = "header-logo-img", style = {} }) => {
     );
   }
 
-  // If no logo but we are in a white-label site (or it's still loading on a white-label domain)
-  if (siteInfo || isWhiteLabelSite(siteInfo)) {
-    const initial = siteInfo ? siteName.charAt(0).toUpperCase() : 'V';
+  const isBusinessContext = typeof window !== 'undefined' && (
+    localStorage.getItem('userType') === 'business' || 
+    window.location.pathname.startsWith('/business') || 
+    window.location.pathname.startsWith('/reseller') || 
+    window.location.pathname.startsWith('/website')
+  );
+
+  // If no logo but we are in a white-label site, or a business admin context
+  if (siteInfo || isWhiteLabelSite(siteInfo) || isBusinessContext) {
+    const initial = siteInfo && siteInfo.name ? siteName.charAt(0).toUpperCase() : (isBusinessContext ? 'W' : 'V');
     return (
       <div 
         className={`${className} generic-3d-logo`} 
