@@ -354,10 +354,10 @@ const ResellerApp = ({ user, refreshUser }) => {
 
                             <div className="studio-input-group">
                                 <label>Upload App Logo</label>
-                                <label className="studio-dropzone" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                <label className="studio-dropzone" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                                     <input 
                                         type="file" 
-                                        style={{ display: 'none' }}
+                                        style={{ opacity: 0, position: 'absolute', width: '1px', height: '1px', zIndex: -1 }}
                                         accept="image/*" 
                                         onChange={(e) => handleFileUpload(e, 'logo')}
                                     />
@@ -378,10 +378,10 @@ const ResellerApp = ({ user, refreshUser }) => {
 
                             <div className="studio-input-group">
                                 <label>Opening App Image (Optional)</label>
-                                <label className="studio-dropzone small" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                <label className="studio-dropzone small" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                                     <input 
                                         type="file" 
-                                        style={{ display: 'none' }}
+                                        style={{ opacity: 0, position: 'absolute', width: '1px', height: '1px', zIndex: -1 }}
                                         accept="image/*" 
                                         onChange={(e) => handleFileUpload(e, 'splashScreen')}
                                     />
