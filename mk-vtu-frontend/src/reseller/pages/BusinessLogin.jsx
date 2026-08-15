@@ -124,8 +124,8 @@ const BusinessLogin = ({ setToken, siteInfo }) => {
             <Building2 size={22} />
           </div>
           <div>
-            <div className="bc-brand-name">{getSiteName(siteInfo)}</div>
-            <div className="bc-brand-tag">Website Admin</div>
+            <div className="bc-brand-name">WEBSITE ADMIN PORTAL</div>
+            <div className="bc-brand-tag">Business Console</div>
           </div>
         </div>
 
@@ -135,8 +135,7 @@ const BusinessLogin = ({ setToken, siteInfo }) => {
         </h2>
 
         <p className="bc-panel-sub">
-          Manage your entire VTU platform from one powerful dashboard.
-          Built for website owners.
+          Manage your VTU website, customers and business from your Website Admin Portal.
         </p>
 
         <div className="bc-feature-list">
@@ -161,7 +160,7 @@ const BusinessLogin = ({ setToken, siteInfo }) => {
           </div>
           <h1 className="bc-form-title">Welcome back</h1>
           <p className="bc-form-subtitle">
-            Sign in to manage your VTU platform and customers.
+            Manage your VTU website, customers and business from your Website Admin Portal.
           </p>
         </div>
 
@@ -219,33 +218,13 @@ const BusinessLogin = ({ setToken, siteInfo }) => {
 
           <button type="submit" className="bc-btn-primary" disabled={loading}>
             {loading
-              ? <><Loader2 size={16} className="animate-spin" /> Signing in...</>
+              ? <><Loader2 size={16} className="animate-spin" /> Accessing...</>
               : <><span>Access Website Admin</span><ArrowRight size={16} /></>
             }
           </button>
         </form>
 
-        {!isWhiteLabelSite(null) && (
-          <>
-            <div className="bc-divider-label" style={{ marginTop: '24px' }}>
-              New to Website Admin?
-            </div>
 
-            <button
-              className="bc-btn-ghost"
-              onClick={() => navigate('/business/signup')}
-            >
-              Start Your VTU Website
-            </button>
-          </>
-        )}
-
-        <div className="bc-footer-links" style={{ marginTop: '16px' }}>
-          Personal account?{' '}
-          <Link to="/login" className="bc-footer-link">
-            Use personal login
-          </Link>
-        </div>
 
         <div className="bc-security-note">
           <ShieldCheck size={13} style={{ color: 'var(--bc-success)' }} />
