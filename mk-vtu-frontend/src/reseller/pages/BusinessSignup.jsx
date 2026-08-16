@@ -148,11 +148,8 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
           adminUrl: data.targetUrl
         });
         window.dispatchEvent(new CustomEvent('toast:show', { detail: { message: 'Your business has been created successfully!', type: 'success' } }));
-        setTimeout(() => {
-          const domain = window.location.hostname.includes('9jasub.com') ? '; domain=.9jasub.com' : '';
-          document.cookie = `showWelcome=true${domain}; path=/; max-age=300`;
-          window.location.href = data.targetUrl;
-        }, 3000);
+        const domain = window.location.hostname.includes('9jasub.com') ? '; domain=.9jasub.com' : '';
+        document.cookie = `showWelcome=true${domain}; path=/; max-age=300`;
       } else {
         // Genuine unexpected error — show failure message.
         setError(data?.message || 'Registration failed. Please try again.');
@@ -211,39 +208,37 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
       <div className="bc-form-panel" style={{ overflowY: 'auto' }}>
         {successInfo ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', padding: '0 20px' }}>
-                <div style={{ background: 'var(--bc-success-dim)', color: 'var(--bc-success)', padding: '24px', borderRadius: '50%', marginBottom: '24px' }}>
-                    <CheckCircle2 size={48} />
-                </div>
-                <h1 className="bc-form-title" style={{ fontSize: '28px', marginBottom: '16px' }}>Website successfully created</h1>
+                <h1 className="bc-form-title" style={{ fontSize: '28px', marginBottom: '16px' }}>Congratulations!</h1>
+                <p className="bc-form-subtitle" style={{ fontSize: '16px', maxWidth: '400px', margin: '0 auto 32px auto' }}>
+                    Your website has been created successfully and is ready for business.
+                </p>
                 
-                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '32px 24px', width: '100%', maxWidth: '450px', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#fff', marginBottom: '8px' }}>Your Website Admin Portal App</h3>
-                    
-                    <a 
-                        href="https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/WebsiteAdminPortal.apk"
-                        download
-                        className="bc-btn-primary" 
-                        style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center' }}
-                    >
-                        Download Admin Portal App
-                    </a>
-                    
-                    <a 
-                        href="https://9jasub.com/business/login"
-                        className="bc-btn-secondary" 
-                        style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontWeight: '500' }}
-                    >
-                        Open Admin Portal
-                    </a>
-                    
+                <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <a 
                         href={`https://${successInfo.adminSubdomain}.9jasub.com`}
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="bc-btn-secondary" 
-                        style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontWeight: '500' }}
+                        className="bc-btn-primary" 
+                        style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '15px' }}
                     >
-                        Website link
+                        <span>🌐</span> Open My Website
+                    </a>
+                    
+                    <a 
+                        href="https://9jasub.com/website/dashboard"
+                        className="bc-btn-secondary" 
+                        style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '14px 24px', borderRadius: '8px', fontWeight: '500', fontSize: '15px' }}
+                    >
+                        <span>▣</span> Open My Website Admin Portal
+                    </a>
+                    
+                    <a 
+                        href="https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/WebsiteAdminPortal.apk?download="
+                        download
+                        className="bc-btn-secondary" 
+                        style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '14px 24px', borderRadius: '8px', fontWeight: '500', fontSize: '15px' }}
+                    >
+                        <span>📱</span> Download Website Admin Portal App
                     </a>
                 </div>
             </div>
