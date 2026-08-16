@@ -210,41 +210,42 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
       {/* ── Right Form Panel ── */}
       <div className="bc-form-panel" style={{ overflowY: 'auto' }}>
         {successInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', padding: '0 20px' }}>
                 <div style={{ background: 'var(--bc-success-dim)', color: 'var(--bc-success)', padding: '24px', borderRadius: '50%', marginBottom: '24px' }}>
                     <CheckCircle2 size={48} />
                 </div>
-                <h1 className="bc-form-title" style={{ fontSize: '28px', marginBottom: '16px' }}>Your website is ready!</h1>
-                <p className="bc-form-subtitle" style={{ fontSize: '16px', maxWidth: '400px', margin: '0 auto 32px auto' }}>
-                    Congratulations! Your VTU platform has been provisioned successfully. You can now manage your business through your independent Admin Portal.
-                </p>
+                <h1 className="bc-form-title" style={{ fontSize: '28px', marginBottom: '16px' }}>Website successfully created</h1>
                 
-                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '450px', marginBottom: '32px' }}>
-                    <div style={{ marginBottom: '16px' }}>
-                        <span style={{ fontSize: '13px', color: 'var(--bc-text-dim)', display: 'block', marginBottom: '8px' }}>Your Admin Portal URL:</span>
-                        <a href={successInfo.adminUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', fontSize: '18px', color: 'var(--bc-brand)', fontWeight: '600', textDecoration: 'none', background: 'rgba(56, 189, 248, 0.1)', padding: '12px', borderRadius: '8px' }}>
-                            {successInfo.adminUrl}
-                        </a>
-                    </div>
-                    <div>
-                        <span style={{ fontSize: '13px', color: 'var(--bc-text-dim)', display: 'block', marginBottom: '8px' }}>Your Public Website URL:</span>
-                        <a href={`https://${successInfo.adminSubdomain}.9jasub.com`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', fontSize: '16px', color: '#fff', textDecoration: 'none' }}>
-                            https://{successInfo.adminSubdomain}.9jasub.com
-                        </a>
-                    </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '32px 24px', width: '100%', maxWidth: '450px', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#fff', marginBottom: '8px' }}>Your Website Admin Portal App</h3>
+                    
+                    <a 
+                        href="https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/WebsiteAdminPortal.apk"
+                        download
+                        className="bc-btn-primary" 
+                        style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center' }}
+                    >
+                        Download Admin Portal App
+                    </a>
+                    
+                    <a 
+                        href="https://9jasub.com/business/login"
+                        className="bc-btn-secondary" 
+                        style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontWeight: '500' }}
+                    >
+                        Open Admin Portal
+                    </a>
+                    
+                    <a 
+                        href={`https://${successInfo.adminSubdomain}.9jasub.com`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="bc-btn-secondary" 
+                        style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontWeight: '500' }}
+                    >
+                        Website link
+                    </a>
                 </div>
-
-                <button 
-                    className="bc-btn-primary" 
-                    onClick={() => {
-                        const domain = window.location.hostname.includes('9jasub.com') ? '; domain=.9jasub.com' : '';
-                        document.cookie = `showWelcome=true${domain}; path=/; max-age=300`;
-                        window.location.href = successInfo.adminUrl;
-                    }}
-                    style={{ maxWidth: '300px' }}
-                >
-                    Go to Admin Portal <ArrowRight size={16} style={{ marginLeft: '8px' }} />
-                </button>
             </div>
         ) : (
             <>
