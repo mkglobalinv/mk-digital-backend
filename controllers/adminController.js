@@ -2374,7 +2374,7 @@ export const getAppRequests = async (req, res) => {
     try {
         const requests = await AppRequest.find({})
             .populate("resellerId", "name email subdomain customDomain role whiteLabelStatus")
-            .sort({ createdAt: -1 });
+            .sort({ updatedAt: -1 });
         res.json(requests);
     } catch (err) {
         res.status(500).json({ message: "Failed to fetch app requests: " + err.message });

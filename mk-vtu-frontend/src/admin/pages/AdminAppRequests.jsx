@@ -217,8 +217,8 @@ const AdminAppRequests = () => {
     };
 
     const filteredRequests = requests.filter(req => {
-        const matchSearch = req.appName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          req.resellerId?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchSearch = (req.appName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (req.resellerId?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
         
         if (filterStatus === 'All') return matchSearch;
         if (filterStatus === 'Pending') return matchSearch && req.status === 'Pending Review';
