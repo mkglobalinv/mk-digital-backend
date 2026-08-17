@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { APP_CONFIG } from '@/lib/appConfig';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -34,6 +35,15 @@ export default function Navbar() {
           <Link href="/get-started" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Own your VTU site in 5 mins</Link>
           <Link href="/about" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">About Us</Link>
           <Link href="/#contact" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Contact Us</Link>
+          <a
+            href={APP_CONFIG.APP_DOWNLOAD_URL}
+            id="navbar-android-app-link"
+            className="flex items-center gap-1.5 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
+            aria-label="Download 9JASUB Android App"
+          >
+            <Smartphone className="w-4 h-4" />
+            Android App
+          </a>
         </nav>
 
         {/* Desktop CTA */}
@@ -72,7 +82,19 @@ export default function Navbar() {
             <Link href="/get-started" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Own your VTU site in 5 mins</Link>
             <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">About Us</Link>
             <Link href="/#contact" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg font-medium">Contact Us</Link>
-            
+
+            {/* Android App Download */}
+            <a
+              href={APP_CONFIG.APP_DOWNLOAD_URL}
+              id="mobile-menu-android-app-link"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 text-blue-400 hover:text-blue-300 hover:bg-slate-800 rounded-lg font-medium"
+              aria-label="Download 9JASUB Android App"
+            >
+              <Smartphone className="w-4 h-4" />
+              📱 Get the 9JASUB App
+            </a>
+
             <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-800">
               <a href={`${process.env.NEXT_PUBLIC_APP_URL || ''}/login`} onClick={() => setMobileMenuOpen(false)}>
                 <button className="w-full py-3 bg-slate-800 text-white rounded-lg font-semibold">Login</button>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AndroidAppBanner from "@/components/AndroidAppBanner";
 
 export const metadata: Metadata = {
   title: "9JASUB | Data • Airtime • Bills • VTU Solutions",
@@ -16,7 +17,11 @@ export default function RootLayout({
       lang="en"
       className="h-full antialiased"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {/* Android sticky app download banner — only renders on Android devices */}
+        <AndroidAppBanner />
+      </body>
     </html>
   );
 }
