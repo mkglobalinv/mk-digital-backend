@@ -13,15 +13,20 @@ export const isWhiteLabelSite = (siteInfo) => {
     // Synchronous fallback to prevent UI flashes during initial load
     if (typeof window !== 'undefined') {
         const host = window.location.host.toLowerCase();
+        const isProd = import.meta.env.PROD;
         
         // Explicit main domains
         const mainDomains = [
-            'localhost:5173', 'localhost:5000', 
-            '127.0.0.1:5173', '127.0.0.1:5000',
-            'localhost:3000', '127.0.0.1:3000',
             '9jasub.com', 'www.9jasub.com', 'app.9jasub.com',
             'mk-subdata.com', 'www.mk-subdata.com'
         ];
+        
+        if (!isProd) {
+            mainDomains.push(
+                'localhost:5173', 'localhost:5000', 'localhost:3000',
+                '127.0.0.1:5173', '127.0.0.1:5000', '127.0.0.1:3000'
+            );
+        }
         
         if (mainDomains.includes(host)) return false;
         

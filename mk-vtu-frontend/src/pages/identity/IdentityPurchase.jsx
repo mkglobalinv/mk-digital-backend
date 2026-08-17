@@ -159,7 +159,8 @@ const IdentityPurchase = ({ user }) => {
       return;
     }
 
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isProd = import.meta.env.PROD;
+    const isLocalhost = (!isProd) && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     if (!isLocalhost && ['bvn-phone', 'nin-modification'].includes(serviceId)) {
       setPlanError('This service is temporarily unavailable on the live website while we undergo maintenance.');
       setLoadingPlan(false);

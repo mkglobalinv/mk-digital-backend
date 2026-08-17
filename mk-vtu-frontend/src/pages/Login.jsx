@@ -22,18 +22,17 @@ const Login = ({ setToken, siteInfo }) => {
   // Dual entry-point state
   const [accountView, setAccountView] = useState(() => {
     const host = window.location.host;
+    const isProd = import.meta.env.PROD;
     const mainDomains = [
-      'localhost:5173', 
-      'localhost:5000', 
       '9jasub.com', 
       'www.9jasub.com', 
       'app.9jasub.com',
       'mk-subdata.com',
-      'www.mk-subdata.com',
-      '9jasub.com',
-      'www.9jasub.com',
-      'app.9jasub.com'
+      'www.mk-subdata.com'
     ];
+    if (!isProd) {
+      mainDomains.push('localhost:5173', 'localhost:5000', 'localhost:3000', '127.0.0.1:5173', '127.0.0.1:5000', '127.0.0.1:3000');
+    }
     const isMain = mainDomains.includes(host);
     if (!isMain) return 'retail';
     if (localStorage.getItem('hasLoggedInBefore') === 'true') return 'retail';

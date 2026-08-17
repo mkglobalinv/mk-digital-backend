@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
             
             // Safe fallback compilation handling for SDK version limits
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
             }
 
             // Minimal splash fallback or webview connection handlers

@@ -168,15 +168,17 @@ function App() {
   // Tenant Security Guard
   const [checkingTenant, setCheckingTenant] = useState(() => {
     const host = window.location.hostname.toLowerCase();
+    const isProd = import.meta.env.PROD;
     const mainDomains = [
-        'localhost', 
-        '127.0.0.1',
         '9jasub.com', 
         'www.9jasub.com', 
         'app.9jasub.com',
         'mk-subdata.com', 
         'www.mk-subdata.com'
     ];
+    if (!isProd) {
+        mainDomains.push('localhost', '127.0.0.1');
+    }
     return !mainDomains.includes(host);
   });
   const [tenantInvalid, setTenantInvalid] = useState(false);

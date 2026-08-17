@@ -62,7 +62,8 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
 
   const isMainSite = !siteInfo?._id;
 
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const isProd = import.meta.env.PROD;
+  const isLocalhost = (!isProd) && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   const availableServices = IDENTITY_SERVICES.filter(svc => {
     if (['bvn-phone', 'nin-modification'].includes(svc.api_plan_id)) {
       return isLocalhost;
