@@ -521,9 +521,12 @@ function App() {
       const alreadyUnlocked = sessionStorage.getItem('appUnlocked') === 'true';
       const userType = localStorage.getItem('userType');
 
+      const isResellerPath = window.location.pathname.startsWith('/reseller') || window.location.pathname.startsWith('/website') || window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/super-admin');
+      
       // ONLY lock if user has explicitly enabled biometric authentication.
       // Do NOT lock users who have never registered biometric.
-      if (token && biometricEnabled && !alreadyUnlocked && userType !== 'business') {
+      // Do NOT lock users on the Reseller Admin website or App.
+      if (token && biometricEnabled && !alreadyUnlocked && userType !== 'business' && !isResellerPath) {
         setIsAppLocked(true);
         const supported = await isBiometricAvailable();
         if (supported && localStorage.getItem('lastEmail')) {
