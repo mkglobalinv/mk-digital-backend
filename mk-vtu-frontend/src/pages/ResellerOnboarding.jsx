@@ -507,54 +507,59 @@ const ResellerOnboarding = ({ user, refreshUser, siteInfo }) => {
 
     // Final Success Step
     if (step === 100) return (
-        <div className="onboarding-step success animate-scale-in">
-            <div className="success-icon-circle">
-                <Check size={40} color="#fff" />
+        <div className="onboarding-step success animate-scale-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+            <div style={{
+                width: '72px', height: '72px', borderRadius: '50%',
+                background: 'rgba(16, 185, 129, 0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 20px', fontSize: '36px'
+            }}>
+                🎉
             </div>
-            <h1 className="wizard-title" style={{ marginTop: '20px' }}>Congratulations!</h1>
-            <p className="wizard-subtitle" style={{ color: '#f8fafc', fontSize: '1.1rem' }}>
-                You are now the Owner and Administrator of <strong>{formData.siteName}</strong>.
-            </p>
-            <p className="wizard-subtitle" style={{ color: '#94a3b8', fontSize: '0.95rem' }}>
-                Your website has been created successfully and is ready for business.
+
+            <h1 className="wizard-title" style={{ fontSize: '26px', marginBottom: '8px', color: '#fff' }}>Website Created Successfully</h1>
+            <p className="wizard-subtitle" style={{ fontSize: '15px', maxWidth: '380px', margin: '0 auto 32px auto', color: '#94a3b8' }}>
+                Your website is ready.
             </p>
             
-            <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <button className="auth-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 'bold' }} onClick={() => window.open(`https://${user?.subdomain || formData.requestedDomain || formData.siteName?.replace(/\s+/g, '').toLowerCase()}.9jasub.com`, '_blank')}>
-                    <Globe size={18} /> Open My Website
-                </button>
-                <button className="auth-btn secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 'bold', background: '#334155', border: '1px solid #475569' }} onClick={() => window.open(`https://admin.${user?.subdomain || formData.requestedDomain || formData.siteName?.replace(/\s+/g, '').toLowerCase()}.9jasub.com`, '_blank')}>
-                    <Layout size={18} /> Open My Website Admin Portal
-                </button>
-                <button className="auth-btn secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 'bold', background: '#334155', border: '1px solid #475569' }} onClick={() => { const link = document.createElement('a'); link.href = 'https://9jasub.com/download/admin-app'; link.download = 'true'; document.body.appendChild(link); link.click(); document.body.removeChild(link); window.open('https://9jasub.com/download/admin-app', '_blank'); }}>
-                    <Smartphone size={18} /> Download Website Admin Portal App
-                </button>
-                <button className="auth-btn secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 'bold', background: 'transparent', border: '1px dashed #64748b' }} onClick={() => {
-                    navigator.clipboard.writeText(`Website: https://${user?.subdomain || formData.requestedDomain || formData.siteName?.replace(/\s+/g, '').toLowerCase()}.9jasub.com\nAdmin Portal: https://admin.${user?.subdomain || formData.requestedDomain || formData.siteName?.replace(/\s+/g, '').toLowerCase()}.9jasub.com`);
-                    alert('Website details copied to clipboard!');
-                }}>
-                    Copy Website Access Details
-                </button>
-            </div>
+            <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '12px', margin: '0 auto' }}>
+                <a
+                    href="https://bdpcitxadaygterabrqb.supabase.co/storage/v1/object/public/Reseller-app/WebsiteAdminPortal.apk?download="
+                    download
+                    className="auth-btn"
+                    style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '15px', fontWeight: '700', background: '#3b82f6', color: '#fff' }}
+                >
+                    <span>📱</span> Download Your Website Admin Application
+                </a>
 
-            <div className="info-box-premium" style={{ marginTop: '32px', background: 'linear-gradient(135deg, rgba(250, 204, 21, 0.1) 0%, rgba(250, 204, 21, 0.05) 100%)', border: '1px solid rgba(250, 204, 21, 0.2)' }}>
-                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: '#FACC15', fontSize: '1rem', fontWeight: 'bold' }}>
-                    <Globe size={18} /> Ready to Connect Your Own Domain?
-                </h4>
-                <p style={{ fontSize: '0.9rem', marginBottom: '16px', color: '#cbd5e1' }}>Upgrade to connect a custom .com or .com.ng domain name to your website.</p>
-                <button className="auth-btn" style={{ background: '#FACC15', color: '#0f172a', border: 'none', fontWeight: 'bold', width: '100%' }} onClick={() => window.open(`https://admin.${user?.subdomain || formData.requestedDomain || formData.siteName?.replace(/\s+/g, '').toLowerCase()}.9jasub.com/reseller/domain`, '_blank')}>
-                    Activate Custom Domain
-                </button>
-            </div>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 16px', lineHeight: '1.5' }}>
+                    Manage your website from your Admin Portal. Download the app and sign in to manage your website.
+                </p>
 
-            <div className="info-box-premium" style={{ marginTop: '16px', background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(56, 189, 248, 0.05) 100%)', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
-                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: '#38bdf8', fontSize: '1rem', fontWeight: 'bold' }}>
-                    <Smartphone size={18} /> Want Your Own Customer Mobile App?
-                </h4>
-                <p style={{ fontSize: '0.9rem', marginBottom: '16px', color: '#cbd5e1' }}>Get a fully branded Android app for your customers on the Google Play Store.</p>
-                <button className="auth-btn" style={{ background: '#38bdf8', color: '#0f172a', border: 'none', fontWeight: 'bold', width: '100%' }} onClick={() => window.open(`https://admin.${user?.subdomain || formData.requestedDomain || formData.siteName?.replace(/\s+/g, '').toLowerCase()}.9jasub.com/reseller/mobile-app`, '_blank')}>
-                    Activate Customer App
-                </button>
+                {/* Secondary shortcut */}
+                <a
+                    href="https://9jasub.com/website/dashboard"
+                    onClick={() => {
+                        // Set cookie so dashboard shows a one-time welcome toast
+                        const domain = window.location.hostname.includes('9jasub.com') ? '; domain=.9jasub.com' : '';
+                        document.cookie = `showWelcome=true${domain}; path=/; max-age=300`;
+                    }}
+                    style={{
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        color: 'rgba(255,255,255,0.6)',
+                        fontSize: '13.5px',
+                        fontWeight: '500',
+                        padding: '8px 0',
+                        borderBottom: '1px solid rgba(255,255,255,0.2)',
+                        transition: 'color 0.2s'
+                    }}
+                >
+                    Continue to Your Admin Dashboard →
+                </a>
             </div>
         </div>
     );
