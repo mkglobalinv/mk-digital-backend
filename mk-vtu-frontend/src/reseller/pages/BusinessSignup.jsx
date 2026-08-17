@@ -123,7 +123,11 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
         
         if (loginRes.data.token) {
             localStorage.setItem("token", loginRes.data.token);
-            if (setToken) setToken(loginRes.data.token);
+            // We intentionally DO NOT call setToken() here.
+            // Calling setToken() updates App.jsx state, which immediately
+            // unmounts this component and redirects to the dashboard,
+            // preventing the user from seeing the success banner.
+            
             // Show the Activation Success Screen
             const sub = regRes.data.subdomain || regRes.data.admin_subdomain;
             setSuccessInfo({
