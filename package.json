@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "nodemon --verbose server.js",
     "start": "node server.js",
+    "idgate360:dev": "nodemon --verbose modules/idgate360/server.js",
+    "idgate360:start": "node modules/idgate360/server.js",
     "postinstall": "npm install --prefix mk-vtu-frontend && npm run build --prefix mk-vtu-frontend && npm install --prefix mk-subdata-website --legacy-peer-deps && npm run build --prefix mk-subdata-website"
   },
   "dependencies": {
