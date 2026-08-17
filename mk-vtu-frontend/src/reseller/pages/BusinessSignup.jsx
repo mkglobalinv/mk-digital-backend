@@ -239,6 +239,8 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
                     {/* Secondary shortcut */}
                     <a
                         href="https://9jasub.com/website/dashboard"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={() => {
                             // Set cookie so dashboard shows a one-time welcome toast
                             const domain = window.location.hostname.includes('9jasub.com') ? '; domain=.9jasub.com' : '';
@@ -250,15 +252,17 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '6px',
-                            color: 'rgba(255,255,255,0.6)',
-                            fontSize: '13.5px',
-                            fontWeight: '500',
-                            padding: '8px 0',
-                            borderBottom: '1px solid rgba(255,255,255,0.2)',
-                            transition: 'color 0.2s'
+                            color: '#3b82f6',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            padding: '10px 16px',
+                            marginTop: '8px',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.2s, color 0.2s'
                         }}
                     >
-                        Continue to Your Admin Dashboard →
+                        Or access your website portal online →
                     </a>
                 </div>
             </div>
