@@ -52,20 +52,17 @@ const ResellerDashboard = ({ user }) => {
     const [settingUpSubdomain, setSettingUpSubdomain] = useState(false);
     const [isActivating, setIsActivating] = useState(false);
 
-    const [showWebsiteReady, setShowWebsiteReady] = useState(() => {
-        return document.cookie.includes('showWelcome=true');
-    });
-
-    useEffect(() => {
-        if (showWebsiteReady) {
+    const [showWebsiteReadyToast, setShowWebsiteReadyToast] = useState(() => {
+        const hasWelcome = document.cookie.includes('showWelcome=true');
+        if (hasWelcome) {
+            // Clear the cookie synchronously so ResellerWelcomeModal doesn't also trigger
             const domain = window.location.hostname.includes('9jasub.com') ? '; domain=.9jasub.com' : '';
             document.cookie = `showWelcome=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${domain}`;
         }
-    }, [showWebsiteReady]);
+        return hasWelcome;
+    });
 
-    const closeWebsiteReady = () => {
-        setShowWebsiteReady(false);
-    };
+    const dismissWebsiteToast = () => setShowWebsiteReadyToast(false);
 
     const getResellerWebsiteUrl = () => {
         if (user?.customDomain) {
@@ -160,8 +157,6 @@ const ResellerDashboard = ({ user }) => {
     if (loading) {
         return (
         <div className="reseller-dashboard">
-            <ResellerWelcomeModal user={user} />
-            
             <div className="res-dash-header">Loading Website Admin Console...</div>
             </div>
         );
@@ -222,87 +217,54 @@ const ResellerDashboard = ({ user }) => {
         ? Math.max(0, Math.ceil((new Date(user.subscriptionExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)))
         : 0;
 
-    if (showWebsiteReady) {
-        return (
-            <div className="website-ready-overlay animate-scale-in" style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100000,
-                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px'
-            }}>
-                <div style={{
-                    background: '#fff', borderRadius: '24px', padding: '40px', maxWidth: '500px', width: '100%',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)', textAlign: 'center'
-                }}>
-                    <div style={{ 
-                        width: '80px', height: '80px', background: '#ecfdf5', borderRadius: '50%', 
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' 
-                    }}>
-                        <CheckCircle size={40} color="#10b981" />
-                    </div>
-                    <h1 style={{ fontSize: '28px', color: '#0f172a', margin: '0 0 16px', fontWeight: '800' }}>
-                        🎉 Your website is ready!
-                    </h1>
-                    <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.5', margin: '0 0 32px' }}>
-                        Your VTU platform <strong>{user?.branding?.siteName}</strong> is live. You can now start sharing your link and making sales.
-                    </p>
-
-                    <div style={{
-                        background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px',
-                        padding: '16px', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '12px'
-                    }}>
-                        <div style={{ flex: 1, textAlign: 'left', overflow: 'hidden' }}>
-                            <div style={{ fontSize: '12px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Website URL</div>
-                            <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {websiteUrl}
-                            </div>
-                        </div>
-                        <button onClick={handleCopy} style={{
-                            width: '40px', height: '40px', borderRadius: '10px', border: '1px solid #e2e8f0',
-                            background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', color: '#64748b', transition: 'all 0.2s'
-                        }} title="Copy Link">
-                            {copied ? <CheckCircle size={20} color="#10b981" /> : <Copy size={20} />}
-                        </button>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
-                        <button onClick={() => window.open(websiteUrl, '_blank')} style={{
-                            padding: '14px', borderRadius: '12px', border: 'none', background: 'rgba(59,130,246,0.1)',
-                            color: '#3b82f6', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer'
-                        }}>
-                            <Globe size={18} /> Preview Website
-                        </button>
-                        <button onClick={shareOnWhatsApp} style={{
-                            padding: '14px', borderRadius: '12px', border: 'none', background: 'rgba(16,185,129,0.1)',
-                            color: '#10b981', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer'
-                        }}>
-                            <Share2 size={18} /> Share Link
-                        </button>
-                    </div>
-
-                    <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '32px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <button onClick={handlePayActivation} disabled={isActivating} style={{
-                            padding: '16px', borderRadius: '12px', border: 'none', background: isActivating ? '#93c5fd' : '#3b82f6',
-                            color: '#fff', fontWeight: '800', fontSize: '16px', cursor: isActivating ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
-                            boxShadow: '0 4px 12px rgba(59,130,246,0.3)'
-                        }}>
-                            {isActivating ? '⏳ Preparing payment...' : 'Website Setup & Activation Fee'}
-                        </button>
-                        <button onClick={closeWebsiteReady} style={{
-                            padding: '16px', borderRadius: '12px', border: 'none', background: 'transparent',
-                            color: '#64748b', fontWeight: '700', fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s'
-                        }}>
-                            Continue Trial
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="reseller-dashboard-view">
             <ResellerWelcomeModal user={user} />
+
+            {/* One-time, dismissible website-ready info toast — appears only on first dashboard entry after creation */}
+            {showWebsiteReadyToast && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px 16px',
+                        marginBottom: '16px',
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.08) 100%)',
+                        border: '1px solid rgba(16,185,129,0.25)',
+                        color: '#0f4c35',
+                        fontSize: '13.5px',
+                        fontWeight: '500',
+                        boxShadow: '0 2px 8px rgba(16,185,129,0.1)',
+                        lineHeight: '1.4'
+                    }}
+                >
+                    <span style={{ fontSize: '18px', flexShrink: 0 }}>🎉</span>
+                    <span style={{ flex: 1 }}>
+                        Your website is ready! You can copy your website address or visit your site anytime from your dashboard.
+                    </span>
+                    <button
+                        onClick={dismissWebsiteToast}
+                        aria-label="Dismiss"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#64748b',
+                            fontSize: '18px',
+                            lineHeight: 1,
+                            padding: '0 4px',
+                            flexShrink: 0
+                        }}
+                    >
+                        &times;
+                    </button>
+                </div>
+            )}
 
             {/* Login Alert Banner */}
             {loginAlert && (
