@@ -74,7 +74,6 @@ const Signup = ({ setToken, siteInfo }) => {
          try {
            const loginRes = await API.post('/api/login', { email: email.toLowerCase(), password, session_type: 'retail' });
            if (loginRes.data.token) {
-             const biometricEnabled = localStorage.getItem('biometricEnabled');
              const lastEmail = localStorage.getItem('lastEmail');
              const hasLoggedInBefore = localStorage.getItem('hasLoggedInBefore');
              const seenOnboarding = localStorage.getItem('seenOnboarding');
@@ -82,7 +81,7 @@ const Signup = ({ setToken, siteInfo }) => {
              localStorage.clear();
              sessionStorage.clear();
              
-             if (biometricEnabled) localStorage.setItem('biometricEnabled', biometricEnabled);
+             if (loginRes.data.user?.biometricEnabled) localStorage.setItem('biometricEnabled', 'true');
              if (lastEmail) localStorage.setItem('lastEmail', lastEmail);
              if (hasLoggedInBefore) localStorage.setItem('hasLoggedInBefore', hasLoggedInBefore);
              if (seenOnboarding) localStorage.setItem('seenOnboarding', seenOnboarding);

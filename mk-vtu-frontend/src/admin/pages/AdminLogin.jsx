@@ -24,7 +24,6 @@ const AdminLogin = ({ setAdminToken, setAdminUser }) => {
 
   useEffect(() => {
     // SECURITY REQUIREMENT: Clear ALL stale sessions before admin login
-    const biometricEnabled = localStorage.getItem('biometricEnabled');
     const lastEmail = localStorage.getItem('lastEmail');
     const hasLoggedInBefore = localStorage.getItem('hasLoggedInBefore');
     const seenOnboarding = localStorage.getItem('seenOnboarding');
@@ -32,7 +31,6 @@ const AdminLogin = ({ setAdminToken, setAdminUser }) => {
     localStorage.clear();
     sessionStorage.clear();
     
-    if (biometricEnabled) localStorage.setItem('biometricEnabled', biometricEnabled);
     if (lastEmail) localStorage.setItem('lastEmail', lastEmail);
     if (hasLoggedInBefore) localStorage.setItem('hasLoggedInBefore', hasLoggedInBefore);
     if (seenOnboarding) localStorage.setItem('seenOnboarding', seenOnboarding);
@@ -90,7 +88,6 @@ const AdminLogin = ({ setAdminToken, setAdminUser }) => {
 
   const completeLogin = (data) => {
     // STRICT SESSION ISOLATION: Clear everything but UX fields
-    const biometricEnabled = localStorage.getItem('biometricEnabled');
     const lastEmail = localStorage.getItem('lastEmail');
     const hasLoggedInBefore = localStorage.getItem('hasLoggedInBefore');
     const seenOnboarding = localStorage.getItem('seenOnboarding');
@@ -98,7 +95,7 @@ const AdminLogin = ({ setAdminToken, setAdminUser }) => {
     localStorage.clear();
     sessionStorage.clear();
     
-    if (biometricEnabled) localStorage.setItem('biometricEnabled', biometricEnabled);
+    if (data.user?.biometricEnabled) localStorage.setItem('biometricEnabled', 'true');
     if (lastEmail) localStorage.setItem('lastEmail', lastEmail);
     if (hasLoggedInBefore) localStorage.setItem('hasLoggedInBefore', hasLoggedInBefore);
     if (seenOnboarding) localStorage.setItem('seenOnboarding', seenOnboarding);

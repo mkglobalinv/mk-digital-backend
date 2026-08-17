@@ -78,7 +78,6 @@ const BusinessLogin = ({ setToken, siteInfo }) => {
       }
 
       // STRICT SESSION ISOLATION
-      const biometricEnabled = localStorage.getItem('biometricEnabled');
       const lastEmail = localStorage.getItem('lastEmail');
       const hasLoggedInBefore = localStorage.getItem('hasLoggedInBefore');
       const seenOnboarding = localStorage.getItem('seenOnboarding');
@@ -86,7 +85,7 @@ const BusinessLogin = ({ setToken, siteInfo }) => {
       localStorage.clear();
       sessionStorage.clear();
 
-      if (biometricEnabled) localStorage.setItem('biometricEnabled', biometricEnabled);
+      if (res.data.user?.biometricEnabled) localStorage.setItem('biometricEnabled', 'true');
       if (lastEmail) localStorage.setItem('lastEmail', lastEmail);
       if (hasLoggedInBefore) localStorage.setItem('hasLoggedInBefore', hasLoggedInBefore);
       if (seenOnboarding) localStorage.setItem('seenOnboarding', seenOnboarding);

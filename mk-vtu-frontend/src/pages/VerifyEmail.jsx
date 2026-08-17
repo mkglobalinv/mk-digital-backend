@@ -43,7 +43,6 @@ const VerifyEmail = ({ setToken }) => {
         setSuccessMsg("Email verified! Redirecting to dashboard...");
         
         // STRICT SESSION ISOLATION
-        const biometricEnabled = localStorage.getItem('biometricEnabled');
         const lastEmail = localStorage.getItem('lastEmail');
         const hasLoggedInBefore = localStorage.getItem('hasLoggedInBefore');
         const seenOnboarding = localStorage.getItem('seenOnboarding');
@@ -51,7 +50,7 @@ const VerifyEmail = ({ setToken }) => {
         localStorage.clear();
         sessionStorage.clear();
         
-        if (biometricEnabled) localStorage.setItem('biometricEnabled', biometricEnabled);
+        if (res.data.user?.biometricEnabled) localStorage.setItem('biometricEnabled', 'true');
         if (lastEmail) localStorage.setItem('lastEmail', lastEmail);
         if (hasLoggedInBefore) localStorage.setItem('hasLoggedInBefore', hasLoggedInBefore);
         if (seenOnboarding) localStorage.setItem('seenOnboarding', seenOnboarding);

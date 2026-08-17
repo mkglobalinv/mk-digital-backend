@@ -492,6 +492,11 @@ function App() {
             if (res.data && res.data.emergencyId) {
                 localStorage.setItem('emergencyId', res.data.emergencyId);
             }
+            if (res.data && res.data.biometricEnabled) {
+                localStorage.setItem('biometricEnabled', 'true');
+            } else {
+                localStorage.removeItem('biometricEnabled');
+            }
             
             // Pre-fetch Reseller Dashboard stats for instant load
             if (res.data.role === 'reseller_admin') {

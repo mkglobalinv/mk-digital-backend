@@ -82,7 +82,6 @@ const Login = ({ setToken, siteInfo }) => {
       const res = await API.post('/api/login', { email: email.toLowerCase(), password, session_type: 'retail' });
       if (res.data.token) {
         // STRICT SESSION ISOLATION: Destroy any existing state before applying new session
-        const biometricEnabled = localStorage.getItem('biometricEnabled');
         const lastEmail = localStorage.getItem('lastEmail');
         const hasLoggedInBefore = localStorage.getItem('hasLoggedInBefore');
         const seenOnboarding = localStorage.getItem('seenOnboarding');
@@ -91,7 +90,7 @@ const Login = ({ setToken, siteInfo }) => {
         sessionStorage.clear();
         
         // Restore non-sensitive UX settings
-        if (biometricEnabled) localStorage.setItem('biometricEnabled', biometricEnabled);
+        if (res.data.user?.biometricEnabled) localStorage.setItem('biometricEnabled', 'true');
         if (lastEmail) localStorage.setItem('lastEmail', lastEmail);
         if (hasLoggedInBefore) localStorage.setItem('hasLoggedInBefore', hasLoggedInBefore);
         if (seenOnboarding) localStorage.setItem('seenOnboarding', seenOnboarding);

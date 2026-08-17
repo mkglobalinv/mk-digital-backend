@@ -133,14 +133,12 @@ const ForgotPassword = () => {
       await API.post('/auth/reset-password', { email, resetToken, password });
       
       // STRICT SESSION ISOLATION
-      const biometricEnabled = localStorage.getItem('biometricEnabled');
       const lastEmail = localStorage.getItem('lastEmail');
       const seenOnboarding = localStorage.getItem('seenOnboarding');
       
       localStorage.clear();
       sessionStorage.clear();
       
-      if (biometricEnabled) localStorage.setItem('biometricEnabled', biometricEnabled);
       if (lastEmail) localStorage.setItem('lastEmail', lastEmail);
       if (seenOnboarding) localStorage.setItem('seenOnboarding', seenOnboarding);
 
