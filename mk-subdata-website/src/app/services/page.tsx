@@ -43,15 +43,13 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="fixed top-0 w-full z-[100] bg-white/70 backdrop-blur-xl border-b border-slate-200/50">
+      <nav className="fixed top-0 w-full z-[100] bg-white/80 backdrop-blur-xl border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold">
-              <Lightning size={20} fill="white" />
-            </div>
-            <span className="text-2xl font-black tracking-tight text-slate-900">9JASUB</span>
+            <img src="/logo.jpg" alt="9JASUB Logo" className="w-10 h-10 rounded-xl object-cover shadow-md shadow-emerald-500/20" />
+            <span className="text-2xl font-extrabold tracking-tight text-slate-900">9JASUB</span>
           </Link>
-          <Link href="/get-started" className="px-6 py-2.5 bg-slate-900 text-white rounded-full font-bold text-sm">
+          <Link href="/get-started" className="btn-primary px-6 py-2.5 rounded-full font-semibold text-sm">
             Get Started
           </Link>
         </div>
@@ -60,15 +58,15 @@ export default function ServicesPage() {
       <main className="pt-40 pb-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-20 space-y-6">
-            <h1 className="text-5xl font-black text-slate-900 tracking-tight">Our Premium <span className="text-blue-600">Services.</span></h1>
+            <h1 className="text-5xl font-extrabold text-slate-900 tracking-tight">Our Premium <span className="text-emerald-600">Services.</span></h1>
             <p className="text-xl text-slate-500 font-medium leading-relaxed">
               We provide high-speed automated digital utility services for thousands of Nigerians every day.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((s, i) => (
-              <div key={i} className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-blue-200/20 transition-all group">
+              <div key={i} className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-emerald-200/20 hover:-translate-y-1 transition-all duration-300 group">
                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 ${
                    s.color === 'blue' ? 'bg-blue-500/10 text-blue-600' :
                    s.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-600' :
@@ -78,12 +76,12 @@ export default function ServicesPage() {
                 }`}>
                   {s.icon}
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-4">{s.title}</h3>
+                <h3 className="text-2xl font-extrabold text-slate-900 mb-4">{s.title}</h3>
                 <p className="text-slate-500 font-medium mb-8 leading-relaxed">{s.desc}</p>
                 <div className="space-y-3">
                   {s.features.map((f, fi) => (
-                    <div key={fi} className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                      <div className="w-5 h-5 rounded-full bg-slate-50 flex items-center justify-center text-blue-600">
+                    <div key={fi} className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                      <div className="w-5 h-5 rounded-full bg-slate-50 flex items-center justify-center text-emerald-600">
                          <ShieldCheck size={14} />
                       </div>
                       {f}
@@ -92,19 +90,19 @@ export default function ServicesPage() {
                 </div>
               </div>
             ))}
-            
+
             {/* Own Website Card */}
-            <div className="bg-slate-900 p-10 rounded-[40px] text-white flex flex-col justify-between">
+            <div className="bg-slate-900 p-10 rounded-[2.5rem] text-white flex flex-col justify-between border border-slate-800">
               <div>
-                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-8 text-blue-400">
+                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-8 text-emerald-400">
                   <Zap size={32} />
                 </div>
-                <h3 className="text-2xl font-black mb-4">Own Your VTU Website</h3>
+                <h3 className="text-2xl font-extrabold mb-4">Own Your VTU Website</h3>
                 <p className="text-slate-400 font-medium leading-relaxed mb-8">
                   Launch your own fully automated VTU platform in 5 minutes with our premium website builder.
                 </p>
               </div>
-              <Link href="/get-started" className="w-full py-4 bg-blue-600 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-blue-700 transition-all group">
+              <Link href="/get-started" className="btn-primary w-full py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 group">
                  Create Website <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>

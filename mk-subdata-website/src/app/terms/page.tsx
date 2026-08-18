@@ -9,15 +9,15 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-900 pb-20">
-      
+    <div className="min-h-screen bg-slate-50 selection:bg-emerald-100 selection:text-emerald-900 pb-20">
+
       {/* Simple Header */}
-      <header className="bg-white border-b border-slate-200 py-6 px-6 sticky top-0 z-50">
+      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 py-5 px-6 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-black text-xl tracking-tight text-slate-900 hover:text-blue-600 transition-colors">
+          <Link href="/" className="font-extrabold text-xl tracking-tight text-slate-900 hover:text-emerald-600 transition-colors">
             9JASUB
           </Link>
-          <Link href="/" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-2">
+          <Link href="/" className="text-sm font-semibold text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-2">
             <ArrowLeft size={16} /> Back to Home
           </Link>
         </div>
@@ -28,7 +28,7 @@ export default function TermsPage() {
         <div className="mx-auto w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
           <Scale size={32} />
         </div>
-        <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
           Terms of Service
         </h1>
         <p className="text-lg text-slate-500 font-medium">
