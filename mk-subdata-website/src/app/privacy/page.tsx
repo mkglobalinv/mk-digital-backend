@@ -9,15 +9,15 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-900 pb-20">
-      
+    <div className="min-h-screen bg-slate-50 selection:bg-emerald-100 selection:text-emerald-900 pb-20">
+
       {/* Simple Header */}
-      <header className="bg-white border-b border-slate-200 py-6 px-6 sticky top-0 z-50">
+      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 py-5 px-6 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-black text-xl tracking-tight text-slate-900 hover:text-blue-600 transition-colors">
+          <Link href="/" className="font-extrabold text-xl tracking-tight text-slate-900 hover:text-emerald-600 transition-colors">
             9JASUB
           </Link>
-          <Link href="/" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-2">
+          <Link href="/" className="text-sm font-semibold text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-2">
             <ArrowLeft size={16} /> Back to Home
           </Link>
         </div>
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         <div className="mx-auto w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-4">
           <ShieldCheck size={32} />
         </div>
-        <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
           Privacy Policy
         </h1>
         <p className="text-lg text-slate-500 font-medium">
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
       {/* Content */}
       <section className="px-6 max-w-4xl mx-auto">
         <div className="bg-white p-8 md:p-12 rounded-[2rem] border border-slate-200 shadow-sm prose prose-slate prose-lg max-w-none">
-          
+
           <p>
             At 9JASUB, operated by <strong>MK GLOBAL INVESTMENT LTD</strong>, we take your privacy and data security seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our VTU business platform, website ownership services, and API solutions.
           </p>

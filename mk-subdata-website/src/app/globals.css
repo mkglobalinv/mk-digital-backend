@@ -1,22 +1,26 @@
 @import "tailwindcss";
 
+/*
+ * Brand palette matched to the actual 9JASUB logo and marketing reference:
+ * emerald green is the primary brand/action color on a light background,
+ * navy is used for headings, text, and the footer (a dark anchor on an
+ * otherwise light page — a common, deliberate fintech pattern). Amber/gold
+ * still marks money & reward moments (Fund, referral earnings), matching
+ * the live app's wallet UI.
+ */
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --color-primary: #3b82f6;
-  --color-secondary: #10b981;
-  --color-dark: #0f172a;
+  --color-primary: #059669;
+  --color-primary-light: #10b981;
+  --color-gold: #d97706;
+  --color-navy: #0f172a;
 }
 
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
-  --primary: #3b82f6;
-  --secondary: #10b981;
-}
-
-[data-theme='dark'] {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --primary: #059669;
+  --secondary: #0f172a;
 }
 
 body {
@@ -27,32 +31,21 @@ body {
   scroll-behavior: smooth;
 }
 
-/* Premium Animations */
+/* Premium Animations (kept subtle and few) */
 @keyframes float {
   0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
   100% { transform: translateY(0px); }
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float-delayed {
-  0% { transform: translateY(0px) rotate(2deg); }
-  50% { transform: translateY(-12px) rotate(-1deg); }
-  100% { transform: translateY(0px) rotate(2deg); }
-}
-
-.animate-float-delayed {
-  animation: float-delayed 8s ease-in-out infinite;
-  animation-delay: 2s;
+  animation: float 7s ease-in-out infinite;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -62,7 +55,7 @@ body {
 
 .animate-fade-in {
   opacity: 0;
-  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .delay-100 { animation-delay: 100ms; }
@@ -70,33 +63,112 @@ body {
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.05); }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 10s ease-in-out infinite;
-}
-
 /* Glassmorphism Styles */
 .glass {
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .glass-dark {
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Single-hue brand gradient for headline accents — used sparingly */
 .gradient-text {
-  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #10b981 100%);
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+/* Shared premium button system */
+.btn-primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 24px -8px rgba(5, 150, 105, 0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 12px 32px -8px rgba(5, 150, 105, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Outline button — secondary action on light surfaces (e.g. Login) */
+.btn-outline {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a;
+  transition: border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+
+.btn-outline:hover {
+  border-color: #059669;
+  color: #059669;
+  transform: translateY(-1px);
+}
+
+/* Gold/amber CTA — money & reward moments (Fund, referral earnings) */
+.btn-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 24px -8px rgba(217, 119, 6, 0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.btn-gold:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 12px 32px -8px rgba(217, 119, 6, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Solid navy CTA — secondary/dark action on light surfaces */
+.btn-dark {
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  color: #ffffff;
+  transition: background-color 0.25s ease, transform 0.25s ease;
+}
+
+.btn-dark:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+/* Unified light-surface card */
+.card-light {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card-light:hover {
+  border-color: rgba(5, 150, 105, 0.35);
+  box-shadow: 0 16px 32px -12px rgba(15, 23, 42, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Dark navy card — used sparingly to anchor a section (e.g. footer CTA) */
+.card-navy {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+}
+
+/* Subtle dot-grid backdrop (replaces a missing /grid.svg reference).
+   Light dots — used on the dark navy FinalCTA/Footer band. */
+.bg-grid-pattern {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Soft ambient glow — pastel and calm, for light backgrounds */
+.glow-soft {
+  filter: blur(90px);
+  opacity: 0.5;
+}

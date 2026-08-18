@@ -7,19 +7,19 @@ import Link from 'next/link';
 export default function FinalCTA() {
   return (
     <section className="py-24 relative overflow-hidden bg-slate-900 border-t border-slate-800/50">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-      
+      <div className="absolute inset-0 bg-grid-pattern [mask-image:radial-gradient(ellipse_60%_60%_at_50%_30%,black,transparent)]" />
+
       <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6"
+          className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 tracking-tight"
         >
           Ready to Own Your VTU Business?
         </motion.h2>
-        
-        <motion.p 
+
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -28,15 +28,15 @@ export default function FinalCTA() {
         >
           Start your 3-day free trial and see how your own branded VTU business works.
         </motion.p>
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
           className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-10"
         >
-          <div className="px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 font-bold text-sm">
+          <div className="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm">
             3-Day Free Trial
           </div>
           <div className="px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-sm">
@@ -50,7 +50,7 @@ export default function FinalCTA() {
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
         >
-          <Link href="/get-started" className="inline-flex px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black text-xl items-center justify-center gap-3 transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)]">
+          <Link href="/get-started" className="btn-primary inline-flex px-10 py-5 rounded-2xl font-bold text-xl items-center justify-center gap-3">
             Start Your Free Trial <ArrowRight className="w-6 h-6" />
           </Link>
         </motion.div>

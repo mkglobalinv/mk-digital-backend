@@ -19,23 +19,23 @@ const services = [
 
 export default function Services() {
   return (
-    <section className="py-24 relative bg-slate-900" id="platform-services">
+    <section className="py-24 relative bg-white" id="platform-services">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-bold text-white mb-6"
+            className="text-3xl md:text-5xl font-bold text-slate-900 mb-6"
           >
             Everything You Need
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-lg text-slate-400 font-medium"
+            className="text-lg text-slate-500 font-medium"
           >
             Actual platform services ready to sell from day one.
           </motion.p>
@@ -49,10 +49,12 @@ export default function Services() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.05 }}
-              className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 flex flex-col items-center justify-center text-center hover:bg-slate-800 transition-colors"
+              className="card-light p-6 rounded-2xl flex flex-col items-center justify-center text-center"
             >
-              <service.icon className="w-8 h-8 text-blue-400 mb-4" />
-              <h3 className="font-bold text-slate-200">{service.title}</h3>
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
+                <service.icon className="w-6 h-6 text-emerald-600" />
+              </div>
+              <h3 className="font-semibold text-slate-700 text-sm leading-snug">{service.title}</h3>
             </motion.div>
           ))}
         </div>
