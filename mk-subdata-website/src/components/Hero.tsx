@@ -1,8 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Globe } from 'lucide-react';
+import { ArrowRight, Globe, ShieldCheck, Zap, Star, Headphones } from 'lucide-react';
 import Link from 'next/link';
+
+const trustBadges = [
+  { icon: ShieldCheck, line1: "100% Secure", line2: "Transactions" },
+  { icon: Zap, line1: "Instant", line2: "Delivery" },
+  { icon: Star, line1: "Trusted by", line2: "Thousands" },
+  { icon: Headphones, line1: "24/7 Customer", line2: "Support" },
+];
 
 export default function Hero() {
   return (
@@ -69,6 +76,22 @@ export default function Hero() {
                   Start Your Free Trial <ArrowRight size={20} />
                 </button>
               </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-10 pt-8 border-t border-slate-100"
+            >
+              {trustBadges.map((badge, idx) => (
+                <div key={idx} className="flex items-center gap-2 justify-center lg:justify-start">
+                  <badge.icon className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <p className="text-xs font-bold text-slate-600 leading-tight text-left">
+                    {badge.line1}<br />{badge.line2}
+                  </p>
+                </div>
+              ))}
             </motion.div>
           </div>
 
