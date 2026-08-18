@@ -5,6 +5,19 @@ import {
   CheckCircle2, Code, Activity, Terminal, ArrowUpRight, Zap
 } from 'lucide-react';
 
+export const metadata = {
+  title: 'Developer API | 9JASUB - VTU Integration for Developers',
+  description: 'Integrate fast, reliable, and secure VTU services into your applications. Automate airtime, data, and bill payments with the 9JASUB API.',
+  alternates: {
+    canonical: '/developer',
+  },
+  openGraph: {
+    title: 'Developer API | 9JASUB - VTU Integration for Developers',
+    description: 'Integrate fast, reliable, and secure VTU services into your applications. Automate airtime, data, and bill payments with the 9JASUB API.',
+    url: '/developer',
+  },
+};
+
 export default function DeveloperApi() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 selection:bg-emerald-100 selection:text-emerald-900">

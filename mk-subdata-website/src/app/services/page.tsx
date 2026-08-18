@@ -2,6 +2,19 @@ import React from 'react';
 import Link from 'next/link';
 import { Wifi, Smartphone, Zap, PlaySquare, GraduationCap, ShieldCheck, Clock, Zap as Lightning, ArrowRight } from 'lucide-react';
 
+export const metadata = {
+  title: 'Our Services | 9JASUB - Data, Airtime, Bills & More',
+  description: 'Explore 9JASUB\'s premium digital services: data bundles, airtime top-up, electricity bills, cable TV subscriptions, and education pins at the best rates in Nigeria.',
+  alternates: {
+    canonical: '/services',
+  },
+  openGraph: {
+    title: 'Our Services | 9JASUB - Data, Airtime, Bills & More',
+    description: 'Explore 9JASUB\'s premium digital services: data bundles, airtime top-up, electricity bills, cable TV subscriptions, and education pins at the best rates in Nigeria.',
+    url: '/services',
+  },
+};
+
 export default function ServicesPage() {
   const services = [
     {
@@ -76,7 +89,7 @@ export default function ServicesPage() {
                 }`}>
                   {s.icon}
                 </div>
-                <h3 className="text-2xl font-extrabold text-slate-900 mb-4">{s.title}</h3>
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-4">{s.title}</h2>
                 <p className="text-slate-500 font-medium mb-8 leading-relaxed">{s.desc}</p>
                 <div className="space-y-3">
                   {s.features.map((f, fi) => (
@@ -97,7 +110,7 @@ export default function ServicesPage() {
                 <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-8 text-emerald-400">
                   <Zap size={32} />
                 </div>
-                <h3 className="text-2xl font-extrabold mb-4">Own Your VTU Website</h3>
+                <h2 className="text-2xl font-extrabold mb-4">Own Your VTU Website</h2>
                 <p className="text-slate-400 font-medium leading-relaxed mb-8">
                   Launch your own fully automated VTU platform in 5 minutes with our premium website builder.
                 </p>

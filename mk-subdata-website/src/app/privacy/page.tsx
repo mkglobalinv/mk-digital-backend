@@ -5,6 +5,14 @@ import { ArrowLeft, ShieldCheck } from 'lucide-react';
 export const metadata = {
   title: 'Privacy Policy | 9JASUB',
   description: 'Privacy Policy and Data Protection guidelines for 9JASUB users.',
+  alternates: {
+    canonical: '/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | 9JASUB',
+    description: 'Privacy Policy and Data Protection guidelines for 9JASUB users.',
+    url: '/privacy',
+  },
 };
 
 export default function PrivacyPage() {
@@ -44,7 +52,7 @@ export default function PrivacyPage() {
             At 9JASUB, operated by <strong>MK GLOBAL INVESTMENT LTD</strong>, we take your privacy and data security seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our VTU business platform, website ownership services, and API solutions.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">1. Information We Collect</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">1. Information We Collect</h2>
           <p>
             When you register for an account, setup a VTU business, or use our services, we may collect the following information:
           </p>
@@ -54,12 +62,12 @@ export default function PrivacyPage() {
             <li><strong>Technical Data:</strong> IP address, browser type, and device information used to access our API and dashboards.</li>
           </ul>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">2. Payment Information Handling</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">2. Payment Information Handling</h2>
           <p>
             We do not store your full credit card details. All payment processing is handled securely by our licensed third-party payment gateways (e.g., Paystack, Monnify). We only retain payment references and transaction statuses to credit your wallet and maintain your account history.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">3. How We Use Your Information</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">3. How We Use Your Information</h2>
           <p>We use the collected information to:</p>
           <ul className="list-disc pl-5 space-y-2 mb-6">
             <li>Process your VTU transactions and API requests.</li>
@@ -68,22 +76,22 @@ export default function PrivacyPage() {
             <li>Send important account alerts, security notices, and service updates.</li>
           </ul>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">4. Account Security</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">4. Account Security</h2>
           <p>
             We implement industry-standard encryption (SSL/TLS) to protect data transmitted between your browser and our servers. API keys are generated cryptographically and must be kept secure by the user. We strongly advise users never to share their login credentials or API keys.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">5. Cookies and Analytics</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">5. Cookies and Analytics</h2>
           <p>
             We use cookies to maintain your session securely and improve our platform's performance. You can manage cookie preferences through your browser settings, though disabling them may impact your ability to use the website admin dashboard effectively.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">6. Your Data Rights</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">6. Your Data Rights</h2>
           <p>
             You have the right to access, correct, or request the deletion of your personal data. Please contact our support team if you wish to exercise these rights or close your 9JASUB account.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">7. Contact Information</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">7. Contact Information</h2>
           <p>
             If you have any questions or concerns about this Privacy Policy, please contact us:
           </p>

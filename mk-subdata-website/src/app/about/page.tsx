@@ -5,6 +5,14 @@ import { ArrowLeft, Target, Eye, Globe } from 'lucide-react';
 export const metadata = {
   title: 'About 9JASUB | Our Mission & Vision',
   description: 'Learn more about 9JASUB, a digital utility and fintech platform operated by MK GLOBAL INVESTMENT LTD.',
+  alternates: {
+    canonical: '/about',
+  },
+  openGraph: {
+    title: 'About 9JASUB | Our Mission & Vision',
+    description: 'Learn more about 9JASUB, a digital utility and fintech platform operated by MK GLOBAL INVESTMENT LTD.',
+    url: '/about',
+  },
 };
 
 export default function AboutPage() {
