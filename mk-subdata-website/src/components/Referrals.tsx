@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Activity, Award, ArrowDown, UserPlus, Globe, CheckCircle, Zap, Wallet } from 'lucide-react';
+import { Award, UserPlus, Globe, CheckCircle, Zap, Wallet } from 'lucide-react';
 import Link from 'next/link';
 
 const colorMap = {
@@ -76,32 +76,28 @@ export default function Referrals() {
             transition={{ delay: 0.2 }}
             className="relative lg:block"
           >
-            <div className="card-light rounded-[2rem] p-8 shadow-xl flex flex-col items-center">
-
-              {referralSteps.map((step, idx) => {
-                const c = colorMap[step.color];
-                return (
-                  <div key={idx} className="flex flex-col items-center w-full max-w-sm">
-                    <div className={`w-full flex items-center gap-4 p-4 rounded-xl border ${
-                      step.highlight ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                      step.success ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
-                      'bg-slate-50 border-slate-200 text-slate-700'
-                    }`}>
+            <div className="card-light rounded-[2rem] p-5 sm:p-8 shadow-xl">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {referralSteps.map((step, idx) => {
+                  const c = colorMap[step.color];
+                  return (
+                    <div
+                      key={idx}
+                      className={`relative flex flex-col items-center text-center gap-2 p-3 sm:p-4 rounded-xl border ${
+                        step.highlight ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                        step.success ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+                        'bg-slate-50 border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      <span className="absolute top-2 right-2 text-[10px] font-bold text-slate-300">{idx + 1}</span>
                       <div className={`p-2 rounded-lg ${c.chipBg} ${c.chipText} shrink-0`}>
                         <step.icon size={20} />
                       </div>
-                      <span className="font-semibold">{step.text}</span>
+                      <span className="font-semibold text-xs sm:text-sm leading-snug">{step.text}</span>
                     </div>
-
-                    {idx < referralSteps.length - 1 && (
-                      <div className="text-slate-300 my-2">
-                        <ArrowDown size={24} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
+                  );
+                })}
+              </div>
             </div>
           </motion.div>
         </div>
