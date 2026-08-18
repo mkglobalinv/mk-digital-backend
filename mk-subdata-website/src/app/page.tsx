@@ -1,8 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
-import WebsiteShowcase from '@/components/WebsiteShowcase';
 import HowItWorks from '@/components/HowItWorks';
-import Features from '@/components/Features';
 import Services from '@/components/Services';
 import Referrals from '@/components/Referrals';
 import MobileApp from '@/components/MobileApp';
@@ -20,9 +18,7 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <WebsiteShowcase />
         <HowItWorks />
-        <Features />
         <Services />
         <Referrals />
         <MobileApp />

@@ -19,7 +19,7 @@ export default function DeveloperApi() {
 
           <div className="hidden lg:flex items-center gap-8">
             <Link href="/" className="text-slate-600 hover:text-emerald-600 font-semibold transition-colors">Home</Link>
-            <Link href="/#showcase" className="text-slate-600 hover:text-emerald-600 font-semibold transition-colors flex items-center gap-1">Own Your Website <ArrowUpRight size={14} /></Link>
+            <Link href="/" className="text-slate-600 hover:text-emerald-600 font-semibold transition-colors flex items-center gap-1">Own Your Website <ArrowUpRight size={14} /></Link>
             <Link href="/#pricing" className="text-slate-600 hover:text-emerald-600 font-semibold transition-colors">Pricing</Link>
             <Link href="/#how-it-works" className="text-slate-600 hover:text-emerald-600 font-semibold transition-colors">How It Works</Link>
             <Link href="/about" className="text-slate-600 hover:text-emerald-600 font-semibold transition-colors">About Us</Link>
