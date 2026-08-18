@@ -1,7 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Mail, MapPin, Phone, MessageCircle, Globe, Camera } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
+import { FaFacebook, FaWhatsapp } from 'react-icons/fa';
+
+const WHATSAPP_NUMBER = '2349041050812';
+const FACEBOOK_URL = 'https://www.facebook.com/share/1HYb8ZK6JE/';
+const WHATSAPP_COMMUNITY_URL = 'https://whatsapp.com/channel/0029Vb5WEwe8KMqr4K5bSS0d';
 
 export default function Footer() {
   return (
@@ -18,14 +23,23 @@ export default function Footer() {
             <p className="text-slate-400 font-semibold text-sm mb-2">Data • Airtime • Bills • VTU Solutions</p>
             <p className="text-slate-500 text-sm font-medium mb-6">A Product of MK GLOBAL INVESTMENT LTD.</p>
             <div className="flex gap-3">
-              <a href="#" className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all">
-                <MessageCircle className="w-4 h-4" />
+              <a
+                href={FACEBOOK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="9JASUB on Facebook"
+                className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all"
+              >
+                <FaFacebook className="w-4 h-4" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all">
-                <Globe className="w-4 h-4" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all">
-                <Camera className="w-4 h-4" />
+              <a
+                href={WHATSAPP_COMMUNITY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="9JASUB WhatsApp Community"
+                className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all"
+              >
+                <FaWhatsapp className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -65,11 +79,16 @@ export default function Footer() {
                 <Mail className="w-5 h-5 text-emerald-500 shrink-0" />
                 <span>support@9jasub.com</span>
               </li>
-              <li className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-emerald-500 shrink-0" />
-                <span>Kano, Nigeria</span>
-              </li>
             </ul>
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl transition-colors"
+            >
+              <FaWhatsapp className="w-4 h-4" />
+              Chat on WhatsApp
+            </a>
           </div>
 
         </div>
