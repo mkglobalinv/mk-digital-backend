@@ -95,30 +95,23 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Right Visuals (Real team photo + product mockup) */}
+          {/* Right Visual (provided hero photo + app mockup) */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] lg:flex-1 mt-10 lg:mt-0"
+            className="relative w-full lg:flex-1 mt-10 lg:mt-0"
           >
-            <div className="absolute top-0 left-0 lg:left-6 right-0 h-[340px] md:h-[430px] lg:h-[480px] rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-300/60 border border-slate-200">
-              <img src="/nigeria_team.png" alt="9JASUB business owners at work" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent" />
-            </div>
-
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-0 right-0 lg:-right-6 w-[190px] md:w-[230px] rounded-[1.75rem] border-4 border-white bg-white shadow-2xl shadow-slate-400/40 overflow-hidden z-10"
-            >
-              <img src="/vtu_home_screenshot.png" alt="9JASUB App Preview" className="w-full h-auto object-cover object-top" />
-            </motion.div>
+            <img
+              src="/hero_banner_photo.png"
+              alt="9JASUB customers using the app on their phones"
+              className="w-full h-auto"
+            />
 
             <motion.div
               animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute -left-2 md:-left-4 bottom-6 lg:-left-8 p-4 md:p-5 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl z-20 flex items-center gap-4"
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -left-2 md:-left-4 bottom-4 lg:-left-8 p-4 md:p-5 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl z-20 flex items-center gap-4"
             >
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                 <Globe className="w-5 h-5 md:w-6 md:h-6" />

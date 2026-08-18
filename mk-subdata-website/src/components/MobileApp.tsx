@@ -63,7 +63,7 @@ export default function MobileApp() {
               <div className="w-16 h-4 bg-black rounded-b-xl"></div>
             </div>
             <div className="flex-1 bg-white mt-6 relative overflow-hidden">
-              <img src="/vtu_home_screenshot.png" alt="Your Branded App" className="w-full h-full object-contain object-top" />
+              <img src="/app_screenshot_dark.jpg" alt="Your Branded App" className="w-full h-full object-cover object-top" />
             </div>
           </motion.div>
         </div>
