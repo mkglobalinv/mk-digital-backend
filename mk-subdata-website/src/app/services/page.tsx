@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Wifi, Smartphone, Zap, PlaySquare, GraduationCap, ShieldCheck, Clock, Zap as Lightning, ArrowRight } from 'lucide-react';
+import ViewContentTracker from '@/components/ViewContentTracker';
 
 export const metadata = {
   title: 'Our Services | 9JASUB - Data, Airtime, Bills & More',
@@ -56,6 +57,7 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <ViewContentTracker contentName="Services" contentCategory="product_catalog" />
       <nav className="fixed top-0 w-full z-[100] bg-white/80 backdrop-blur-xl border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
