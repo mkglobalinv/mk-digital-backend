@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AndroidAppBanner from "@/components/AndroidAppBanner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MetaPixel from "@/components/MetaPixel";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://9jasub.com"),
@@ -36,6 +37,7 @@ export default function RootLayout({
         {/* Android sticky app download banner — only renders on Android devices */}
         <AndroidAppBanner />
         <GoogleAnalytics />
+        <MetaPixel />
       </body>
     </html>
   );
