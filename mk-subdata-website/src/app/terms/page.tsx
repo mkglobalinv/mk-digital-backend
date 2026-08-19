@@ -5,6 +5,14 @@ import { ArrowLeft, Scale } from 'lucide-react';
 export const metadata = {
   title: 'Terms of Service | 9JASUB',
   description: 'Terms of Service and conditions for using 9JASUB VTU platform.',
+  alternates: {
+    canonical: '/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service | 9JASUB',
+    description: 'Terms of Service and conditions for using 9JASUB VTU platform.',
+    url: '/terms',
+  },
 };
 
 export default function TermsPage() {
@@ -44,12 +52,12 @@ export default function TermsPage() {
             Welcome to 9JASUB. By registering for an account, accessing our website, using our API, or purchasing our VTU business setup services, you agree to be bound by these Terms of Service. Please read them carefully.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">1. Account Registration</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">1. Account Registration</h2>
           <p>
             To use our services, you must register for an account and provide accurate, current, and complete information. You are responsible for maintaining the confidentiality of your account credentials, wallet PIN, and API keys. 9JASUB will not be liable for any loss arising from your failure to secure your account.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">2. User Responsibilities</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">2. User Responsibilities</h2>
           <p>As a user or business owner on 9JASUB, you agree to:</p>
           <ul className="list-disc pl-5 space-y-2 mb-6">
             <li>Fund your wallet using only legitimate and authorized payment methods.</li>
@@ -57,12 +65,12 @@ export default function TermsPage() {
             <li>Comply with all applicable Nigerian laws and telecommunication regulations regarding digital utility vending.</li>
           </ul>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">3. Transaction Policies & Service Availability</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">3. Transaction Policies & Service Availability</h2>
           <p>
             9JASUB facilitates transactions through third-party providers (e.g., MTN, Airtel, DisCos). While we strive for 99.9% uptime, we do not guarantee uninterrupted service if the underlying network provider is experiencing downtime. Completed transactions cannot be reversed once processed by the network provider.
           </p>
 
-          <h3 id="refund" className="text-2xl font-black text-slate-900 mt-8 mb-4">4. Refund Policy</h3>
+          <h2 id="refund" className="text-2xl font-black text-slate-900 mt-8 mb-4">4. Refund Policy</h2>
           <p>
             Refunds are only issued for transactions that fail definitively on our end without delivering the requested value. 
           </p>
@@ -72,7 +80,7 @@ export default function TermsPage() {
             <li><strong>Business Setup Fee:</strong> The ₦5,000 VTU business setup fee is non-refundable once the platform deployment process has commenced.</li>
           </ul>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">5. Prohibited Activities</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">5. Prohibited Activities</h2>
           <p>Users are strictly prohibited from:</p>
           <ul className="list-disc pl-5 space-y-2 mb-6">
             <li>Using stolen credit cards or fraudulent funds to top-up wallets.</li>
@@ -80,17 +88,17 @@ export default function TermsPage() {
             <li>Using our services for money laundering or any illegal activities.</li>
           </ul>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">6. Account Suspension</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">6. Account Suspension</h2>
           <p>
             9JASUB reserves the right to suspend or terminate any account found violating these Terms of Service, engaging in fraudulent activities, or maintaining an abnormal dispute rate, without prior notice.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">7. Limitation of Liability</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">7. Limitation of Liability</h2>
           <p>
             Under no circumstances shall MK GLOBAL INVESTMENT LTD be liable for any indirect, incidental, or consequential damages resulting from the use or inability to use our services, including lost profits or business interruptions.
           </p>
 
-          <h3 className="text-2xl font-black text-slate-900 mt-8 mb-4">8. Contact Information</h3>
+          <h2 className="text-2xl font-black text-slate-900 mt-8 mb-4">8. Contact Information</h2>
           <p>
             For legal inquiries or questions regarding these Terms, contact us:
           </p>

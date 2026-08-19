@@ -17,6 +17,19 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
+export const metadata = {
+  title: '9JASUB API Documentation',
+  description: 'Complete API reference for the 9JASUB Public API — authentication, wallet balance, airtime, data, electricity, cable TV, and webhooks.',
+  alternates: {
+    canonical: '/docs',
+  },
+  openGraph: {
+    title: '9JASUB API Documentation',
+    description: 'Complete API reference for the 9JASUB Public API — authentication, wallet balance, airtime, data, electricity, cable TV, and webhooks.',
+    url: '/docs',
+  },
+};
+
 export default function DocsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -75,12 +88,12 @@ export default function DocsPage() {
             <div className="grid md:grid-cols-2 gap-6 pt-4">
               <div className="p-6 bg-blue-50 border border-blue-100 rounded-3xl space-y-3">
                 <Shield className="text-blue-600" size={24} />
-                <h3 className="font-black text-slate-900">Secure Integration</h3>
+                <h2 className="font-black text-slate-900">Secure Integration</h2>
                 <p className="text-sm text-slate-600 font-medium">Bank-grade security with API Key and Secret authentication.</p>
               </div>
               <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-3xl space-y-3">
                 <Zap className="text-emerald-600" size={24} />
-                <h3 className="font-black text-slate-900">Instant Delivery</h3>
+                <h2 className="font-black text-slate-900">Instant Delivery</h2>
                 <p className="text-sm text-slate-600 font-medium">Transactions are processed and delivered in less than 2 seconds.</p>
               </div>
             </div>
@@ -130,7 +143,7 @@ export default function DocsPage() {
             <p className="text-slate-600 font-medium">Retrieve your current wallet balance.</p>
             
             <div className="space-y-4">
-              <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest">Success Response (200 OK)</h4>
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Success Response (200 OK)</h3>
               <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden shadow-xl">
 <pre className="text-emerald-400 text-sm font-mono leading-relaxed">{`{
   "status": "success",
@@ -149,7 +162,7 @@ export default function DocsPage() {
             <p className="text-slate-600 font-medium">Purchase data bundle for a specific mobile number.</p>
             
             <div className="space-y-4">
-              <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest">Request Body (JSON)</h4>
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Request Body (JSON)</h3>
               <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden shadow-xl">
 <pre className="text-blue-400 text-sm font-mono leading-relaxed">{`{
   "network": "MTN",
@@ -161,7 +174,7 @@ export default function DocsPage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest">Success Response (200 OK)</h4>
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Success Response (200 OK)</h3>
               <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden shadow-xl">
 <pre className="text-emerald-400 text-sm font-mono leading-relaxed">{`{
   "status": "success",
@@ -180,10 +193,10 @@ export default function DocsPage() {
               You can receive real-time updates on your transactions by setting up a Webhook URL in your Developer Console. We will send a POST request to your URL whenever a transaction is completed.
             </p>
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 space-y-4">
-               <h4 className="font-black text-slate-900 flex items-center gap-2">
+               <h3 className="font-black text-slate-900 flex items-center gap-2">
                  <CheckCircle2 className="text-emerald-500" size={20} />
                  Automatic Retries
-               </h4>
+               </h3>
                <p className="text-sm text-slate-600 font-medium leading-relaxed">
                  If your server is down, we'll retry the webhook delivery 3 times over the next 30 minutes.
                </p>

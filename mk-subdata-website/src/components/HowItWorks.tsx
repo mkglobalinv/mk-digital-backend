@@ -114,7 +114,7 @@ export default function HowItWorks() {
                     <step.icon className="w-6 h-6 sm:w-8 sm:h-8" />
                   </div>
                   <div className="text-xs sm:text-sm font-bold text-slate-400 mb-2 tracking-wider">0{idx + 1}</div>
-                  <h4 className="font-bold text-slate-900 text-base sm:text-xl mb-2 sm:mb-3">{step.title}</h4>
+                  <h3 className="font-bold text-slate-900 text-base sm:text-xl mb-2 sm:mb-3">{step.title}</h3>
                   <p className="text-slate-500 text-sm sm:text-base leading-relaxed">{step.description}</p>
                 </motion.div>
               );

@@ -10,6 +10,14 @@ import Footer from '@/components/Footer';
 export const metadata = {
   title: '9JASUB - Own Your VTU Website & App',
   description: 'Launch your own fully automated, branded digital services business in just 5 minutes with zero coding required.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: '9JASUB - Own Your VTU Website & App',
+    description: 'Launch your own fully automated, branded digital services business in just 5 minutes with zero coding required.',
+    url: '/',
+  },
 };
 
 export default function Home() {
