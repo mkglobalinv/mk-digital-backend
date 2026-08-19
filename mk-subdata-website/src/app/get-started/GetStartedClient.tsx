@@ -1,11 +1,21 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, User, Briefcase, ArrowRight } from 'lucide-react';
+import { trackMetaEvent } from '@/lib/metaPixel';
 
 export default function GetStartedClient() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+  const leadFired = useRef(false);
+
+  const selectAccountType = (accountType: string, destination: string) => {
+    if (!leadFired.current) {
+      leadFired.current = true;
+      trackMetaEvent('Lead', { content_name: accountType });
+    }
+    window.location.assign(destination);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -35,7 +45,7 @@ export default function GetStartedClient() {
 
           <div className="space-y-4">
             <button
-              onClick={() => window.location.assign('/onboarding')}
+              onClick={() => selectAccountType('Personal Account', '/onboarding')}
               className="group block w-full p-6 bg-white border-2 border-slate-200 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer relative overflow-hidden text-left"
             >
               <div className="flex items-center gap-4 relative z-10">
@@ -51,7 +61,7 @@ export default function GetStartedClient() {
             </button>
 
             <button
-              onClick={() => window.location.assign('/business/signup')}
+              onClick={() => selectAccountType('Own Your VTU Website & App', '/business/signup')}
               className="group block w-full p-6 bg-slate-900 border-2 border-slate-900 rounded-2xl hover:bg-slate-800 transition-all cursor-pointer relative overflow-hidden text-left"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/15 rounded-full glow-soft group-hover:bg-emerald-500/25 transition-colors" />
