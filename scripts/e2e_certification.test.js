@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import axios from 'axios';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { generateMockPaymentPointWebhook } from '../utils/testModeAdapter.js';
 
 // Import models so Mongoose registers them
 import '../models/User.js';
@@ -166,13 +167,81 @@ describe('9JASUB Certification Suite', { concurrency: false }, () => {
                  data: { id: mockId, tx_ref: currentTxRef, status: "successful", amount: 5000, customer: { email: "cust_demo1@test9jasub.com" } }
              };
              
-             const res = await client.post(`/api/payment/flutterwave/webhook`, payload, { 
-                 headers: { 'verif-hash': hash, 'Host': '9jasub.com' } 
+             const res = await client.post(`/api/payment/flutterwave/webhook`, payload, {
+                 headers: { 'verif-hash': hash, 'Host': '9jasub.com' }
              });
-             assert.strictEqual(res.status, 200); 
-             
+             assert.strictEqual(res.status, 200);
+
              const user = await mongoose.connection.collection('users').findOne({ email: 'cust_demo1@test9jasub.com' });
-             assert.strictEqual(user.balance1, 55000); 
+             assert.strictEqual(user.balance1, 55000);
+        });
+
+        test('PaymentPoint VA creation falls back to Flutterwave on failure', async () => {
+            const token = customerTokens['demo1'];
+
+            // Trigger the simulated PaymentPoint failure (see utils/testModeAdapter.js)
+            await mongoose.connection.collection('users').updateOne(
+                { email: 'cust_demo1@test9jasub.com' },
+                { $set: { 'kycData.phone': '08000000000' } }
+            );
+
+            const res = await client.post(`/user/generate-temp-va`, { amount: 1000 }, {
+                headers: { 'Host': 'demo1.9jasub.com', 'Authorization': `Bearer ${token}` }
+            });
+
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.data?.account?.bank_name === 'Test Flutterwave Bank', 'Expected the Flutterwave fallback mock to have issued the account');
+
+            const user = await mongoose.connection.collection('users').findOne({ email: 'cust_demo1@test9jasub.com' });
+            assert.ok(user.account_number, 'User should have a virtual account number after fallback');
+        });
+
+        test('PaymentPoint Webhook & Wallet Funding', async () => {
+            const db = mongoose.connection;
+            const userObj = await db.collection('users').findOne({ email: 'cust_demo1@test9jasub.com' });
+            const testAccountNumber = '6698059290';
+
+            await db.collection('users').updateOne(
+                { _id: userObj._id },
+                { $set: { account_number: testAccountNumber } }
+            );
+
+            const balanceBefore = userObj.balance1;
+            const txId = `PP-TEST-${Date.now()}`;
+            const { headers, body } = generateMockPaymentPointWebhook(txId, testAccountNumber, 'cust_demo1@test9jasub.com', 5000);
+
+            const res = await client.post(`/api/payment/paymentpoint/webhook`, body, {
+                headers: { ...headers, 'Host': '9jasub.com' }
+            });
+            assert.strictEqual(res.status, 200);
+
+            const user = await db.collection('users').findOne({ _id: userObj._id });
+            assert.strictEqual(user.balance1, balanceBefore + 5000);
+
+            // Duplicate delivery of the same webhook must not credit twice
+            const dupRes = await client.post(`/api/payment/paymentpoint/webhook`, body, {
+                headers: { ...headers, 'Host': '9jasub.com' }
+            });
+            assert.strictEqual(dupRes.status, 200);
+
+            const userAfterDup = await db.collection('users').findOne({ _id: userObj._id });
+            assert.strictEqual(userAfterDup.balance1, balanceBefore + 5000, 'Duplicate PaymentPoint webhook must not credit the wallet twice');
+        });
+
+        test('PaymentPoint Webhook rejects invalid signature', async () => {
+            const db = mongoose.connection;
+            const userObj = await db.collection('users').findOne({ email: 'cust_demo1@test9jasub.com' });
+            const balanceBefore = userObj.balance1;
+
+            const { body } = generateMockPaymentPointWebhook(`PP-TEST-BADSIG-${Date.now()}`, userObj.account_number, 'cust_demo1@test9jasub.com', 5000);
+
+            const res = await client.post(`/api/payment/paymentpoint/webhook`, body, {
+                headers: { 'paymentpoint-signature': 'tampered-signature', 'Host': '9jasub.com' }
+            });
+            assert.strictEqual(res.status, 401);
+
+            const userAfter = await db.collection('users').findOne({ _id: userObj._id });
+            assert.strictEqual(userAfter.balance1, balanceBefore, 'Wallet must not be credited on invalid signature');
         });
     });
 
