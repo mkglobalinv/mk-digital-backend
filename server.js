@@ -690,6 +690,16 @@ app.get("/api/reseller/check-custom-domain", auth, async (req, res) => {
 });
 
 app.post("/api/reseller/submit-onboarding", auth, async (req, res) => {
+    // === EMERGENCY SECURITY CONTAINMENT (temporary) ===
+    // This endpoint sets role: 'reseller_admin' and resellerActivationStatus:
+    // 'active' with no payment check (the real ₦5,000 activation-fee logic is
+    // separately commented out below as [DEPRECATED]). Disabled until a real
+    // payment verification step is restored here. All original logic below is
+    // left intact and unreachable, for review — do not delete.
+    return res.status(503).json({
+        message: "Website Owner activation is temporarily unavailable while we complete a security review. Please try again later or contact support."
+    });
+
     try {
         const { branding, domainOption, requestedDomain } = req.body;
         const user = await User.findById(req.user.id);
