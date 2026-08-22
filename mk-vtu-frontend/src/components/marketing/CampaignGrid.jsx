@@ -10,6 +10,10 @@ const CampaignGrid = ({ user }) => {
   const navigate = useNavigate();
   const trackedViews = useRef(new Set());
 
+  // Staff/admin accounts may preview their own campaigns, but a preview must never count
+  // as a real impression/click or trigger any campaign side effects.
+  const isStaffPreview = !!user && user.role !== 'user';
+
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
@@ -22,13 +26,11 @@ const CampaignGrid = ({ user }) => {
             return result === 'ALLOWED';
           };
 
-          if (c.campaignType !== 'Announcement') {
-            // It's a Promotion. If user is missing or not a pure retail user, block it.
-            if (!user) return logDecision('BLOCKED');
-            if (user.role !== 'retail' && user.role !== 'user') return logDecision('BLOCKED');
-            if (user.role === 'user' && user.referredBy) return logDecision('BLOCKED');
-          }
-          
+          // A logged-in user is required to personalize a Promotion; referral status no
+          // longer affects eligibility (referred users should still see promos). Staff/
+          // admin accounts are allowed through as a preview (tracked separately below).
+          if (c.campaignType !== 'Announcement' && !user) return logDecision('BLOCKED');
+
           if (c.displayMode === 'Dashboard Grid Only' || c.displayMode === 'Both') {
              return logDecision('ALLOWED');
           }
@@ -59,8 +61,10 @@ const CampaignGrid = ({ user }) => {
           const campaignId = entry.target.dataset.id;
           if (campaignId && !trackedViews.current.has(campaignId)) {
             trackedViews.current.add(campaignId);
-            // Fire view event
-            API.post('/api/marketing/analytics/view', { campaignId }).catch(e => console.error("Track view error", e));
+            // A staff/admin preview must never count as a real impression.
+            if (!isStaffPreview) {
+              API.post('/api/marketing/analytics/view', { campaignId }).catch(e => console.error("Track view error", e));
+            }
             observer.unobserve(entry.target);
           }
         }
@@ -74,11 +78,14 @@ const CampaignGrid = ({ user }) => {
   }, [campaigns]);
 
   const handleCardClick = async (campaign) => {
-    // 1. Track click
-    try {
-      await API.post('/api/marketing/analytics/click', { campaignId: campaign._id });
-    } catch (e) {
-      console.error("Track click error", e);
+    // 1. Track click -- a staff/admin preview click must not count toward the campaign's
+    // real click count.
+    if (!isStaffPreview) {
+      try {
+        await API.post('/api/marketing/analytics/click', { campaignId: campaign._id });
+      } catch (e) {
+        console.error("Track click error", e);
+      }
     }
 
     // 2. Perform action

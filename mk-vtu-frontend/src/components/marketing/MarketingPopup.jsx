@@ -14,6 +14,10 @@ const MarketingPopup = ({ user }) => {
   const navigate = useNavigate();
   const trackedViews = useRef(new Set());
 
+  // Staff/admin accounts may preview their own campaigns, but a preview must never count
+  // as a real impression/click or trigger any campaign side effects.
+  const isStaffPreview = !!user && user.role !== 'user';
+
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
@@ -25,19 +29,17 @@ const MarketingPopup = ({ user }) => {
             return result === 'ALLOWED';
           };
 
-          if (c.campaignType !== 'Announcement') {
-            // It's a Promotion. If user is missing or not a pure retail user, block it.
-            if (!user) return logDecision('BLOCKED');
-            if (user.role !== 'retail' && user.role !== 'user') return logDecision('BLOCKED');
-            if (user.role === 'user' && user.referredBy) return logDecision('BLOCKED');
-          }
-          
+          // A logged-in user is required to personalize a Promotion; referral status no
+          // longer affects eligibility (referred users should still see promos). Staff/
+          // admin accounts are allowed through as a preview (tracked separately below).
+          if (c.campaignType !== 'Announcement' && !user) return logDecision('BLOCKED');
+
           if (c.displayMode === 'Popup Only' || c.displayMode === 'Both') {
              return logDecision('ALLOWED');
           }
           return logDecision('BLOCKED');
         });
-        
+
         if (popups.length > 0) {
           // Check which popups have been seen in this session
           const seenStr = sessionStorage.getItem('seen_marketing_campaigns');
@@ -53,10 +55,13 @@ const MarketingPopup = ({ user }) => {
             const newSeenIds = [...seenIds, ...unseenPopups.map(c => c._id)];
             sessionStorage.setItem('seen_marketing_campaigns', JSON.stringify(newSeenIds));
             
-            // Log views for all shown
-            unseenPopups.forEach(campaign => {
-              API.post('/api/marketing/analytics/view', { campaignId: campaign._id }).catch(console.error);
-            });
+            // Log views for all shown -- but a staff/admin preview must never count as
+            // a real impression.
+            if (!isStaffPreview) {
+              unseenPopups.forEach(campaign => {
+                API.post('/api/marketing/analytics/view', { campaignId: campaign._id }).catch(console.error);
+              });
+            }
           }
         }
       } catch (err) {
@@ -80,12 +85,15 @@ const MarketingPopup = ({ user }) => {
   };
 
   const handleAction = async (campaign) => {
-    try {
-      await API.post('/api/marketing/analytics/click', { campaignId: campaign._id });
-    } catch (e) {
-      console.error("Track click error", e);
+    // A staff/admin preview click must not count toward the campaign's real click count.
+    if (!isStaffPreview) {
+      try {
+        await API.post('/api/marketing/analytics/click', { campaignId: campaign._id });
+      } catch (e) {
+        console.error("Track click error", e);
+      }
     }
-    
+
     setIsVisible(false);
     
     switch (campaign.actionType) {
