@@ -176,8 +176,7 @@ export const buyDataWithPeyflex = async (network, dataPlan, phone, category = nu
     const payload = {
         network: identifier,
         plan_code: actualPlanCode,
-        mobile_number: phone,
-        Ported_number: true
+        mobile_number: phone
     };
 
     const result = await postWithRetry('/api/data/purchase/', payload);

@@ -179,11 +179,12 @@ export const buyDataWithPeyflex = async (network, dataPlan, phone, category = nu
             identifier = '9mobile_data';
         }
 
+        const actualPlanCode = dataPlan.includes('-') ? dataPlan.split('-')[0] : dataPlan;
+
         const payload = {
             network: identifier,
-            plan_code: dataPlan,
-            mobile_number: phone,
-            Ported_number: true
+            plan_code: actualPlanCode,
+            mobile_number: phone
         };
 
         console.log(`[Peyflex Request] URL: ${PEYFLEX_API_URL}/api/data/purchase/`);
