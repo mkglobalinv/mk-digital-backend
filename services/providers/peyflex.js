@@ -164,36 +164,19 @@ export const buyDataWithPeyflex = async (network, dataPlan, phone, category = nu
         const netLower = String(network).toLowerCase();
         const planLower = String(dataPlan).toLowerCase();
 
-        if (category) {
-            const catLower = category.toLowerCase();
-            if (netLower.includes('mtn')) {
-                if (catLower === 'sme' || planLower.includes('sme')) identifier = 'mtn_sme_data';
-                else if (catLower === 'corporate' || catLower === 'data_share' || planLower.includes('corporate') || planLower.includes('cg')) identifier = 'mtn_data_share';
-                else if (catLower === 'awoof' || planLower.includes('awoof')) identifier = 'mtn_awoof_gifting';
-                else if (catLower === 'gifting') identifier = 'mtn_gifting_data';
-                else identifier = 'mtn_gifting_data';
-            } else if (netLower.includes('airtel')) {
-                if (catLower === 'cg' || catLower === 'corporate' || planLower.includes('cg') || planLower.includes('corporate')) identifier = 'airtel_cg';
-                else if (catLower === 'sme' || planLower.includes('sme')) identifier = 'airtel_sme_data';
-                else identifier = 'airtel_data';
-            } else if (netLower.includes('glo')) {
-                if (catLower === 'sme' || planLower.includes('sme')) identifier = 'glo_sme_data';
-                else if (catLower === 'cg' || catLower === 'corporate' || planLower.includes('cg') || planLower.includes('corporate')) identifier = 'glo_cg';
-                else identifier = 'glo_data';
-            } else {
-                identifier = '9mobile_data';
-            }
+        const catLower = category ? category.toLowerCase() : '';
+        if (netLower.includes('mtn')) {
+            if (catLower === 'sme' || planLower.includes('sme')) identifier = 'mtn_sme_data';
+            else if (catLower === 'corporate' || catLower === 'data_share' || planLower.includes('corporate') || planLower.includes('cg')) identifier = 'mtn_data_share';
+            else if (catLower === 'awoof' || planLower.includes('awoof')) identifier = 'mtn_awoof_gifting';
+            else if (catLower === 'gifting' || planLower.includes('gifting')) identifier = 'mtn_gifting_data';
+            else identifier = 'mtn_gifting_data'; // fallback default for MTN
+        } else if (netLower.includes('airtel')) {
+            identifier = 'airtel_data';
+        } else if (netLower.includes('glo')) {
+            identifier = 'glo_data';
         } else {
-            // Fallback for when category is not explicitly provided
-            if (netLower.includes('mtn')) {
-                identifier = planLower.includes('awoof') ? 'mtn_awoof_gifting' : 'mtn_gifting_data';
-            } else if (netLower.includes('airtel')) {
-                identifier = 'airtel_data';
-            } else if (netLower.includes('glo')) {
-                identifier = 'glo_data';
-            } else {
-                identifier = '9mobile_data';
-            }
+            identifier = '9mobile_data';
         }
 
         const payload = {
