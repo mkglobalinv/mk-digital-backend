@@ -1631,7 +1631,10 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
             selling_price: derivedPrice,
             main_wallet_deducted: deducted.mainDeducted,
             cashback_wallet_deducted: deducted.cashbackDeducted,
-            api_response: { planCode: finalPlanCode, operatorId, network_id, category }
+            // Use the authoritative DB plan category (dbPlanInfo.category), not the raw client-supplied
+            // `category`: the Android app does not always send this field, and PeyFlex's data-purchase
+            // identifier lookup throws when category is missing, failing the background queue job.
+            api_response: { planCode: finalPlanCode, operatorId, network_id, category: dbPlanInfo.category }
         });
 
         // Link reseller transaction to customer transaction
