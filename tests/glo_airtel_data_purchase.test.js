@@ -120,6 +120,43 @@ async function testAirtelUnknownOnServerError() {
     assert(result.status === 'unknown', `5xx maps to status "unknown", not "failed" (got: ${result.status})`);
 }
 
+async function testAirtelFailedOnExplicitProviderFailure() {
+    console.log('\n6b. Airtel data purchase, PROVIDER 5xx but body explicitly says FAILED -> status failed (real production case)');
+    nock.cleanAll();
+    // Reproduces the actual PeyFlex response seen in production for this bug report:
+    // HTTP 500 with a body that unambiguously says the transaction failed.
+    nock(PEYFLEX_BASE)
+        .post('/api/data/purchase/')
+        .times(3)
+        .reply(500, { status: 'FAILED', message: 'An error occurred.', error_code: 'ERR_999' });
+
+    const result = await buyDataWithPeyflex('AIRTEL', 'A200MB-Gifting-199', '08010000002', 'Gifting');
+
+    assert(result.status === 'failed', `explicit body status "FAILED" on a 5xx maps to "failed", not "unknown" (got: ${result.status})`);
+    assert(result.message === 'An error occurred.', 'failure message passed through from the explicit provider body');
+}
+
+async function testPeyflexTokenNotLoggedToConsole() {
+    console.log('\n6c. PeyFlex API token is not written to console output on outbound requests');
+    nock.cleanAll();
+    nock(PEYFLEX_BASE)
+        .post('/api/data/purchase/')
+        .reply(200, { status: true, reference: 'PFX-LOG-1' });
+
+    const originalLog = console.log;
+    const captured = [];
+    console.log = (...args) => { captured.push(args.map(String).join(' ')); originalLog(...args); };
+    try {
+        await buyDataWithPeyflex('MTN', '1000.01-SME-1200', '08010000003', 'SME');
+    } finally {
+        console.log = originalLog;
+    }
+
+    const combined = captured.join('\n');
+    assert(!combined.includes(process.env.PEYFLEX_API_TOKEN), 'logged output never contains the raw API token');
+    assert(!combined.includes('"Authorization"'), 'logged headers omit the Authorization key entirely');
+}
+
 async function testMtnControlStillWorks() {
     console.log('\n7. Control: MTN (the network reported as working) behaves the same way with category present');
     nock.cleanAll();
@@ -140,6 +177,8 @@ async function run() {
     await testAirtelSucceedsWithDbCategory();
     await testGloFailedProviderResponse();
     await testAirtelUnknownOnServerError();
+    await testAirtelFailedOnExplicitProviderFailure();
+    await testPeyflexTokenNotLoggedToConsole();
     await testMtnControlStillWorks();
 
     nock.cleanAll();

@@ -22,10 +22,11 @@ const postWithRetry = async (endpoint, payload, maxRetries = 2) => {
     let attempt = 0;
     while (attempt <= maxRetries) {
         try {
+            const { Authorization, ...loggedHeaders } = peyflexClient.defaults.headers;
             console.log(`\n======================================================`);
             console.log(`[BACKEND -> PEYFLEX] OUTBOUND REQUEST LOGGING`);
             console.log(`Endpoint: ${endpoint} (Attempt ${attempt + 1})`);
-            console.log(`Headers:`, JSON.stringify(peyflexClient.defaults.headers, null, 2));
+            console.log(`Headers:`, JSON.stringify(loggedHeaders, null, 2));
             console.log(`Payload:`, JSON.stringify(payload, null, 2));
             console.log(`======================================================\n`);
 
@@ -65,9 +66,16 @@ const postWithRetry = async (endpoint, payload, maxRetries = 2) => {
             }
 
             // If we are out of retries or it's a 4xx error, format the failure
-            // Treat 4xx as definitive failure, others as unknown
+            // Treat 4xx as definitive failure, others as unknown -- UNLESS PeyFlex's
+            // own response body explicitly says the transaction failed, in which case
+            // trust that over the ambiguous HTTP status (a 500 doesn't always mean the
+            // provider is unsure; here it means their handler caught a definite failure).
+            const explicitlyFailed = errorData && typeof errorData === 'object'
+                && String(errorData.status || '').toUpperCase() === 'FAILED';
             let finalStatus = "failed";
-            if (isTimeout || (status >= 500 && status < 600)) {
+            if (explicitlyFailed) {
+                finalStatus = "failed";
+            } else if (isTimeout || (status >= 500 && status < 600)) {
                 finalStatus = "unknown";
             } else if (typeof errorData === 'string' && errorData.trim().startsWith('<')) {
                 finalStatus = "failed"; // HTML response on 4xx is a clear failure
