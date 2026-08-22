@@ -17,11 +17,11 @@ import { processLifetimeReferralCashback } from "./referralCashbackEngine.js";
 /**
  * Resolve a transaction by its reference (useful for immediate follow-up or webhooks)
  */
-export const resolveTransactionByReference = async (reference) => {
+export const resolveTransactionByReference = async (reference, overrideResult = null) => {
     try {
         const transaction = await Transaction.findOne({ reference, status: { $in: ['pending', 'unknown'] } });
         if (!transaction) return null;
-        return await resolvePendingTransaction(transaction);
+        return await resolvePendingTransaction(transaction, overrideResult);
     } catch (e) {
         console.error(`[Requery] Reference resolve error:`, e.message);
         return null;
@@ -38,16 +38,21 @@ export const triggerImmediateVerification = (reference, delayMs = 5000) => {
     }, delayMs);
 };
 
-export const resolvePendingTransaction = async (transaction) => {
+export const resolvePendingTransaction = async (transaction, overrideResult = null) => {
     if (transaction.status !== 'pending' && transaction.status !== 'unknown') return;
 
     console.log(`[Requery] Resolving transaction ${transaction._id} (${transaction.reference}) | Provider: ${transaction.provider_used}`);
-    
+
     let result = { status: 'pending' };
     const provider = transaction.provider_used;
 
     try {
-        if (provider.includes('value') || provider === 'billsplash') {
+        if (overrideResult) {
+            // A provider webhook already delivered a definitive status for this
+            // transaction — use it directly instead of re-polling the provider
+            // (PeyFlex in particular has no working poll/verify endpoint).
+            result = overrideResult;
+        } else if (provider.includes('value') || provider === 'billsplash') {
             result = await requeryBillsplash(transaction.reference);
         } else if (provider === 'clubkonnect') {
             result = await requeryClubkonnect(transaction.reference);
