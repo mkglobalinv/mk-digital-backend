@@ -1,5 +1,34 @@
 import User from "../models/User.js";
-import { createVirtualAccount } from "./flutterwaveService.js";
+import { createVirtualAccount as createFlutterwaveVirtualAccount } from "./flutterwaveService.js";
+import { createVirtualAccount as createPaymentPointVirtualAccount } from "./paymentpointService.js";
+
+/**
+ * PaymentPoint is the PRIMARY virtual account provider; Flutterwave is the
+ * automatic fallback whenever PaymentPoint is unavailable or returns a
+ * failure. Flutterwave's own createVirtualAccount function, request shape,
+ * and behavior are untouched — this only decides which one gets called.
+ * paymentpointService normalizes its response to Flutterwave's existing
+ * { status, data: { account_number, bank_name, order_ref, expiry_date } }
+ * shape, so the caller below needs no provider-specific branching.
+ */
+export const createVirtualAccountWithFallback = async (vaData) => {
+    try {
+        const ppResponse = await createPaymentPointVirtualAccount(vaData);
+        if (ppResponse?.status === "success") {
+            console.log(`[AccountService] Virtual account issued via PaymentPoint (primary) for ${vaData.email}`);
+            return ppResponse;
+        }
+        console.warn(`[AccountService] PaymentPoint VA creation failed, falling back to Flutterwave. Reason: ${ppResponse?.message}`);
+    } catch (err) {
+        console.warn(`[AccountService] PaymentPoint VA creation threw an error, falling back to Flutterwave: ${err.message}`);
+    }
+
+    const flwResponse = await createFlutterwaveVirtualAccount(vaData);
+    if (flwResponse?.status === "success") {
+        console.log(`[AccountService] Virtual account issued via Flutterwave (fallback) for ${vaData.email}`);
+    }
+    return flwResponse;
+};
 
 /**
  * Internal helper to handle VA creation and DB update
@@ -30,7 +59,7 @@ export const generateTemporaryAccount = async (user, amount, reseller = null) =>
         };
 
         console.log(`[AccountService] Initiating temporary virtual account creation for user ${user.email} with expected amount: ${amount}`);
-        const response = await createVirtualAccount(vaData);
+        const response = await createVirtualAccountWithFallback(vaData);
         if (response && response.status === "success") {
             console.log(`[AccountService] Virtual account generated successfully. Account: ${response.data.account_number}, Bank: ${response.data.bank_name}, Ref: ${response.data.order_ref || response.data.flw_ref}`);
             const acc = response.data;
@@ -88,7 +117,7 @@ export const generatePermanentAccount = async (user, identifier, type, reseller 
             vaData.bvn = identifier;
         }
 
-        const response = await createVirtualAccount(vaData);
+        const response = await createVirtualAccountWithFallback(vaData);
         if (response && response.status === "success") {
             const acc = response.data;
             user.account_number = acc.account_number;

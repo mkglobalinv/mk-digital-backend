@@ -73,7 +73,56 @@ export const initializeTestMode = () => {
             return { data: { status: 'success', reference: `PF-${Date.now()}` } };
         }
         
-        // Flutterwave / Monnify webhooks aren't outgoing, they are incoming. 
+        // PaymentPoint VA creation mocking (PRIMARY provider).
+        // Phone 08000000000 simulates a PaymentPoint failure so tests can
+        // exercise the automatic fallback to Flutterwave.
+        if (urlStr.includes('api.paymentpoint.co')) {
+            if (parsedData?.phoneNumber === '08000000000') {
+                return {
+                    data: { status: 'error', message: 'Simulated PaymentPoint failure', errors: ['Simulated'] }
+                };
+            }
+            return {
+                data: {
+                    status: 'success',
+                    message: 'Customer account created successfully.',
+                    customer: {
+                        customer_id: `test-${Date.now()}`,
+                        customer_name: parsedData?.name,
+                        customer_email: parsedData?.email,
+                        customer_phone_number: parsedData?.phoneNumber
+                    },
+                    business: { business_name: 'Test Business', business_email: null, business_phone_number: null, business_Id: null },
+                    bankAccounts: [{
+                        bankCode: '20946',
+                        accountNumber: `90${String(Date.now()).slice(-8)}`,
+                        accountName: `${parsedData?.name} (paymentpoint)`,
+                        bankName: 'Palmpay',
+                        Reserved_Account_Id: `test-reserved-${Date.now()}`
+                    }],
+                    errors: []
+                }
+            };
+        }
+
+        // Flutterwave VA creation mocking (AUTOMATIC FALLBACK, exercised when
+        // PaymentPoint is simulated as unavailable above).
+        if (urlStr.includes('api.flutterwave.com/v3/virtual-account-numbers')) {
+            return {
+                data: {
+                    status: 'success',
+                    message: 'Virtual account created',
+                    data: {
+                        account_number: `88${String(Date.now()).slice(-8)}`,
+                        bank_name: 'Test Flutterwave Bank',
+                        order_ref: `test-flw-ref-${Date.now()}`,
+                        flw_ref: `test-flw-ref-${Date.now()}`
+                    }
+                }
+            };
+        }
+
+        // Flutterwave / Monnify webhooks aren't outgoing, they are incoming.
         // We will test those by hitting our own endpoints.
 
         return originalAxiosPost.apply(this, arguments);
@@ -141,6 +190,35 @@ export const generateMockFlutterwaveWebhook = (txRef, status = 'successful') => 
     
     return {
         headers: { 'verif-hash': hash },
+        body: payload
+    };
+};
+
+/**
+ * Utility to generate a signed mock PaymentPoint webhook for testing.
+ * Signature is HMAC-SHA256 of JSON.stringify(body), matching PaymentPoint's
+ * own reference implementation and paymentpointController.js's verification.
+ */
+export const generateMockPaymentPointWebhook = (transactionId, accountNumber, customerEmail, amount = 5000) => {
+    const payload = {
+        notification_status: "payment_successful",
+        transaction_id: transactionId,
+        amount_paid: amount,
+        settlement_amount: amount,
+        settlement_fee: 0,
+        transaction_status: "success",
+        sender: { name: "Test Sender", account_number: "****1234", bank: "TEST BANK" },
+        receiver: { name: "Test Receiver (paymentpoint)", account_number: accountNumber, bank: "PalmPay" },
+        customer: { name: "Test Customer", email: customerEmail, phone: null, customer_id: `test-${transactionId}` },
+        description: "Your payment has been successfully processed.",
+        timestamp: new Date().toISOString()
+    };
+
+    const secret = process.env.PAYMENTPOINT_WEBHOOK_SECRET || "test_paymentpoint_webhook_secret";
+    const signature = crypto.createHmac('sha256', secret).update(JSON.stringify(payload)).digest('hex');
+
+    return {
+        headers: { 'paymentpoint-signature': signature },
         body: payload
     };
 };
