@@ -7,7 +7,7 @@ const PEYFLEX_API_TOKEN = process.env.PEYFLEX_API_TOKEN || process.env.PEYFLEX_A
 // Base Axios Instance
 const peyflexClient = axios.create({
     baseURL: PEYFLEX_API_URL,
-    timeout: 60000,
+    timeout: 120000,
     headers: {
         'Authorization': `Token ${PEYFLEX_API_TOKEN}`,
         'Accept': 'application/json',
