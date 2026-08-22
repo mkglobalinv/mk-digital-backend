@@ -188,16 +188,20 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
            </div>
         )}
 
-        <PremiumWalletCard 
-          user={user} 
-          recentlyFundedStatus={recentlyFundedStatus} 
-          setShowMoreMenu={setShowMoreMenu} 
+        <AnnouncementBanner />
+
+        <PremiumWalletCard
+          user={user}
+          recentlyFundedStatus={recentlyFundedStatus}
+          setShowMoreMenu={setShowMoreMenu}
         />
 
-        <QuickServicesGrid 
-          showAllServices={showAllServices} 
-          setShowAllServices={setShowAllServices} 
+        <QuickServicesGrid
+          showAllServices={showAllServices}
+          setShowAllServices={setShowAllServices}
         />
+
+        <CampaignGrid user={user} />
 
         <PromoBanners 
           user={user}

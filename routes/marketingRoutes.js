@@ -37,11 +37,16 @@ router.get("/campaigns/active", async (req, res) => {
     }
 
     const now = new Date();
+    // Both date-window checks use $or; a plain object literal can only hold one key
+    // named $or, so they must be combined under $and instead of listed as two separate
+    // top-level $or keys (the second would silently overwrite the first).
     const query = {
       status: "Active",
       targetAudience: { $in: [targetAudience, 'All Users'] },
-      $or: [{ startDate: { $lte: now } }, { startDate: null }, { startDate: { $exists: false } }],
-      $or: [{ endDate: { $gte: now } }, { endDate: null }, { endDate: { $exists: false } }]
+      $and: [
+        { $or: [{ startDate: { $lte: now } }, { startDate: null }, { startDate: { $exists: false } }] },
+        { $or: [{ endDate: { $gte: now } }, { endDate: null }, { endDate: { $exists: false } }] }
+      ]
     };
 
     // Removed incorrect campaignType filter so 'All Users' and 'Reseller' banners show correctly
@@ -81,8 +86,10 @@ router.get("/announcements/active", async (req, res) => {
       campaignType: "Announcement",
       status: "Active",
       targetAudience: { $in: [targetAudience, 'All Users'] },
-      $or: [{ startDate: { $lte: now } }, { startDate: null }, { startDate: { $exists: false } }],
-      $or: [{ endDate: { $gte: now } }, { endDate: null }, { endDate: { $exists: false } }]
+      $and: [
+        { $or: [{ startDate: { $lte: now } }, { startDate: null }, { startDate: { $exists: false } }] },
+        { $or: [{ endDate: { $gte: now } }, { endDate: null }, { endDate: { $exists: false } }] }
+      ]
     }).sort({ createdAt: -1 });
     
     res.json(announcements);

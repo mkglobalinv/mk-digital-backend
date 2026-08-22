@@ -156,12 +156,33 @@ const Login = ({ setToken, siteInfo }) => {
     setErrorMsg('');
 
     try {
+      // Native bridge confirms the device user's identity locally but produces no
+      // cryptographic assertion, so it can't complete a fresh server login on its own --
+      // it can only re-unlock a session this browser already holds a valid token for
+      // (same as the app-lock screen in App.jsx). If no token is stored, fall back to
+      // asking for the password; the WebAuthn browser path below is unaffected and still
+      // performs a full server-verified login.
+      if (isNativeBiometric()) {
+        const existingToken = localStorage.getItem('token');
+        await authenticateBiometric();
+        if (existingToken) {
+          localStorage.setItem('hasLoggedInBefore', 'true');
+          setToken(existingToken);
+          sessionStorage.setItem('appUnlocked', 'true');
+          navigate('/home');
+        } else {
+          setErrorMsg('Please log in with your password to continue.');
+          setLoading(false);
+        }
+        return;
+      }
+
       // 1. Get challenge from server
       const challengeRes = await API.get(`/api/biometric/login-challenge?email=${savedEmail}`);
-      
+
       // 2. Trigger native biometric prompt
       const biometricData = await authenticateBiometric(challengeRes.data);
-      
+
       // 3. Verify with server
       const loginRes = await API.post('/api/biometric/login-verify', {
         email: savedEmail,

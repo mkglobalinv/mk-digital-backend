@@ -38,7 +38,7 @@ import { ToastProvider } from "./context/ToastContext";
 import { BrandingProvider } from "./context/BrandingContext";
 import API from "./api";
 import { Loader2, ShieldAlert, Fingerprint, Lock, PlusCircle, Globe, MessageCircle } from "lucide-react";
-import { isBiometricAvailable, authenticateBiometric } from "./services/biometricService";
+import { isBiometricAvailable, authenticateBiometric, isNativeBiometric } from "./services/biometricService";
 import { dataPlanCache } from "./services/dataPlanCache";
 import { isWhiteLabelSite } from './utils/whiteLabelHelper';
 import AdminLogin from "./admin/pages/AdminLogin";
@@ -549,11 +549,20 @@ function App() {
     if (!email) { setIsAppLocked(false); return; }
     setBiometricLoading(true);
     try {
-      const challengeRes = await API.get(`/api/biometric/login-challenge?email=${email}`);
-      await authenticateBiometric(challengeRes.data);
+      // Native bridge is a local device-unlock gate for the session already stored in
+      // this browser (token is already present -- that's how we got to a locked screen
+      // at all), so it doesn't need a server-issued WebAuthn challenge. The WebAuthn
+      // browser fallback still fetches one, since it produces a real crypto assertion
+      // the server needs to verify.
+      if (isNativeBiometric()) {
+        await authenticateBiometric();
+      } else {
+        const challengeRes = await API.get(`/api/biometric/login-challenge?email=${email}`);
+        await authenticateBiometric(challengeRes.data);
+      }
       sessionStorage.setItem('appUnlocked', 'true');
       setIsAppLocked(false);
-    } catch (err) { 
+    } catch (err) {
         console.error("App unlock failed", err); 
         alert("Biometric unlock is not supported or failed. Please use your 4-digit PIN.");
     }

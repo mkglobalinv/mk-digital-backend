@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fingerprint, ShieldCheck, X, Loader2 } from 'lucide-react';
 import API from '../api';
-import { isBiometricAvailable, registerBiometric, isNativeBiometric } from '../services/biometricService';
+import { isBiometricAvailable, registerBiometric, authenticateBiometric, isNativeBiometric } from '../services/biometricService';
 import './BiometricSetupPrompt.css';
 
 const BiometricSetupPrompt = ({ user }) => {
@@ -43,12 +43,16 @@ const BiometricSetupPrompt = ({ user }) => {
   const handleEnable = async () => {
     setLoading(true);
     try {
-      if (!isNativeBiometric()) {
+      if (isNativeBiometric()) {
+        // Have the user actually confirm their fingerprint/face once before we mark
+        // biometric as enabled, rather than flipping the flag with no real interaction.
+        await authenticateBiometric();
+      } else {
         const challengeRes = await API.get('/api/biometric/register-challenge');
         const regData = await registerBiometric(challengeRes.data);
         await API.post('/api/biometric/register-verify', regData);
       }
-      
+
       localStorage.setItem('biometricEnabled', 'true');
       setIsVisible(false);
       
