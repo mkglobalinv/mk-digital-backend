@@ -4,6 +4,7 @@ import {
   ArrowLeft, CheckCircle, AlertTriangle, Loader2, MessageCircle, Pencil
 } from 'lucide-react';
 import API from '../../api';
+import { useTheme } from '../../context/ThemeContext';
 import { BUSINESS_WHATSAPP_NUMBER } from '../../config/businessWhatsapp';
 
 /**
@@ -110,12 +111,23 @@ const ALL_FIELDS = SECTIONS.flatMap((s) => s.fields);
 const formatCurrency = (n) => `₦${Number(n).toLocaleString()}`;
 
 const Field = ({ field, value, onChange }) => {
+  const { isLightMode } = useTheme();
   const commonStyle = {
     width: '100%', padding: '13px 14px', background: 'var(--bg-color)',
     border: '1px solid var(--border-color)', borderRadius: '10px',
     fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
     boxSizing: 'border-box', fontFamily: 'inherit',
   };
+  // Explicit theme-resolved colors for <input type="date"> — its internal
+  // widget chrome doesn't reliably pick up var(--bg-color)/var(--text-dark)
+  // on some mobile browsers; colorScheme is the actual fix, these hex
+  // values are a belt-and-suspenders fallback for the outer box.
+  const dateStyle = field.type === 'date' ? {
+    background: isLightMode ? '#F8FAFC' : '#121212',
+    color: isLightMode ? '#0F172A' : '#FFFFFF',
+    border: `1px solid ${isLightMode ? '#E2E8F0' : '#262626'}`,
+    colorScheme: isLightMode ? 'light' : 'dark',
+  } : null;
   return (
     <div style={{ marginBottom: '16px' }}>
       <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-dark)', marginBottom: '6px' }}>
@@ -139,7 +151,7 @@ const Field = ({ field, value, onChange }) => {
           placeholder={field.placeholder}
           required={field.required}
           onChange={(e) => onChange(field.name, e.target.value)}
-          style={commonStyle}
+          style={dateStyle ? { ...commonStyle, ...dateStyle } : commonStyle}
         />
       )}
       {field.help && (
@@ -184,6 +196,19 @@ const BirthAttestationPurchase = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const buildWhatsappHref = (data) => {
+    if (!data) return '#';
+    const msg =
+      `*BIRTH ATTESTATION LETTER REQUEST*\n\n` +
+      `Service: ${data.service}\n` +
+      `Request ID: ${data.reference}\n` +
+      `Customer: ${form.firstName} ${form.surname}\n` +
+      `Phone Number: ${form.phoneNumber}\n` +
+      `Amount Paid: ${formatCurrency(data.amount)}\n\n` +
+      `Please process this request.`;
+    return `https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  };
+
   const handleConfirm = async () => {
     setLoading(true);
     setSubmitError(null);
@@ -197,6 +222,11 @@ const BirthAttestationPurchase = () => {
 
       const res = await API.post('/api/retail/identity/assisted-purchase', formData);
       setResult(res.data);
+      // Submit straight to WhatsApp on success — the visible button on the
+      // success screen stays as a manual fallback in case the browser
+      // blocks this automatic popup (common when it's not in the same
+      // synchronous gesture as the click, which an async submit isn't).
+      window.open(buildWhatsappHref(res.data.data), '_blank');
     } catch (err) {
       setSubmitError(err.response?.data?.message || 'Submission failed. Please try again.');
     } finally {
@@ -204,18 +234,7 @@ const BirthAttestationPurchase = () => {
     }
   };
 
-  const whatsappHref = (() => {
-    if (!result?.data) return '#';
-    const msg =
-      `*BIRTH ATTESTATION LETTER REQUEST*\n\n` +
-      `Service: ${result.data.service}\n` +
-      `Request ID: ${result.data.reference}\n` +
-      `Customer: ${form.firstName} ${form.surname}\n` +
-      `Phone Number: ${form.phoneNumber}\n` +
-      `Amount Paid: ${formatCurrency(result.data.amount)}\n\n` +
-      `Please process this request.`;
-    return `https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-  })();
+  const whatsappHref = buildWhatsappHref(result?.data);
 
   /* ── Success state ── */
   if (result) {

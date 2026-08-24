@@ -5,6 +5,7 @@ import {
   Loader2, MessageCircle,
 } from 'lucide-react';
 import API from '../../api';
+import { useTheme } from '../../context/ThemeContext';
 import { BUSINESS_WHATSAPP_NUMBER } from '../../config/businessWhatsapp';
 import { AFFIDAVIT_TYPES, getAffidavitType, getSectionsForType } from './affidavitTypes';
 
@@ -36,6 +37,15 @@ const formatCurrency = (n) => `₦${Number(n).toLocaleString()}`;
 
 const CourtAffidavitPage = () => {
   const navigate = useNavigate();
+  const { isLightMode } = useTheme();
+  // Explicit theme-resolved colors for the two native/custom widgets that
+  // don't reliably pick up var(--bg-color) on some mobile browsers: the
+  // <input type="date"> internal widget chrome, and the passport-photo
+  // upload dropzone. colorScheme below is the actual fix for the date
+  // picker; these hex values are a belt-and-suspenders fallback.
+  const THEME_BG = isLightMode ? '#F8FAFC' : '#121212';
+  const THEME_TEXT = isLightMode ? '#0F172A' : '#FFFFFF';
+  const THEME_BORDER = isLightMode ? '#E2E8F0' : '#262626';
   const [tab, setTab] = useState('new'); // 'new' | 'history'
   const [stepIndex, setStepIndex] = useState(0); // 0=Type,1=Form,2=Preview,3=Confirm,4=Done
   const [selectedTypeId, setSelectedTypeId] = useState(null);
@@ -102,6 +112,20 @@ const CourtAffidavitPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const buildWhatsappHref = (data) => {
+    if (!data) return '#';
+    const msg =
+      `*COURT AFFIDAVIT REQUEST*\n\n` +
+      `Affidavit Type: ${selectedType?.name}\n` +
+      `Service: ${data.service}\n` +
+      `Request ID: ${data.reference}\n` +
+      `Customer: ${formData.firstName || ''} ${formData.surname || ''}\n` +
+      `Phone Number: ${formData.phoneNumber || ''}\n` +
+      `Amount Paid: ${formatCurrency(data.amount)}\n\n` +
+      `Please process this request.`;
+    return `https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  };
+
   const handleConfirm = async () => {
     setSubmitting(true);
     setSubmitError(null);
@@ -126,6 +150,11 @@ const CourtAffidavitPage = () => {
       setResult(res.data);
       setStepIndex(4);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Submit straight to WhatsApp on success — the visible button on the
+      // Done screen stays as a manual fallback in case the browser blocks
+      // this automatic popup (common when it's not in the same synchronous
+      // gesture as the click, which an async submit isn't).
+      window.open(buildWhatsappHref(res.data.data), '_blank');
     } catch (err) {
       setSubmitError(err.response?.data?.message || 'Submission failed. Please try again.');
     } finally {
@@ -133,19 +162,7 @@ const CourtAffidavitPage = () => {
     }
   };
 
-  const whatsappHref = (() => {
-    if (!result?.data) return '#';
-    const msg =
-      `*COURT AFFIDAVIT REQUEST*\n\n` +
-      `Affidavit Type: ${selectedType?.name}\n` +
-      `Service: ${result.data.service}\n` +
-      `Request ID: ${result.data.reference}\n` +
-      `Customer: ${formData.firstName || ''} ${formData.surname || ''}\n` +
-      `Phone Number: ${formData.phoneNumber || ''}\n` +
-      `Amount Paid: ${formatCurrency(result.data.amount)}\n\n` +
-      `Please process this request.`;
-    return `https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-  })();
+  const whatsappHref = buildWhatsappHref(result?.data);
 
   const renderFieldInput = (field) => {
     const commonStyle = {
@@ -179,11 +196,11 @@ const CourtAffidavitPage = () => {
           <label style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             gap: '6px', padding: '28px 16px', borderRadius: '12px',
-            border: `1px dashed ${file ? BLUE : 'var(--border-color)'}`,
-            background: 'var(--bg-color)', cursor: 'pointer', textAlign: 'center',
+            border: `1px dashed ${file ? BLUE : THEME_BORDER}`,
+            background: THEME_BG, cursor: 'pointer', textAlign: 'center',
           }}>
             <ImageIcon size={22} color={file ? BLUE : 'var(--text-gray)'} />
-            <span style={{ fontSize: '13px', fontWeight: 600, color: file ? BLUE : 'var(--text-dark)' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: file ? BLUE : THEME_TEXT }}>
               {file ? file.name : 'Tap to upload passport photo'}
             </span>
             <span style={{ fontSize: '11px', color: 'var(--text-gray)' }}>{field.helpText}</span>
@@ -192,9 +209,19 @@ const CourtAffidavitPage = () => {
         </div>
       );
     }
+    if (field.type === 'date') {
+      return (
+        <input
+          type="date"
+          value={formData[field.name] || ''}
+          onChange={(e) => handleFieldChange(field.name, e.target.value)}
+          style={{ ...commonStyle, background: THEME_BG, color: THEME_TEXT, border: `1px solid ${THEME_BORDER}`, colorScheme: isLightMode ? 'light' : 'dark' }}
+        />
+      );
+    }
     return (
       <input
-        type={field.type === 'date' ? 'date' : 'text'}
+        type="text"
         value={formData[field.name] || ''}
         placeholder={field.placeholder}
         onChange={(e) => handleFieldChange(field.name, e.target.value)}

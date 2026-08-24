@@ -57,6 +57,12 @@ html {
   --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --spring: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Tells the browser to render native form controls (date/time pickers,
+     etc.) using light-appropriate default colors instead of the OS default
+     — without this, some mobile browsers render date inputs' internal
+     widget chrome in a fixed light style regardless of our own CSS. */
+  color-scheme: light;
 }
 
 body.dark-theme {
@@ -90,6 +96,8 @@ body.dark-theme {
   --premium-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
   --glass-bg: rgba(17, 17, 17, 0.7);
   --glass-border: rgba(255, 255, 255, 0.05);
+
+  color-scheme: dark;
 }
 
 * {
