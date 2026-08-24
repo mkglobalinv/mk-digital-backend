@@ -20,10 +20,18 @@ export const settleTransaction = async (transactionId, txRef, authUserId = null,
     }
 
     const { amount, currency, customer, tx_ref: flwTxRef } = verification.data;
-    
-    // Use the reference returned by Flutterwave if txRef is not provided
-    const finalTxRef = txRef || flwTxRef;
-    
+
+    // Security: trust the reference Flutterwave itself recorded for this
+    // transactionId over whatever the caller supplied. A caller-controlled
+    // txRef here previously let an attacker who knows/observes *any* real
+    // transactionId under the merchant account (e.g. their own or another
+    // payer's) submit a fabricated txRef that matches no existing local
+    // Transaction row, bypassing the "already have a pending Transaction for
+    // this reference" lookup below and falling through to the authUserId
+    // fallback path (see the resolvedUserId/attributedViaAuth check further
+    // down), crediting the attacker's own wallet with someone else's payment.
+    const finalTxRef = flwTxRef || txRef;
+
     if (!finalTxRef) {
         console.error(`[Settlement] No payment reference found for transaction ID: ${transactionId}`);
         throw new Error("Payment reference missing");
@@ -44,10 +52,19 @@ export const settleTransaction = async (transactionId, txRef, authUserId = null,
 
     // 3. Find/Update or Create the Transaction document atomically
     let transaction = await Transaction.findOne({ reference: finalTxRef });
-    
+
+    // Whether the payer is about to be attributed purely to "whoever is
+    // currently calling /flutterwave/verify" rather than to an existing
+    // local pending Transaction record created when the payment was
+    // initiated. This is the path a caller-controlled transactionId can
+    // otherwise exploit (see the security note above and the email check
+    // below) — it does not apply to webhook-driven settlement, since
+    // authUserId is always null there.
+    const attributedViaAuthFallback = !transaction && !!authUserId;
+
     // Determine user ID
     let resolvedUserId = transaction?.userId || authUserId;
-    
+
     if (!resolvedUserId) {
         // Fallback user lookup from customer data
         const payloadAccount = webhookPayload?.virtual_account_number || webhookPayload?.account_number;
@@ -81,6 +98,21 @@ export const settleTransaction = async (transactionId, txRef, authUserId = null,
     if (!user) {
         console.error(`[Settlement] User with ID ${resolvedUserId} not found in database`);
         throw new Error("Reseller account not found");
+    }
+
+    // Security (IDOR guard): when there is no pre-existing local Transaction
+    // tying this reference to a specific payer, the only reason we're about
+    // to credit `resolvedUserId` is that they happen to be the currently
+    // authenticated caller — not because Flutterwave confirmed they were the
+    // payer. Require Flutterwave's own customer.email for this transaction
+    // to match the account we're about to credit before proceeding.
+    if (attributedViaAuthFallback) {
+        const flwEmail = customer?.email?.toLowerCase();
+        const userEmail = user.email?.toLowerCase();
+        if (!flwEmail || flwEmail !== userEmail) {
+            console.error(`[Settlement] SECURITY: refusing to credit user ${user.email} for transactionId=${transactionId} — Flutterwave payer email (${customer?.email || 'none'}) does not match the authenticated caller.`);
+            throw new Error("Payment verification failed: payer identity mismatch");
+        }
     }
 
     if (transaction) {
