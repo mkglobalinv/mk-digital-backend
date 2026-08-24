@@ -26,6 +26,11 @@ export const ASSISTED_SERVICES_CONFIG = {
     'cac-private-limited': { name: 'Private Limited Registration (CAC)', amount: 65000, cost: null, expectedProcessingTime: '2 days' },
     'cac-public-limited': { name: 'Public Limited Registration (CAC)', amount: 120000, cost: null, expectedProcessingTime: '2 days' },
     'cac-ngo': { name: 'Incorporated Trustee / NGO (CAC)', amount: 85000, cost: null, expectedProcessingTime: '2 days' },
+
+    // Birth Attestation Letter — DRAFT, not yet linked from any public UI.
+    // Reachable only via the direct URL /identity/birth-attestation-letter
+    // (see BirthAttestationPurchase.jsx). Do not surface publicly until approved.
+    'birth-attestation-letter': { name: 'Birth Attestation Letter', amount: 22000, cost: null, expectedProcessingTime: '3-5 working days' },
 };
 
 /**

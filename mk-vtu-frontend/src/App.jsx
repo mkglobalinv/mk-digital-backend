@@ -30,6 +30,7 @@ import ResellerOnboarding from "./pages/ResellerOnboarding";
 import DeveloperApi from "./pages/DeveloperApi";
 
 import IdentityPurchase from "./pages/identity/IdentityPurchase";
+import BirthAttestationPurchase from "./pages/identity/BirthAttestationPurchase";
 import ReferralCenter from "./pages/ReferralCenter";
 import Sidebar from "./components/Sidebar";
 import BottomNav from "./components/fintech/FloatingBottomNav";
@@ -1003,6 +1004,8 @@ function App() {
                 <Route path="/developer" element={token ? <DeveloperApi user={user} /> : <Navigate to="/login" />} />
                 <Route path="/transactions" element={token ? (isResellerUser ? <Navigate to="/reseller/transactions" replace /> : <Transactions token={token} />) : <Navigate to="/login" />} />
 
+                {/* DRAFT — not linked from any nav/grid; reachable only via this direct URL. See BirthAttestationPurchase.jsx header comment. */}
+                <Route path="/identity/birth-attestation-letter" element={token ? <BirthAttestationPurchase /> : <Navigate to="/login" />} />
                 <Route path="/identity/:serviceId" element={token ? <IdentityPurchase user={user} /> : <Navigate to="/login" />} />
                 <Route path="/notifications" element={token ? (isResellerUser ? <Navigate to="/reseller/notifications" replace /> : <Notifications token={token} />) : <Navigate to="/login" />} />
                 <Route path="/referrals" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <ReferralCenter user={user} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
