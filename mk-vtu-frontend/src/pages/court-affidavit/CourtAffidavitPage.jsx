@@ -5,7 +5,6 @@ import {
   Loader2, MessageCircle,
 } from 'lucide-react';
 import API from '../../api';
-import { useTheme } from '../../context/ThemeContext';
 import { BUSINESS_WHATSAPP_NUMBER } from '../../config/businessWhatsapp';
 import { AFFIDAVIT_TYPES, getAffidavitType, getSectionsForType } from './affidavitTypes';
 
@@ -24,10 +23,22 @@ import { AFFIDAVIT_TYPES, getAffidavitType, getSectionsForType } from './affidav
  * Transaction + ServiceRequest, status PENDING_REVIEW, already visible in
  * the generic admin "Assisted Service Requests" screen).
  *
+ * This form intentionally always renders in a fixed light color scheme,
+ * regardless of the app's global dark/light theme toggle. Native mobile
+ * browser widgets (date pickers, file inputs) were repeatedly failing to
+ * pick up dark styling correctly on real devices even with color-scheme
+ * hints, leaving text/values invisible — so instead of chasing per-device
+ * rendering quirks, this form opts out of theming entirely.
+ *
  * Workflow: Type -> Form -> Preview -> Confirm & Pay -> Done + WhatsApp handoff.
  */
 
 const BLUE = '#2563EB';
+const BG = '#F8FAFC';
+const CARD = '#FFFFFF';
+const TEXT_DARK = '#0F172A';
+const TEXT_GRAY = '#64748B';
+const BORDER = '#E2E8F0';
 const STEPS = ['Type', 'Form', 'Preview', 'Confirm', 'Done'];
 const SERVICE_TYPE = 'court-affidavit';
 const SERVICE_AMOUNT = 3500;
@@ -37,15 +48,6 @@ const formatCurrency = (n) => `₦${Number(n).toLocaleString()}`;
 
 const CourtAffidavitPage = () => {
   const navigate = useNavigate();
-  const { isLightMode } = useTheme();
-  // Explicit theme-resolved colors for the two native/custom widgets that
-  // don't reliably pick up var(--bg-color) on some mobile browsers: the
-  // <input type="date"> internal widget chrome, and the passport-photo
-  // upload dropzone. colorScheme below is the actual fix for the date
-  // picker; these hex values are a belt-and-suspenders fallback.
-  const THEME_BG = isLightMode ? '#F8FAFC' : '#121212';
-  const THEME_TEXT = isLightMode ? '#0F172A' : '#FFFFFF';
-  const THEME_BORDER = isLightMode ? '#E2E8F0' : '#262626';
   const [tab, setTab] = useState('new'); // 'new' | 'history'
   const [stepIndex, setStepIndex] = useState(0); // 0=Type,1=Form,2=Preview,3=Confirm,4=Done
   const [selectedTypeId, setSelectedTypeId] = useState(null);
@@ -166,9 +168,9 @@ const CourtAffidavitPage = () => {
 
   const renderFieldInput = (field) => {
     const commonStyle = {
-      width: '100%', padding: '12px 14px', background: 'var(--bg-color)',
-      border: '1px solid var(--border-color)', borderRadius: '10px',
-      fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+      width: '100%', padding: '12px 14px', background: BG,
+      border: `1px solid ${BORDER}`, borderRadius: '10px',
+      fontSize: '14px', color: TEXT_DARK, outline: 'none',
       boxSizing: 'border-box', fontFamily: 'inherit',
     };
     if (field.type === 'select') {
@@ -196,14 +198,14 @@ const CourtAffidavitPage = () => {
           <label style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             gap: '6px', padding: '28px 16px', borderRadius: '12px',
-            border: `1px dashed ${file ? BLUE : THEME_BORDER}`,
-            background: THEME_BG, cursor: 'pointer', textAlign: 'center',
+            border: `1px dashed ${file ? BLUE : BORDER}`,
+            background: BG, cursor: 'pointer', textAlign: 'center',
           }}>
-            <ImageIcon size={22} color={file ? BLUE : 'var(--text-gray)'} />
-            <span style={{ fontSize: '13px', fontWeight: 600, color: file ? BLUE : THEME_TEXT }}>
+            <ImageIcon size={22} color={file ? BLUE : TEXT_GRAY} />
+            <span style={{ fontSize: '13px', fontWeight: 600, color: file ? BLUE : TEXT_DARK }}>
               {file ? file.name : 'Tap to upload passport photo'}
             </span>
-            <span style={{ fontSize: '11px', color: 'var(--text-gray)' }}>{field.helpText}</span>
+            <span style={{ fontSize: '11px', color: TEXT_GRAY }}>{field.helpText}</span>
             <input type="file" accept={field.accept} onChange={(e) => handleFileChange(field, e)} style={{ display: 'none' }} />
           </label>
         </div>
@@ -215,7 +217,7 @@ const CourtAffidavitPage = () => {
           type="date"
           value={formData[field.name] || ''}
           onChange={(e) => handleFieldChange(field.name, e.target.value)}
-          style={{ ...commonStyle, background: THEME_BG, color: THEME_TEXT, border: `1px solid ${THEME_BORDER}`, colorScheme: isLightMode ? 'light' : 'dark' }}
+          style={{ ...commonStyle, background: BG, color: TEXT_DARK, border: `1px solid ${BORDER}`, colorScheme: 'light' }}
         />
       );
     }
@@ -240,7 +242,7 @@ const CourtAffidavitPage = () => {
           <div key={f.name} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             {[f, next].map((field) => (
               <div key={field.name}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: TEXT_DARK, marginBottom: '6px' }}>
                   {field.label} {field.required && <span style={{ color: '#EF4444' }}>*</span>}
                 </label>
                 {renderFieldInput(field)}
@@ -252,7 +254,7 @@ const CourtAffidavitPage = () => {
       } else {
         rows.push(
           <div key={f.name} style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: TEXT_DARK, marginBottom: '6px' }}>
               {f.label} {f.required && <span style={{ color: '#EF4444' }}>*</span>}
             </label>
             {renderFieldInput(f)}
@@ -265,7 +267,7 @@ const CourtAffidavitPage = () => {
 
   const SectionCard = ({ section }) => (
     <div style={{
-      background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color)',
+      background: CARD, border: `1px solid ${BORDER}`,
       borderRadius: '16px', padding: '20px', marginBottom: '16px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
@@ -273,12 +275,12 @@ const CourtAffidavitPage = () => {
           width: '22px', height: '22px', borderRadius: '50%', background: BLUE, color: '#fff',
           fontSize: '12px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>{section.letter}</span>
-        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>{section.title}</h3>
+        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: TEXT_DARK }}>{section.title}</h3>
       </div>
       {section.groups
         ? section.groups.map((g) => (
             <div key={g.heading} style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-gray)', letterSpacing: '0.5px', marginBottom: '10px' }}>{g.heading}</div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: TEXT_GRAY, letterSpacing: '0.5px', marginBottom: '10px' }}>{g.heading}</div>
               {renderFieldsGrid(g.fields)}
             </div>
           ))
@@ -288,7 +290,7 @@ const CourtAffidavitPage = () => {
 
   const Header = ({ title = 'Court Affidavit' }) => (
     <div style={{
-      background: 'var(--bg-card, #ffffff)', padding: '20px', borderBottom: '1px solid var(--border-color)',
+      background: CARD, padding: '20px', borderBottom: `1px solid ${BORDER}`,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
     }}>
@@ -297,9 +299,9 @@ const CourtAffidavitPage = () => {
           style={{ background: 'rgba(37,99,235,0.1)', padding: '8px', borderRadius: '10px', cursor: 'pointer', display: 'flex' }}>
           <ArrowLeft size={18} color={BLUE} />
         </div>
-        <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: 'var(--text-dark)' }}>{title}</h2>
+        <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: TEXT_DARK }}>{title}</h2>
       </div>
-      <Bell size={18} color="var(--text-gray)" />
+      <Bell size={18} color={TEXT_GRAY} />
     </div>
   );
 
@@ -307,18 +309,18 @@ const CourtAffidavitPage = () => {
     <div style={{ display: 'flex', gap: '10px', padding: '16px 20px 0' }}>
       <button onClick={() => setTab('new')} style={{
         flex: 1, padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 700,
-        border: `1px solid ${tab === 'new' ? BLUE : 'var(--border-color)'}`,
-        background: tab === 'new' ? 'rgba(37,99,235,0.06)' : 'var(--bg-card, #fff)',
-        color: tab === 'new' ? BLUE : 'var(--text-dark)', cursor: 'pointer',
+        border: `1px solid ${tab === 'new' ? BLUE : BORDER}`,
+        background: tab === 'new' ? 'rgba(37,99,235,0.06)' : CARD,
+        color: tab === 'new' ? BLUE : TEXT_DARK, cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
       }}>
         <Plus size={14} /> New Request
       </button>
       <button onClick={() => setTab('history')} style={{
         flex: 1, padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 700,
-        border: `1px solid ${tab === 'history' ? BLUE : 'var(--border-color)'}`,
-        background: tab === 'history' ? 'rgba(37,99,235,0.06)' : 'var(--bg-card, #fff)',
-        color: tab === 'history' ? BLUE : 'var(--text-dark)', cursor: 'pointer',
+        border: `1px solid ${tab === 'history' ? BLUE : BORDER}`,
+        background: tab === 'history' ? 'rgba(37,99,235,0.06)' : CARD,
+        color: tab === 'history' ? BLUE : TEXT_DARK, cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
       }}>
         <FileClock size={14} /> History
@@ -334,16 +336,16 @@ const CourtAffidavitPage = () => {
             <div style={{
               width: '26px', height: '26px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '12px', fontWeight: 800,
-              background: i < stepIndex ? BLUE : i === stepIndex ? BLUE : 'var(--bg-card, #fff)',
-              color: i <= stepIndex ? '#fff' : 'var(--text-gray)',
-              border: i <= stepIndex ? 'none' : '1px solid var(--border-color)',
+              background: i < stepIndex ? BLUE : i === stepIndex ? BLUE : CARD,
+              color: i <= stepIndex ? '#fff' : TEXT_GRAY,
+              border: i <= stepIndex ? 'none' : `1px solid ${BORDER}`,
             }}>
               {i < stepIndex ? <Check size={13} /> : i + 1}
             </div>
-            <span style={{ fontSize: '10px', marginTop: '4px', fontWeight: i === stepIndex ? 700 : 500, color: i === stepIndex ? BLUE : 'var(--text-gray)' }}>{label}</span>
+            <span style={{ fontSize: '10px', marginTop: '4px', fontWeight: i === stepIndex ? 700 : 500, color: i === stepIndex ? BLUE : TEXT_GRAY }}>{label}</span>
           </div>
           {i < STEPS.length - 1 && (
-            <div style={{ flex: 1, height: '1px', background: i < stepIndex ? BLUE : 'var(--border-color)', marginTop: '13px' }} />
+            <div style={{ flex: 1, height: '1px', background: i < stepIndex ? BLUE : BORDER, marginTop: '13px' }} />
           )}
         </React.Fragment>
       ))}
@@ -363,7 +365,16 @@ const CourtAffidavitPage = () => {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-color)', fontFamily: 'Inter, sans-serif', paddingBottom: '40px' }}>
+    <div style={{
+      minHeight: '100vh', background: BG, fontFamily: 'Inter, sans-serif', paddingBottom: '40px',
+      // Force every var(--bg-card)/var(--text-dark)/etc. reference within
+      // this subtree — including the global !important input-styling rule
+      // in index.css, which resolves those same variables and otherwise
+      // wins over inline hex colors set below — to fixed light values,
+      // regardless of the app's dark/light theme toggle.
+      '--bg-color': BG, '--bg-card': CARD, '--border-color': BORDER,
+      '--text-dark': TEXT_DARK, '--text-gray': TEXT_GRAY, colorScheme: 'light',
+    }}>
       <Header />
       <Tabs />
       <ProgressIndicator />
@@ -371,8 +382,8 @@ const CourtAffidavitPage = () => {
       {/* ── Step 0: Type selection ── */}
       {tab === 'new' && stepIndex === 0 && (
         <div style={{ padding: '4px 20px 0' }}>
-          <h3 style={{ margin: '4px 0 2px', fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)' }}>Select Affidavit Type</h3>
-          <p style={{ margin: '0 0 16px', fontSize: '13px', color: 'var(--text-gray)' }}>Choose the type of affidavit you need.</p>
+          <h3 style={{ margin: '4px 0 2px', fontSize: '16px', fontWeight: 800, color: TEXT_DARK }}>Select Affidavit Type</h3>
+          <p style={{ margin: '0 0 16px', fontSize: '13px', color: TEXT_GRAY }}>Choose the type of affidavit you need.</p>
 
           {AFFIDAVIT_TYPES.map((t) => {
             const Icon = t.icon;
@@ -380,18 +391,18 @@ const CourtAffidavitPage = () => {
             return (
               <div key={t.id} onClick={() => setSelectedTypeId(t.id)} style={{
                 display: 'flex', alignItems: 'center', gap: '14px', padding: '16px',
-                background: 'var(--bg-card, #ffffff)', border: `1px solid ${selected ? BLUE : 'var(--border-color)'}`,
+                background: CARD, border: `1px solid ${selected ? BLUE : BORDER}`,
                 borderRadius: '14px', marginBottom: '12px', cursor: 'pointer',
               }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: t.tint.bg, color: t.tint.color }}>
                   <Icon size={20} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-dark)' }}>{t.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-gray)', marginTop: '2px' }}>{t.description}</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: TEXT_DARK }}>{t.name}</div>
+                  <div style={{ fontSize: '12px', color: TEXT_GRAY, marginTop: '2px' }}>{t.description}</div>
                 </div>
                 <div style={{
-                  width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${selected ? BLUE : 'var(--border-color)'}`,
+                  width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${selected ? BLUE : BORDER}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
                   {selected && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: BLUE }} />}
@@ -415,8 +426,8 @@ const CourtAffidavitPage = () => {
       {/* ── History tab (no backend yet — empty state only) ── */}
       {tab === 'history' && (
         <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-          <FileClock size={36} color="var(--text-gray)" style={{ margin: '0 auto 12px' }} />
-          <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>No affidavit requests yet.</p>
+          <FileClock size={36} color={TEXT_GRAY} style={{ margin: '0 auto 12px' }} />
+          <p style={{ color: TEXT_GRAY, fontSize: '14px' }}>No affidavit requests yet.</p>
         </div>
       )}
 
@@ -440,7 +451,7 @@ const CourtAffidavitPage = () => {
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => setStepIndex(0)} style={{
                 flex: 1, padding: '15px', borderRadius: '14px', border: `1px solid ${BLUE}`,
-                background: 'var(--bg-card, #fff)', color: BLUE, fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+                background: CARD, color: BLUE, fontWeight: 700, fontSize: '14px', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               }}>
                 <ArrowLeft size={16} /> Back
@@ -466,7 +477,7 @@ const CourtAffidavitPage = () => {
               const fields = section.fields || section.groups?.flatMap((g) => g.fields) || [];
               return (
                 <div key={section.letter + section.title} style={{
-                  background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color)',
+                  background: CARD, border: `1px solid ${BORDER}`,
                   borderRadius: '16px', padding: '20px', marginBottom: '16px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
@@ -474,19 +485,19 @@ const CourtAffidavitPage = () => {
                       width: '22px', height: '22px', borderRadius: '50%', background: BLUE, color: '#fff',
                       fontSize: '12px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>{section.letter}</span>
-                    <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>{section.title}</h3>
+                    <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: TEXT_DARK }}>{section.title}</h3>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '4px 16px' }}>
                     {fields.filter((f) => f.type !== 'file').map((f) => (
                       <div key={f.name} style={{ marginBottom: '10px' }}>
-                        <div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>{f.label}</div>
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-dark)' }}>{formData[f.name] || '—'}</div>
+                        <div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>{f.label}</div>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: TEXT_DARK }}>{formData[f.name] || '—'}</div>
                       </div>
                     ))}
                     {fields.some((f) => f.type === 'file') && (
                       <div style={{ marginBottom: '10px' }}>
-                        <div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Passport Photograph</div>
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-dark)' }}>{formData.passportPhotograph?.name || 'Not provided'}</div>
+                        <div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Passport Photograph</div>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: TEXT_DARK }}>{formData.passportPhotograph?.name || 'Not provided'}</div>
                       </div>
                     )}
                   </div>
@@ -496,11 +507,11 @@ const CourtAffidavitPage = () => {
 
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color)',
+              background: CARD, border: `1px solid ${BORDER}`,
               borderRadius: '16px', padding: '20px', marginBottom: '20px',
             }}>
-              <span style={{ color: 'var(--text-gray)', fontSize: '14px' }}>Service Charge</span>
-              <span style={{ fontWeight: 800, fontSize: '22px', color: 'var(--text-dark)' }}>{formatCurrency(SERVICE_AMOUNT)}</span>
+              <span style={{ color: TEXT_GRAY, fontSize: '14px' }}>Service Charge</span>
+              <span style={{ fontWeight: 800, fontSize: '22px', color: TEXT_DARK }}>{formatCurrency(SERVICE_AMOUNT)}</span>
             </div>
 
             {submitError && (
@@ -516,7 +527,7 @@ const CourtAffidavitPage = () => {
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => setStepIndex(1)} disabled={submitting} style={{
                 flex: 1, padding: '15px', borderRadius: '14px', border: `1px solid ${BLUE}`,
-                background: 'var(--bg-card, #fff)', color: BLUE, fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+                background: CARD, color: BLUE, fontWeight: 700, fontSize: '14px', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               }}>
                 <ArrowLeft size={16} /> Edit
@@ -537,8 +548,8 @@ const CourtAffidavitPage = () => {
       {tab === 'new' && stepIndex === 4 && result?.data && (
         <div style={{ maxWidth: '480px', margin: '24px auto 0', padding: '0 20px' }}>
           <div style={{
-            background: 'var(--bg-card, #ffffff)', borderRadius: '20px', overflow: 'hidden',
-            border: '1px solid var(--border-color)', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.08)',
+            background: CARD, borderRadius: '20px', overflow: 'hidden',
+            border: `1px solid ${BORDER}`, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.08)',
           }}>
             <div style={{ background: BLUE, padding: '28px 24px', textAlign: 'center', color: '#fff' }}>
               <div style={{
@@ -552,16 +563,16 @@ const CourtAffidavitPage = () => {
             </div>
             <div style={{ padding: '20px' }}>
               <div style={{
-                background: 'var(--bg-color)', borderRadius: '16px', border: '1px solid var(--border-color)',
+                background: BG, borderRadius: '16px', border: `1px solid ${BORDER}`,
                 padding: '20px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px',
               }}>
-                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Request ID</div><div style={{ fontWeight: 700 }}>{result.data.reference}</div></div>
-                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Status</div><div style={{ fontWeight: 700 }}>{result.data.status}</div></div>
-                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Amount Paid</div><div style={{ fontWeight: 700 }}>{formatCurrency(result.data.amount)}</div></div>
-                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Est. Processing</div><div style={{ fontWeight: 700 }}>{result.data.expectedProcessingTime}</div></div>
+                <div><div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Request ID</div><div style={{ fontWeight: 700, color: TEXT_DARK }}>{result.data.reference}</div></div>
+                <div><div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Status</div><div style={{ fontWeight: 700, color: TEXT_DARK }}>{result.data.status}</div></div>
+                <div><div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Amount Paid</div><div style={{ fontWeight: 700, color: TEXT_DARK }}>{formatCurrency(result.data.amount)}</div></div>
+                <div><div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Est. Processing</div><div style={{ fontWeight: 700, color: TEXT_DARK }}>{result.data.expectedProcessingTime}</div></div>
               </div>
 
-              <p style={{ fontSize: '12px', color: 'var(--text-gray)', lineHeight: 1.5, marginBottom: '20px' }}>
+              <p style={{ fontSize: '12px', color: TEXT_GRAY, lineHeight: 1.5, marginBottom: '20px' }}>
                 This is a manual processing service — our team will contact you on WhatsApp to continue.
                 Tap below to message us directly with your request details pre-filled.
               </p>
@@ -576,8 +587,8 @@ const CourtAffidavitPage = () => {
               </a>
 
               <button onClick={resetFlow} style={{
-                width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'var(--border-color)',
-                color: 'var(--text-dark)', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+                width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: BORDER,
+                color: TEXT_DARK, fontWeight: 700, fontSize: '14px', cursor: 'pointer',
               }}>
                 Start New Request
               </button>

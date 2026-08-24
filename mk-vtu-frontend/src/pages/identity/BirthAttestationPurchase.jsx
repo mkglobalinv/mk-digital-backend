@@ -4,7 +4,6 @@ import {
   ArrowLeft, CheckCircle, AlertTriangle, Loader2, MessageCircle, Pencil
 } from 'lucide-react';
 import API from '../../api';
-import { useTheme } from '../../context/ThemeContext';
 import { BUSINESS_WHATSAPP_NUMBER } from '../../config/businessWhatsapp';
 
 /**
@@ -22,10 +21,33 @@ import { BUSINESS_WHATSAPP_NUMBER } from '../../config/businessWhatsapp';
  * which debits the wallet, creates a Transaction + ServiceRequest
  * (status PENDING_REVIEW), and already shows up in the generic admin
  * "Assisted Service Requests" screen — no backend/admin changes needed.
+ *
+ * This form intentionally always renders in a fixed light color scheme,
+ * regardless of the app's global dark/light theme toggle. Native mobile
+ * browser widgets (date pickers) were repeatedly failing to pick up dark
+ * styling correctly on real devices even with color-scheme hints, leaving
+ * text/values invisible — so instead of chasing per-device rendering
+ * quirks, this form opts out of theming entirely.
  */
 
 const SERVICE_TYPE = 'birth-attestation-letter';
 const SERVICE_AMOUNT = 22000;
+
+const BG = '#F8FAFC';
+const CARD = '#FFFFFF';
+const TEXT_DARK = '#0F172A';
+const TEXT_GRAY = '#64748B';
+const BORDER = '#E2E8F0';
+
+// Force every var(--bg-card)/var(--text-dark)/etc. reference within this
+// page's subtree — including the global !important input-styling rule in
+// index.css, which resolves those same variables and otherwise wins over
+// inline hex colors — to fixed light values, regardless of the app's
+// dark/light theme toggle.
+const FORCE_LIGHT_VARS = {
+  '--bg-color': BG, '--bg-card': CARD, '--border-color': BORDER,
+  '--text-dark': TEXT_DARK, '--text-gray': TEXT_GRAY, colorScheme: 'light',
+};
 
 const MARITAL_STATUS_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
 const HOSPITAL_OR_HOUSE_OPTIONS = ['Hospital', 'House'];
@@ -111,26 +133,16 @@ const ALL_FIELDS = SECTIONS.flatMap((s) => s.fields);
 const formatCurrency = (n) => `₦${Number(n).toLocaleString()}`;
 
 const Field = ({ field, value, onChange }) => {
-  const { isLightMode } = useTheme();
   const commonStyle = {
-    width: '100%', padding: '13px 14px', background: 'var(--bg-color)',
-    border: '1px solid var(--border-color)', borderRadius: '10px',
-    fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+    width: '100%', padding: '13px 14px', background: BG,
+    border: `1px solid ${BORDER}`, borderRadius: '10px',
+    fontSize: '14px', color: TEXT_DARK, outline: 'none',
     boxSizing: 'border-box', fontFamily: 'inherit',
   };
-  // Explicit theme-resolved colors for <input type="date"> — its internal
-  // widget chrome doesn't reliably pick up var(--bg-color)/var(--text-dark)
-  // on some mobile browsers; colorScheme is the actual fix, these hex
-  // values are a belt-and-suspenders fallback for the outer box.
-  const dateStyle = field.type === 'date' ? {
-    background: isLightMode ? '#F8FAFC' : '#121212',
-    color: isLightMode ? '#0F172A' : '#FFFFFF',
-    border: `1px solid ${isLightMode ? '#E2E8F0' : '#262626'}`,
-    colorScheme: isLightMode ? 'light' : 'dark',
-  } : null;
+  const dateStyle = field.type === 'date' ? { colorScheme: 'light' } : null;
   return (
     <div style={{ marginBottom: '16px' }}>
-      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-dark)', marginBottom: '6px' }}>
+      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: TEXT_DARK, marginBottom: '6px' }}>
         {field.label} {field.required && <span style={{ color: '#EF4444' }}>*</span>}
       </label>
       {field.type === 'select' ? (
@@ -155,7 +167,7 @@ const Field = ({ field, value, onChange }) => {
         />
       )}
       {field.help && (
-        <div style={{ fontSize: '11px', color: 'var(--text-gray)', marginTop: '4px' }}>{field.help}</div>
+        <div style={{ fontSize: '11px', color: TEXT_GRAY, marginTop: '4px' }}>{field.help}</div>
       )}
     </div>
   );
@@ -163,7 +175,7 @@ const Field = ({ field, value, onChange }) => {
 
 const SectionCard = ({ title, children }) => (
   <div style={{
-    background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color)',
+    background: CARD, border: `1px solid ${BORDER}`,
     borderRadius: '16px', padding: '20px', marginBottom: '16px',
   }}>
     <h3 style={{ margin: '0 0 16px', fontSize: '14px', fontWeight: '800', color: '#6366f1' }}>{title}</h3>
@@ -239,11 +251,11 @@ const BirthAttestationPurchase = () => {
   /* ── Success state ── */
   if (result) {
     return (
-      <div style={{ padding: '0 0 40px', minHeight: '100vh', background: 'var(--bg-color)', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ padding: '0 0 40px', minHeight: '100vh', background: BG, fontFamily: 'Inter, sans-serif', ...FORCE_LIGHT_VARS }}>
         <div style={{ maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
           <div className="animate-fade-in" style={{
-            background: 'var(--bg-card, #ffffff)', borderRadius: '24px', overflow: 'hidden',
-            border: '1px solid var(--border-color)', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+            background: CARD, borderRadius: '24px', overflow: 'hidden',
+            border: `1px solid ${BORDER}`, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
           }}>
             <div style={{
               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
@@ -262,16 +274,16 @@ const BirthAttestationPurchase = () => {
 
             <div style={{ padding: '24px' }}>
               <div style={{
-                background: 'var(--bg-color)', borderRadius: '16px', border: '1px solid var(--border-color)',
+                background: BG, borderRadius: '16px', border: `1px solid ${BORDER}`,
                 padding: '20px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px',
               }}>
-                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Request ID</div><div style={{ fontWeight: '700' }}>{result.data.reference}</div></div>
-                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Status</div><div style={{ fontWeight: '700' }}>{result.data.status}</div></div>
-                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Amount Paid</div><div style={{ fontWeight: '700' }}>{formatCurrency(result.data.amount)}</div></div>
-                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Est. Processing</div><div style={{ fontWeight: '700' }}>{result.data.expectedProcessingTime}</div></div>
+                <div><div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Request ID</div><div style={{ fontWeight: '700', color: TEXT_DARK }}>{result.data.reference}</div></div>
+                <div><div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Status</div><div style={{ fontWeight: '700', color: TEXT_DARK }}>{result.data.status}</div></div>
+                <div><div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Amount Paid</div><div style={{ fontWeight: '700', color: TEXT_DARK }}>{formatCurrency(result.data.amount)}</div></div>
+                <div><div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>Est. Processing</div><div style={{ fontWeight: '700', color: TEXT_DARK }}>{result.data.expectedProcessingTime}</div></div>
               </div>
 
-              <p style={{ fontSize: '13px', color: 'var(--text-gray)', marginBottom: '20px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '13px', color: TEXT_GRAY, marginBottom: '20px', lineHeight: 1.5 }}>
                 This is a manual processing service — our team will contact you on WhatsApp to continue.
                 Tap below to message us directly with your request details pre-filled.
               </p>
@@ -286,8 +298,8 @@ const BirthAttestationPurchase = () => {
               </a>
 
               <button type="button" onClick={() => navigate(-1)} style={{
-                width: '100%', padding: '14px', borderRadius: '16px', background: 'var(--border-color)',
-                color: 'var(--text-dark)', border: 'none', fontWeight: '600', cursor: 'pointer',
+                width: '100%', padding: '14px', borderRadius: '16px', background: BORDER,
+                color: TEXT_DARK, border: 'none', fontWeight: '600', cursor: 'pointer',
               }}>
                 Done
               </button>
@@ -301,16 +313,16 @@ const BirthAttestationPurchase = () => {
   /* ── Preview state ── */
   if (step === 'preview') {
     return (
-      <div style={{ padding: '0 0 40px', minHeight: '100vh', background: 'var(--bg-color)', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ padding: '0 0 40px', minHeight: '100vh', background: BG, fontFamily: 'Inter, sans-serif', ...FORCE_LIGHT_VARS }}>
         <div style={{
-          background: 'var(--bg-card, #ffffff)', padding: '24px', borderBottom: '1px solid var(--border-color)',
+          background: CARD, padding: '24px', borderBottom: `1px solid ${BORDER}`,
           display: 'flex', alignItems: 'center', gap: '16px', position: 'sticky', top: 0, zIndex: 10,
           boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
         }}>
           <div onClick={() => setStep('form')} style={{ background: 'rgba(99,102,241,0.1)', padding: '10px', borderRadius: '12px', cursor: 'pointer', display: 'flex' }}>
             <ArrowLeft size={20} color="#6366f1" />
           </div>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--text-dark)' }}>Preview Application</h2>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: TEXT_DARK }}>Preview Application</h2>
         </div>
 
         <div style={{ maxWidth: '640px', margin: '24px auto', padding: '0 20px' }}>
@@ -319,8 +331,8 @@ const BirthAttestationPurchase = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '4px 16px' }}>
                 {section.fields.map((f) => (
                   <div key={f.name} style={{ marginBottom: '10px' }}>
-                    <div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>{f.label}</div>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-dark)' }}>{form[f.name] || '—'}</div>
+                    <div style={{ fontSize: '11px', color: TEXT_GRAY, textTransform: 'uppercase' }}>{f.label}</div>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: TEXT_DARK }}>{form[f.name] || '—'}</div>
                   </div>
                 ))}
               </div>
@@ -329,11 +341,11 @@ const BirthAttestationPurchase = () => {
 
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color)',
+            background: CARD, border: `1px solid ${BORDER}`,
             borderRadius: '16px', padding: '20px', marginBottom: '20px',
           }}>
-            <span style={{ color: 'var(--text-gray)', fontSize: '14px' }}>Service Charge</span>
-            <span style={{ fontWeight: '800', fontSize: '22px', color: 'var(--text-dark)' }}>{formatCurrency(SERVICE_AMOUNT)}</span>
+            <span style={{ color: TEXT_GRAY, fontSize: '14px' }}>Service Charge</span>
+            <span style={{ fontWeight: '800', fontSize: '22px', color: TEXT_DARK }}>{formatCurrency(SERVICE_AMOUNT)}</span>
           </div>
 
           {submitError && (
@@ -348,8 +360,8 @@ const BirthAttestationPurchase = () => {
 
           <div style={{ display: 'flex', gap: '12px' }}>
             <button type="button" onClick={() => setStep('form')} disabled={loading} style={{
-              flex: 1, padding: '16px', borderRadius: '16px', background: 'var(--border-color)',
-              color: 'var(--text-dark)', border: 'none', fontWeight: '700', cursor: 'pointer',
+              flex: 1, padding: '16px', borderRadius: '16px', background: BORDER,
+              color: TEXT_DARK, border: 'none', fontWeight: '700', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             }}>
               <Pencil size={16} /> Edit
@@ -371,9 +383,9 @@ const BirthAttestationPurchase = () => {
 
   /* ── Form state ── */
   return (
-    <div style={{ padding: '0 0 40px', minHeight: '100vh', background: 'var(--bg-color)', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ padding: '0 0 40px', minHeight: '100vh', background: BG, fontFamily: 'Inter, sans-serif', ...FORCE_LIGHT_VARS }}>
       <div style={{
-        background: 'var(--bg-card, #ffffff)', padding: '24px', borderBottom: '1px solid var(--border-color)',
+        background: CARD, padding: '24px', borderBottom: `1px solid ${BORDER}`,
         display: 'flex', alignItems: 'center', gap: '16px', position: 'sticky', top: 0, zIndex: 10,
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
       }}>
@@ -381,8 +393,8 @@ const BirthAttestationPurchase = () => {
           <ArrowLeft size={20} color="#6366f1" />
         </div>
         <div>
-          <h2 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: '700', color: 'var(--text-dark)' }}>Birth Attestation Letter</h2>
-          <div style={{ fontSize: '13px', color: 'var(--text-gray)' }}>Manual processing service &middot; {formatCurrency(SERVICE_AMOUNT)}</div>
+          <h2 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: '700', color: TEXT_DARK }}>Birth Attestation Letter</h2>
+          <div style={{ fontSize: '13px', color: TEXT_GRAY }}>Manual processing service &middot; {formatCurrency(SERVICE_AMOUNT)}</div>
         </div>
       </div>
 
