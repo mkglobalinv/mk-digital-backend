@@ -2387,6 +2387,7 @@ app.use((req, res, next) => {
         
         if (vtuRoutes.includes(cleanPathForCheck)) {
             // Force serve VTU app immediately to prevent any fall-through marketing static errors
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             return res.sendFile(path.join(__dirname, "mk-vtu-frontend", "dist", "index.html"));
         }
 
@@ -2485,10 +2486,16 @@ app.get(/.*/, async (req, res) => {
         
         // Insert right before </head>
         html = html.replace('</head>', `${metaTags}\n</head>`);
-        
+
+        // index.html must always be revalidated so browsers pick up the new
+        // hashed JS/CSS bundle filenames immediately after each deploy — the
+        // bundled assets themselves are safe to cache long-term since their
+        // filenames change on every build, but this shell document is not.
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.send(html);
     } catch (err) {
         console.error('Error rendering dynamic index.html:', err);
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.sendFile(path.join(__dirname, "mk-vtu-frontend", "dist", "index.html"));
     }
 });
