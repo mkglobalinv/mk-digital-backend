@@ -1785,6 +1785,15 @@ export const reverseTransaction = async (req, res) => {
         const user = await User.findById(tx.userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // Security: a reseller_admin may only reverse transactions belonging
+        // to their own tenant's customers, never another tenant's or the
+        // main platform's. admin/superadmin are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            if (!user.tenantOwnerId || user.tenantOwnerId.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ message: "You can only reverse transactions belonging to your own customers." });
+            }
+        }
+
         // 1. Refund the Customer
         await refundBalance(user._id, tx.amount);
         
