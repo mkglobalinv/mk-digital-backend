@@ -34,6 +34,18 @@ export const adminAuth = async (req, res, next) => {
     }
 
     if (user.role === 'reseller_admin') {
+      // Security Requirement: The Admin Portal (this middleware) exposes
+      // platform-admin-tier controls (transaction reversal, maintenance mode,
+      // content CRUD, etc.) far beyond the reseller's own trial dashboard.
+      // A reseller_admin must be a fully activated reseller to use it — a
+      // pending/free-trial signup must not get Admin Portal access just by
+      // holding the role. The trial dashboard itself (/api/reseller/*) does
+      // not use this middleware and is unaffected by this check.
+      if (user.resellerActivationStatus !== 'active') {
+        console.log(`[AdminAuth] Denied: reseller_admin ${user.email} has resellerActivationStatus='${user.resellerActivationStatus}' (not active)`);
+        return res.status(403).json({ message: 'Access denied. Your reseller account is not yet activated.' });
+      }
+
       const host = req.header('Host') || '';
       const subdomain = host.split('.')[0];
       if (user.admin_subdomain !== subdomain) {
