@@ -2,28 +2,37 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Bell, Check, ChevronRight, AlertTriangle, FileClock, Plus, ImageIcon,
+  Loader2, MessageCircle,
 } from 'lucide-react';
+import API from '../../api';
+import { BUSINESS_WHATSAPP_NUMBER } from '../../config/businessWhatsapp';
 import { AFFIDAVIT_TYPES, getAffidavitType, getSectionsForType } from './affidavitTypes';
 
 /**
- * Court Affidavit — private/unlisted draft.
+ * Court Affidavit — manual/assisted service, ₦3,500 flat (all 8 types).
  *
- * Fully independent of the Birth Attestation Letter service: own route, own
- * data file, own component, no shared config, fields, or pricing. Built
- * from user-supplied reference screenshots (idgate360.com.ng/services, used
- * for UI/UX and content reference only) plus the written spec.
+ * Entry point: IdentityServicesGrid.jsx ('court-affidavit' card). Always
+ * visible on the main retail platform; on reseller sites it's gated by the
+ * reseller's activatedManualServices ('court_affidavit'), toggled from
+ * ResellerBranding.jsx — identical mechanism to nin_modification /
+ * bvn_modification / cac_registration / birth_attestation.
  *
- * Workflow: Type -> Form -> Preview -> Confirm -> Done. No backend
- * submission, pricing, wallet, or WhatsApp integration was specified for
- * this service (unlike Birth Attestation) — this draft is a client-side-only
- * walkthrough that ends on a local "Done" confirmation screen. See the
- * implementation report for what's still undefined.
+ * Fully independent of the Birth Attestation Letter service in fields,
+ * pricing, and form content — but reuses the exact same backend pipeline
+ * (POST /api/retail/identity/assisted-purchase -> wallet deduction ->
+ * Transaction + ServiceRequest, status PENDING_REVIEW, already visible in
+ * the generic admin "Assisted Service Requests" screen).
+ *
+ * Workflow: Type -> Form -> Preview -> Confirm & Pay -> Done + WhatsApp handoff.
  */
 
 const BLUE = '#2563EB';
 const STEPS = ['Type', 'Form', 'Preview', 'Confirm', 'Done'];
+const SERVICE_TYPE = 'court-affidavit';
+const SERVICE_AMOUNT = 3500;
 
 const emptyFormData = () => ({});
+const formatCurrency = (n) => `₦${Number(n).toLocaleString()}`;
 
 const CourtAffidavitPage = () => {
   const navigate = useNavigate();
@@ -32,7 +41,9 @@ const CourtAffidavitPage = () => {
   const [selectedTypeId, setSelectedTypeId] = useState(null);
   const [formData, setFormData] = useState(emptyFormData());
   const [formError, setFormError] = useState('');
-  const [reference, setReference] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [result, setResult] = useState(null);
 
   const selectedType = selectedTypeId ? getAffidavitType(selectedTypeId) : null;
   const sections = selectedTypeId ? getSectionsForType(selectedTypeId) : [];
@@ -42,7 +53,8 @@ const CourtAffidavitPage = () => {
     setSelectedTypeId(null);
     setFormData(emptyFormData());
     setFormError('');
-    setReference(null);
+    setSubmitError(null);
+    setResult(null);
   };
 
   const handleFieldChange = (name, value) => {
@@ -90,14 +102,50 @@ const CourtAffidavitPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleConfirm = () => {
-    // No backend submission was specified for this service — this generates
-    // a local-only reference for display purposes and moves straight to the
-    // Done screen. See implementation report.
-    setReference(`CA-DRAFT-${Date.now()}`);
-    setStepIndex(4);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleConfirm = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const reference = `CA-${Date.now()}`;
+      const payload = new FormData();
+      payload.append('reference', reference);
+      payload.append('serviceType', SERVICE_TYPE);
+      payload.append('whatsappNumber', formData.phoneNumber);
+      payload.append('affidavitType', selectedType.name);
+      allFields.forEach((f) => {
+        if (f.type === 'file') {
+          // Shared endpoint expects files under the 'documents' field name
+          // (see routes/retail/identityRoutes.js: uploadSecureDocument.array('documents', 5)).
+          if (formData[f.name]) payload.append('documents', formData[f.name]);
+        } else {
+          payload.append(f.name, formData[f.name] || '');
+        }
+      });
+
+      const res = await API.post('/api/retail/identity/assisted-purchase', payload);
+      setResult(res.data);
+      setStepIndex(4);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Submission failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const whatsappHref = (() => {
+    if (!result?.data) return '#';
+    const msg =
+      `*COURT AFFIDAVIT REQUEST*\n\n` +
+      `Affidavit Type: ${selectedType?.name}\n` +
+      `Service: ${result.data.service}\n` +
+      `Request ID: ${result.data.reference}\n` +
+      `Customer: ${formData.firstName || ''} ${formData.surname || ''}\n` +
+      `Phone Number: ${formData.phoneNumber || ''}\n` +
+      `Amount Paid: ${formatCurrency(result.data.amount)}\n\n` +
+      `Please process this request.`;
+    return `https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  })();
 
   const renderFieldInput = (field) => {
     const commonStyle = {
@@ -419,20 +467,39 @@ const CourtAffidavitPage = () => {
               );
             })}
 
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color)',
+              borderRadius: '16px', padding: '20px', marginBottom: '20px',
+            }}>
+              <span style={{ color: 'var(--text-gray)', fontSize: '14px' }}>Service Charge</span>
+              <span style={{ fontWeight: 800, fontSize: '22px', color: 'var(--text-dark)' }}>{formatCurrency(SERVICE_AMOUNT)}</span>
+            </div>
+
+            {submitError && (
+              <div style={{
+                background: '#fef2f2', color: '#ef4444', padding: '14px 16px', borderRadius: '12px',
+                marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px',
+                border: '1px solid #fecaca', fontSize: '13px', fontWeight: 500,
+              }}>
+                <AlertTriangle size={18} /> {submitError}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setStepIndex(1)} style={{
+              <button onClick={() => setStepIndex(1)} disabled={submitting} style={{
                 flex: 1, padding: '15px', borderRadius: '14px', border: `1px solid ${BLUE}`,
                 background: 'var(--bg-card, #fff)', color: BLUE, fontWeight: 700, fontSize: '14px', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               }}>
                 <ArrowLeft size={16} /> Edit
               </button>
-              <button onClick={handleConfirm} style={{
+              <button onClick={handleConfirm} disabled={submitting} style={{
                 flex: 2, padding: '15px', borderRadius: '14px', border: 'none', background: BLUE,
-                color: '#fff', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                color: '#fff', fontWeight: 700, fontSize: '14px', cursor: submitting ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: submitting ? 0.7 : 1,
               }}>
-                Confirm <ChevronRight size={16} />
+                {submitting ? <><Loader2 size={16} className="animate-spin" /> Processing…</> : <>Confirm & Pay {formatCurrency(SERVICE_AMOUNT)} <ChevronRight size={16} /></>}
               </button>
             </div>
           </div>
@@ -440,7 +507,7 @@ const CourtAffidavitPage = () => {
       )}
 
       {/* ── Step 4: Done ── */}
-      {tab === 'new' && stepIndex === 4 && (
+      {tab === 'new' && stepIndex === 4 && result?.data && (
         <div style={{ maxWidth: '480px', margin: '24px auto 0', padding: '0 20px' }}>
           <div style={{
             background: 'var(--bg-card, #ffffff)', borderRadius: '20px', overflow: 'hidden',
@@ -453,18 +520,37 @@ const CourtAffidavitPage = () => {
               }}>
                 <Check size={30} color="#fff" />
               </div>
-              <h3 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 800 }}>Affidavit Confirmed</h3>
+              <h3 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 800 }}>Request Submitted</h3>
               <p style={{ margin: 0, opacity: 0.9, fontSize: '13px' }}>{selectedType?.name}</p>
             </div>
             <div style={{ padding: '20px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase', marginBottom: '4px' }}>Draft Reference</div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '16px' }}>{reference}</div>
+              <div style={{
+                background: 'var(--bg-color)', borderRadius: '16px', border: '1px solid var(--border-color)',
+                padding: '20px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px',
+              }}>
+                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Request ID</div><div style={{ fontWeight: 700 }}>{result.data.reference}</div></div>
+                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Status</div><div style={{ fontWeight: 700 }}>{result.data.status}</div></div>
+                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Amount Paid</div><div style={{ fontWeight: 700 }}>{formatCurrency(result.data.amount)}</div></div>
+                <div><div style={{ fontSize: '11px', color: 'var(--text-gray)', textTransform: 'uppercase' }}>Est. Processing</div><div style={{ fontWeight: 700 }}>{result.data.expectedProcessingTime}</div></div>
+              </div>
+
               <p style={{ fontSize: '12px', color: 'var(--text-gray)', lineHeight: 1.5, marginBottom: '20px' }}>
-                This is a local draft reference only — no request has been submitted to a server yet.
+                This is a manual processing service — our team will contact you on WhatsApp to continue.
+                Tap below to message us directly with your request details pre-filled.
               </p>
+
+              <a href={whatsappHref} target="_blank" rel="noreferrer" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                width: '100%', padding: '15px', borderRadius: '14px', background: '#25D366',
+                color: '#fff', fontWeight: 700, fontSize: '14px', textDecoration: 'none',
+                marginBottom: '12px', boxSizing: 'border-box',
+              }}>
+                <MessageCircle size={18} /> Continue on WhatsApp
+              </a>
+
               <button onClick={resetFlow} style={{
-                width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: BLUE,
-                color: '#fff', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+                width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'var(--border-color)',
+                color: 'var(--text-dark)', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
               }}>
                 Start New Request
               </button>

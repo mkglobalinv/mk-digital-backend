@@ -240,7 +240,7 @@ const userSchema = new mongoose.Schema({
   tenantOwnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 
   // Manual Services independently activated by website owner
-  activatedManualServices: [{ type: String, enum: ['nin_modification', 'bvn_modification', 'cac_registration'] }]
+  activatedManualServices: [{ type: String, enum: ['nin_modification', 'bvn_modification', 'cac_registration', 'birth_attestation', 'court_affidavit'] }]
 }, { 
 
   timestamps: true,

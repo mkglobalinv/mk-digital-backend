@@ -9,11 +9,11 @@ import { BUSINESS_WHATSAPP_NUMBER } from '../../config/businessWhatsapp';
 /**
  * BirthAttestationPurchase — "Birth Attestation Letter" manual service.
  *
- * DRAFT / PRIVATE TEST ONLY: this page is intentionally NOT linked from
- * IdentityServicesGrid, the /services marketing page, or any nav/menu. It is
- * reachable only via the direct URL /identity/birth-attestation-letter while
- * logged in. Do not add a public entry point until the service is approved
- * for the live catalog.
+ * Entry point: IdentityServicesGrid.jsx ('birth-attestation-letter' card).
+ * Always visible on the main retail platform; on reseller sites it's gated
+ * by the reseller's activatedManualServices ('birth_attestation'), toggled
+ * from ResellerBranding.jsx — identical mechanism to nin_modification /
+ * bvn_modification / cac_registration.
  *
  * Flow: Form -> Preview -> Confirm & Pay (wallet) -> Success + WhatsApp handoff.
  * Reuses the existing "Assisted Service" architecture verbatim:

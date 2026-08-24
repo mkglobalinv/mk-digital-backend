@@ -61,6 +61,12 @@ const PERSONAL_INFO_SECTION = {
     { name: 'middleName', label: 'Middle Name', required: false, placeholder: 'Middle name', col: 1 },
     { name: 'maidenName', label: 'Maiden Name', required: false, placeholder: 'Maiden / family name', col: 2 },
     { name: 'currentAddress', label: 'Current Address', required: true, placeholder: 'House No., Street, City, State' },
+    // Not shown in the reference screenshots — added because the shared
+    // Assisted Service backend (processAssistedIdentityService) requires a
+    // whatsappNumber to create the request; this also doubles as the number
+    // used for the post-submission WhatsApp handoff, same as every other
+    // assisted service in this app.
+    { name: 'phoneNumber', label: 'Phone Number', required: true, type: 'tel', placeholder: 'e.g. 08012345678' },
     { name: 'religion', label: 'Religion', required: true, type: 'select', options: RELIGION_OPTIONS, placeholder: 'Select...', col: 1 },
     { name: 'placeOfOrigin', label: 'Place of Origin', required: true, placeholder: 'Town/Village of origin', col: 2 },
     { name: 'stateOfOrigin', label: 'State of Origin', required: true, type: 'select', options: NIGERIAN_STATES, placeholder: 'Select state...' },

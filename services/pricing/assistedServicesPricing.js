@@ -27,10 +27,12 @@ export const ASSISTED_SERVICES_CONFIG = {
     'cac-public-limited': { name: 'Public Limited Registration (CAC)', amount: 120000, cost: null, expectedProcessingTime: '2 days' },
     'cac-ngo': { name: 'Incorporated Trustee / NGO (CAC)', amount: 85000, cost: null, expectedProcessingTime: '2 days' },
 
-    // Birth Attestation Letter — DRAFT, not yet linked from any public UI.
-    // Reachable only via the direct URL /identity/birth-attestation-letter
-    // (see BirthAttestationPurchase.jsx). Do not surface publicly until approved.
+    // Birth Attestation Letter (see BirthAttestationPurchase.jsx)
     'birth-attestation-letter': { name: 'Birth Attestation Letter', amount: 22000, cost: null, expectedProcessingTime: '3-5 working days' },
+
+    // Court Affidavit (see CourtAffidavitPage.jsx) — flat price covering all 8
+    // affidavit types; the specific type selected is recorded in submittedData.
+    'court-affidavit': { name: 'Court Affidavit', amount: 3500, cost: null, expectedProcessingTime: '2-3 working days' },
 };
 
 /**

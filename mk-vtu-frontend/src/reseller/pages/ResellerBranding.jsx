@@ -119,7 +119,9 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
                 const serviceNames = {
                     'nin_modification': 'NIN Modification',
                     'bvn_modification': 'BVN Modification',
-                    'cac_registration': 'CAC Registration'
+                    'cac_registration': 'CAC Registration',
+                    'birth_attestation': 'Birth Attestation Letter',
+                    'court_affidavit': 'Court Affidavit'
                 };
                 const name = serviceNames[serviceType] || 'Service';
                 const action = enabled ? 'added to' : 'removed from';
@@ -368,11 +370,23 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
                                     description: 'Assist customers with BVN updates.',
                                     earning: 'Earn ₦100 for each successfully completed service'
                                 },
-                                { 
-                                    id: 'cac_registration', 
+                                {
+                                    id: 'cac_registration',
                                     title: 'CAC Registration',
                                     description: 'Register businesses for your customers.',
                                     earning: 'Earn ₦500 for each successfully completed registration'
+                                },
+                                {
+                                    id: 'birth_attestation',
+                                    title: 'Birth Attestation Letter',
+                                    description: 'Help customers request a Birth Attestation Letter (₦22,000).',
+                                    earning: 'Commission share applies to each successfully completed request'
+                                },
+                                {
+                                    id: 'court_affidavit',
+                                    title: 'Court Affidavit',
+                                    description: 'Help customers prepare a Court Affidavit (₦3,500).',
+                                    earning: 'Commission share applies to each successfully completed request'
                                 }
                             ].map(service => {
                                 const isActive = settings.activatedManualServices?.includes(service.id);

@@ -1725,7 +1725,7 @@ import { clearResellerCache } from '../middlewares/whiteLabel.js';
 export const toggleManualService = async (req, res) => {
     try {
         const { serviceType, enabled } = req.body;
-        const validServices = ['nin_modification', 'bvn_modification', 'cac_registration'];
+        const validServices = ['nin_modification', 'bvn_modification', 'cac_registration', 'birth_attestation', 'court_affidavit'];
         
         if (!validServices.includes(serviceType)) {
             return res.status(400).json({ status: 'error', message: 'Invalid manual service type' });

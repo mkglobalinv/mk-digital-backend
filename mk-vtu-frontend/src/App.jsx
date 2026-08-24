@@ -1005,9 +1005,9 @@ function App() {
                 <Route path="/developer" element={token ? <DeveloperApi user={user} /> : <Navigate to="/login" />} />
                 <Route path="/transactions" element={token ? (isResellerUser ? <Navigate to="/reseller/transactions" replace /> : <Transactions token={token} />) : <Navigate to="/login" />} />
 
-                {/* DRAFT — not linked from any nav/grid; reachable only via this direct URL. See BirthAttestationPurchase.jsx header comment. */}
+                {/* Entry point: IdentityServicesGrid.jsx, gated by activatedManualServices('birth_attestation') on reseller sites, always visible on the main platform. */}
                 <Route path="/identity/birth-attestation-letter" element={token ? <BirthAttestationPurchase /> : <Navigate to="/login" />} />
-                {/* DRAFT — fully independent of the routes above; not linked from any nav/grid. See CourtAffidavitPage.jsx header comment. */}
+                {/* Entry point: IdentityServicesGrid.jsx, gated by activatedManualServices('court_affidavit') on reseller sites, always visible on the main platform. */}
                 <Route path="/court-affidavit" element={token ? <CourtAffidavitPage /> : <Navigate to="/login" />} />
                 <Route path="/identity/:serviceId" element={token ? <IdentityPurchase user={user} /> : <Navigate to="/login" />} />
                 <Route path="/notifications" element={token ? (isResellerUser ? <Navigate to="/reseller/notifications" replace /> : <Notifications token={token} />) : <Navigate to="/login" />} />

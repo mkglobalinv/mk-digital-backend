@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
   Fingerprint, ShieldCheck, Phone, MapPin,
-  Users, Edit3, BookOpen, ChevronDown, ChevronUp, Sparkles, X
+  Users, Edit3, BookOpen, ChevronDown, ChevronUp, Sparkles, X,
+  FileText, Landmark
 } from 'lucide-react';
 import NinModifyModal from './NinModifyModal';
 import BvnModifyModal from './BvnModifyModal';
@@ -23,6 +24,8 @@ const IDENTITY_SERVICES = [
   { api_plan_id: 'bvn-verify',       label: 'BVN Verify',  icon: ShieldCheck, color: '#10B981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.2)' },
   { api_plan_id: 'bvn-phone',        label: 'BVN Phone',   icon: Users,       color: '#2563EB', bg: 'rgba(37,99,235,0.08)',   border: 'rgba(37,99,235,0.2)' },
   { api_plan_id: 'nin-modification', label: 'NIN Modify',  icon: Edit3,       color: '#F4B400', bg: 'rgba(244,180,0,0.08)',   border: 'rgba(244,180,0,0.2)' },
+  { api_plan_id: 'birth-attestation-letter', label: 'Birth Attestation', icon: FileText, color: '#059669', bg: 'rgba(5,150,105,0.08)', border: 'rgba(5,150,105,0.2)' },
+  { api_plan_id: 'court-affidavit',          label: 'Court Affidavit',   icon: Landmark, color: '#2563EB', bg: 'rgba(37,99,235,0.08)', border: 'rgba(37,99,235,0.2)' },
 ];
 
 const IdentityServicesGrid = ({ isReseller = false }) => {
@@ -53,6 +56,14 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
       setShowCacModal(true);
       return;
     }
+    if (api_plan_id === 'birth-attestation-letter') {
+      navigate('/identity/birth-attestation-letter');
+      return;
+    }
+    if (api_plan_id === 'court-affidavit') {
+      navigate('/court-affidavit');
+      return;
+    }
     if (isReseller) {
       navigate(`/reseller/identity/${api_plan_id}`);
     } else {
@@ -76,6 +87,12 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
     }
     if (svc.api_plan_id === 'nin-demographics') {
       return isMainSite || activatedManualServices.includes('cac_registration');
+    }
+    if (svc.api_plan_id === 'birth-attestation-letter') {
+      return isMainSite || activatedManualServices.includes('birth_attestation');
+    }
+    if (svc.api_plan_id === 'court-affidavit') {
+      return isMainSite || activatedManualServices.includes('court_affidavit');
     }
     return true;
   });
