@@ -121,6 +121,15 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   useEffect(() => {
     if (location.state?.defaultTab) {
       setActiveTab(location.state.defaultTab);
+    } else {
+      // Fallback for entry points outside the SPA (e.g. the public marketing
+      // site's /services page) that can't pass React Router state across a
+      // full page navigation — same tabs, reached via ?service= instead.
+      const requestedTab = new URLSearchParams(location.search).get('service');
+      const validTabs = ['airtime', 'data', 'cable', 'electricity', 'epin', 'education'];
+      if (requestedTab && validTabs.includes(requestedTab)) {
+        setActiveTab(requestedTab);
+      }
     }
     if (location.state?.autofill) {
       const af = location.state.autofill;
