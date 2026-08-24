@@ -28,6 +28,10 @@ type ServiceCard = {
   href: string;
   icon: LucideIcon;
   tint: string; // Tailwind color classes for the icon badge
+  // Official issuing-agency logo (NIMC/NIBSS/CAC), shown instead of the
+  // icon when present. Cropped from the reference image supplied for this
+  // page, per explicit sign-off to use these marks this way.
+  badge?: string;
 };
 
 const SERVICES: ServiceCard[] = [
@@ -78,6 +82,7 @@ const SERVICES: ServiceCard[] = [
     href: '/identity/nin-verify',
     icon: Fingerprint,
     tint: 'bg-teal-500/10 text-teal-600',
+    badge: '/badge-nimc.png',
   },
   {
     name: 'BVN Verification',
@@ -86,6 +91,7 @@ const SERVICES: ServiceCard[] = [
     href: '/identity/bvn-verify',
     icon: ShieldCheck,
     tint: 'bg-cyan-500/10 text-cyan-600',
+    badge: '/badge-nibss.png',
   },
   {
     name: 'NIN Modification',
@@ -94,6 +100,7 @@ const SERVICES: ServiceCard[] = [
     href: '/identity/nin-modification',
     icon: Edit3,
     tint: 'bg-indigo-500/10 text-indigo-600',
+    badge: '/badge-nimc.png',
   },
   {
     name: 'BVN Modification',
@@ -102,6 +109,7 @@ const SERVICES: ServiceCard[] = [
     href: '/identity/bvn-modification',
     icon: UserCog,
     tint: 'bg-violet-500/10 text-violet-600',
+    badge: '/badge-nibss.png',
   },
   {
     name: 'CAC Registration',
@@ -110,6 +118,7 @@ const SERVICES: ServiceCard[] = [
     href: '/identity/cac-registration',
     icon: Building2,
     tint: 'bg-slate-500/10 text-slate-700',
+    badge: '/badge-cac.png',
   },
 ];
 
@@ -148,9 +157,16 @@ export default function ServicesClient() {
                     key={service.name}
                     className="card-light rounded-3xl p-5 md:p-7 flex flex-col"
                   >
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-5 ${service.tint}`}>
-                      <Icon size={26} />
-                    </div>
+                    {service.badge ? (
+                      <div className="w-14 h-14 rounded-full mb-5 overflow-hidden ring-1 ring-slate-200 shadow-sm">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={service.badge} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-5 ${service.tint}`}>
+                        <Icon size={26} />
+                      </div>
+                    )}
                     <h2 className="text-base md:text-lg font-extrabold text-slate-900 mb-1.5">
                       {service.name}
                     </h2>
