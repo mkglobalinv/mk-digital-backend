@@ -31,6 +31,7 @@ import DeveloperApi from "./pages/DeveloperApi";
 
 import IdentityPurchase from "./pages/identity/IdentityPurchase";
 import BirthAttestationPurchase from "./pages/identity/BirthAttestationPurchase";
+import CourtAffidavitPage from "./pages/court-affidavit/CourtAffidavitPage";
 import ReferralCenter from "./pages/ReferralCenter";
 import Sidebar from "./components/Sidebar";
 import BottomNav from "./components/fintech/FloatingBottomNav";
@@ -1006,6 +1007,8 @@ function App() {
 
                 {/* DRAFT — not linked from any nav/grid; reachable only via this direct URL. See BirthAttestationPurchase.jsx header comment. */}
                 <Route path="/identity/birth-attestation-letter" element={token ? <BirthAttestationPurchase /> : <Navigate to="/login" />} />
+                {/* DRAFT — fully independent of the routes above; not linked from any nav/grid. See CourtAffidavitPage.jsx header comment. */}
+                <Route path="/court-affidavit" element={token ? <CourtAffidavitPage /> : <Navigate to="/login" />} />
                 <Route path="/identity/:serviceId" element={token ? <IdentityPurchase user={user} /> : <Navigate to="/login" />} />
                 <Route path="/notifications" element={token ? (isResellerUser ? <Navigate to="/reseller/notifications" replace /> : <Notifications token={token} />) : <Navigate to="/login" />} />
                 <Route path="/referrals" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <ReferralCenter user={user} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
