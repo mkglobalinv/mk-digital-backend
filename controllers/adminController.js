@@ -1336,6 +1336,17 @@ export const initiateWalletAction = async (req, res) => {
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "Target user not found" });
 
+        // Security: a reseller_admin may only credit/debit users belonging
+        // to their own tenant, never another tenant's customers or another
+        // reseller. This check is additive — the funding-password
+        // verification above and the OTP step below still both apply
+        // unchanged. admin/superadmin are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            if (!user.tenantOwnerId || user.tenantOwnerId.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ message: "You can only manage wallets belonging to your own customers." });
+            }
+        }
+
         // Generate OTP for funding confirmation
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         await OTP.deleteMany({ userId: admin._id });
@@ -1404,6 +1415,17 @@ export const confirmWalletAction = async (req, res) => {
 
         const user = await User.findById(decoded.userId);
         if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Security: defense-in-depth re-check of the same tenant scoping
+        // enforced in initiateWalletAction, applied again here at the actual
+        // credit/debit step in case the target user's tenant assignment
+        // changed between initiate and confirm. Funding-password and OTP
+        // verification above are unchanged. admin/superadmin are unrestricted.
+        if (admin.role === 'reseller_admin') {
+            if (!user.tenantOwnerId || user.tenantOwnerId.toString() !== admin._id.toString()) {
+                return res.status(403).json({ message: "You can only manage wallets belonging to your own customers." });
+            }
+        }
 
         const oldBalance = user.balance1 || 0;
         const reference = `ADM-SEC-${Date.now()}`;
@@ -1620,6 +1642,22 @@ export const approveWithdrawal = async (req, res) => {
     try {
         const w = await Withdrawal.findById(withdrawalId);
         if (!w || w.status !== 'pending') return res.status(400).json({ message: "Invalid withdrawal" });
+
+        // Security: a withdrawal's owner (w.userId) is always the reseller
+        // who requested it — never a "customer" of some other tenant. A
+        // reseller_admin therefore has no legitimate withdrawal to approve
+        // under the existing tenant model: it would either be their own
+        // request (self-approval) or another reseller's (no ownership
+        // relationship exists between resellers). Withdrawal approval
+        // verifies a real-world bank transfer was completed and must stay
+        // staff-only. admin/superadmin are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            const owner = await User.findById(w.userId);
+            if (!owner?.tenantOwnerId || owner.tenantOwnerId.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ message: "You cannot approve this withdrawal." });
+            }
+        }
+
         w.status = 'approved';
         await w.save();
         if (w.transactionId) await Transaction.findByIdAndUpdate(w.transactionId, { status: 'success' });
@@ -1634,6 +1672,17 @@ export const rejectWithdrawal = async (req, res) => {
     try {
         const w = await Withdrawal.findById(withdrawalId);
         if (!w || w.status !== 'pending') return res.status(400).json({ message: "Invalid withdrawal" });
+
+        // Security: see approveWithdrawal — a reseller_admin has no
+        // legitimate withdrawal to reject under the existing tenant model.
+        // admin/superadmin are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            const owner = await User.findById(w.userId);
+            if (!owner?.tenantOwnerId || owner.tenantOwnerId.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ message: "You cannot reject this withdrawal." });
+            }
+        }
+
         w.status = 'rejected';
         w.adminComment = reason;
         await w.save();
@@ -1678,6 +1727,15 @@ export const getResellerCustomers = async (req, res) => {
 export const updateResellerStatus = async (req, res) => {
     const { resellerId, status } = req.body; // active, suspended, pending
     try {
+        // Security: resellers have no ownership relationship over one
+        // another under the existing tenant model (they are peers, not
+        // sub-tenants of each other), so a reseller_admin has no
+        // legitimate target here — neither themselves nor another
+        // reseller. admin/superadmin are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            return res.status(403).json({ message: "You cannot modify reseller account status." });
+        }
+
         const user = await User.findByIdAndUpdate(resellerId, { whiteLabelStatus: status }, { new: true });
         await AdminLog.create({ 
             adminId: req.user._id, 
@@ -1730,6 +1788,15 @@ export const forceLogout = async (req, res) => {
 export const updateResellerTier = async (req, res) => {
     const { resellerId, tier } = req.body;
     try {
+        // Security: resellers have no ownership relationship over one
+        // another under the existing tenant model, so a reseller_admin has
+        // no legitimate target here — this blocks both self-escalation
+        // (upgrading their own tier to premium/vip) and modifying another
+        // reseller's tier. admin/superadmin are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            return res.status(403).json({ message: "You cannot modify reseller tier." });
+        }
+
         const isPremiumTier = tier === 'premium' || tier === 'vip';
         const user = await User.findByIdAndUpdate(
             resellerId,
@@ -1916,6 +1983,15 @@ export const adminResetPassword = async (req, res) => {
     try {
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Security: a reseller_admin may only reset passwords for users
+        // belonging to their own tenant, never another reseller/admin/
+        // customer outside it. admin/superadmin are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            if (!user.tenantOwnerId || user.tenantOwnerId.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ message: "You can only reset passwords for users belonging to your own tenant." });
+            }
+        }
 
         user.password = await bcrypt.hash(newPassword, 10);
         await user.save();
@@ -2285,6 +2361,15 @@ export const rejectResellerRequest = async (req, res) => {
 
 export const upgradeReseller = async (req, res) => {
     try {
+        // Security: resellers have no ownership relationship over one
+        // another under the existing tenant model, so a reseller_admin has
+        // no legitimate target here — this blocks both self-escalation to
+        // premium and upgrading another reseller. admin/superadmin are
+        // unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            return res.status(403).json({ message: "You cannot upgrade reseller accounts." });
+        }
+
         const user = await User.findById(req.params.id);
         if (!user || user.role !== 'reseller_admin') return res.status(404).json({ message: "Reseller not found" });
 
@@ -2321,6 +2406,15 @@ export const upgradeReseller = async (req, res) => {
 
 export const updateResellerFeatures = async (req, res) => {
     try {
+        // Security: resellers have no ownership relationship over one
+        // another under the existing tenant model, so a reseller_admin has
+        // no legitimate target here — this blocks both granting themselves
+        // privileged features and modifying another reseller's features.
+        // admin/superadmin are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            return res.status(403).json({ message: "You cannot modify reseller features." });
+        }
+
         const user = await User.findById(req.params.id);
         if (!user || user.role !== 'reseller_admin') return res.status(404).json({ message: "Reseller not found" });
 
@@ -4075,6 +4169,15 @@ export const removeResellerAssignedPrice = async (req, res) => {
  */
 export const toggleResellerPricingPermission = async (req, res) => {
     try {
+        // Security: resellers have no ownership relationship over one
+        // another under the existing tenant model, so a reseller_admin has
+        // no legitimate target here — this blocks granting themselves (or
+        // another reseller) pricing-override privileges. admin/superadmin
+        // are unrestricted.
+        if (req.user.role === 'reseller_admin') {
+            return res.status(403).json({ message: "You cannot modify reseller pricing permissions." });
+        }
+
         const resellerId = req.params.id;
         if (resellerId && !resellerId.match(/^[0-9a-fA-F]{24}$/)) return res.status(400).json({ message: "Invalid resource identifier format." });
         const { canOverridePricing } = req.body;
