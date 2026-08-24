@@ -343,9 +343,9 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
                         {loading ? 'Saving Changes...' : 'Save Branding Changes'}
                     </button>
                     
-                    <div style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-                        <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>Add More Services</h2>
-                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '12px' }}>
+                    <div style={{ marginTop: '32px', borderTop: '1px solid var(--border-color, #e2e8f0)', paddingTop: '24px' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-dark)' }}>Add More Services</h2>
+                        <p style={{ color: 'var(--text-gray, #64748b)', fontSize: '14px', marginBottom: '12px' }}>
                             Optional manual services you can add to your website. Earn when your customer's application is successfully completed.
                         </p>
                         
@@ -379,23 +379,23 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
                                 {
                                     id: 'birth_attestation',
                                     title: 'Birth Attestation Letter',
-                                    description: 'Help customers request a Birth Attestation Letter (₦22,000).',
-                                    earning: 'Commission share applies to each successfully completed request'
+                                    description: 'Help customers request a Birth Attestation Letter.',
+                                    earning: 'Earn ₦500 for each successfully completed request'
                                 },
                                 {
                                     id: 'court_affidavit',
                                     title: 'Court Affidavit',
-                                    description: 'Help customers prepare a Court Affidavit (₦3,500).',
-                                    earning: 'Commission share applies to each successfully completed request'
+                                    description: 'Help customers prepare a Court Affidavit.',
+                                    earning: 'Earn ₦200 for each successfully completed request'
                                 }
                             ].map(service => {
                                 const isActive = settings.activatedManualServices?.includes(service.id);
                                 return (
-                                    <div key={service.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between' }}>
+                                    <div key={service.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color, #e2e8f0)', background: 'var(--bg-color, #f8fafc)', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between' }}>
                                         <div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                                                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0' }}>{service.title}</h3>
-                                                <span style={{ 
+                                                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0', color: 'var(--text-dark)' }}>{service.title}</h3>
+                                                <span style={{
                                                     fontSize: '11px', padding: '2px 8px', borderRadius: '12px', fontWeight: '600',
                                                     background: isActive ? '#d1fae5' : '#f1f5f9',
                                                     color: isActive ? '#059669' : '#64748b'
@@ -403,7 +403,7 @@ const ResellerBranding = ({ user, refreshUser, refreshBranding }) => {
                                                     {isActive ? 'ACTIVE' : 'INACTIVE'}
                                                 </span>
                                             </div>
-                                            <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 12px' }}>{service.description}</p>
+                                            <p style={{ fontSize: '13px', color: 'var(--text-gray, #64748b)', margin: '0 0 12px' }}>{service.description}</p>
                                             <div style={{ fontSize: '13px', fontWeight: '600', color: '#059669', background: '#ecfdf5', padding: '8px', borderRadius: '6px', display: 'inline-block' }}>
                                                 {service.earning}
                                             </div>
