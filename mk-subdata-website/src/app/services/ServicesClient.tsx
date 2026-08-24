@@ -3,6 +3,7 @@
 import {
   Wifi, Smartphone, PlaySquare, Zap, GraduationCap,
   Fingerprint, ShieldCheck, Edit3, UserCog, Building2,
+  FileText, Landmark,
   type LucideIcon,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -119,6 +120,22 @@ const SERVICES: ServiceCard[] = [
     icon: Building2,
     tint: 'bg-slate-500/10 text-slate-700',
     badge: '/badge-cac.png',
+  },
+  {
+    name: 'Birth Attestation Letter',
+    desc: 'Get an assisted Birth Attestation Letter, fully processed for you.',
+    cta: 'Request Letter',
+    href: '/identity/birth-attestation-letter',
+    icon: FileText,
+    tint: 'bg-emerald-500/10 text-emerald-600',
+  },
+  {
+    name: 'Court Affidavit',
+    desc: 'Prepare a Court Affidavit for name correction, age declaration & more.',
+    cta: 'Prepare Affidavit',
+    href: '/court-affidavit',
+    icon: Landmark,
+    tint: 'bg-blue-500/10 text-blue-600',
   },
 ];
 

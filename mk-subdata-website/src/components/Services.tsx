@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Wifi, Phone, Lightbulb, Tv, GraduationCap, ShieldCheck, FileText, Layers } from 'lucide-react';
+import { Wifi, Phone, Lightbulb, Tv, GraduationCap, ShieldCheck, FileText, Landmark, Layers } from 'lucide-react';
 
 const services = [
   { icon: Wifi, title: "Data" },
@@ -14,6 +14,8 @@ const services = [
   { icon: FileText, title: "NIN Modification" },
   { icon: FileText, title: "BVN Modification" },
   { icon: FileText, title: "CAC Registration" },
+  { icon: FileText, title: "Birth Attestation Letter" },
+  { icon: Landmark, title: "Court Affidavit" },
   { icon: Layers, title: "More Digital Services" }
 ];
 
