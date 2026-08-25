@@ -12,6 +12,7 @@ import MarketingPopup from '../components/marketing/MarketingPopup';
 import CampaignGrid from '../components/marketing/CampaignGrid';
 import AnnouncementBanner from '../components/marketing/AnnouncementBanner';
 import FuturePlatformViewer from '../components/FuturePlatformViewer';
+import BiometricSetupPrompt from '../components/BiometricSetupPrompt';
 
 import FintechHeader from '../components/fintech/FintechHeader';
 import PremiumWalletCard from '../components/fintech/PremiumWalletCard';
@@ -162,6 +163,7 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
   return (
     <div className="fintech-dashboard-wrapper">
       <MarketingPopup user={user} />
+      <BiometricSetupPrompt user={user} />
 
       <div className="fintech-glow glow-top-right"></div>
       <div className="fintech-glow glow-bottom-left"></div>
