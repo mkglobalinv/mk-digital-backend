@@ -59,6 +59,47 @@ import ProviderStatus from '../models/ProviderStatus.js';
     }
 })();
 
+// One-time startup migration: shorten existing in-trial reseller_admin
+// accounts' trialEndDate to 3 days from when their trial actually started
+// (trialStartDate, falling back to createdAt for accounts registered
+// before trialStartDate was tracked on this path) — matches the new 3-day
+// trial policy (was 7 days). Only ever shortens, never extends, and only
+// touches accounts still genuinely in trial (pending_onboarding, not yet
+// activated) — activated/suspended/expired accounts are untouched.
+export const migrateExistingTrialsTo3Days = async () => {
+    const TRIAL_DAYS = 3;
+    const inTrialUsers = await User.find({
+        role: 'reseller_admin',
+        isResellerActivated: false,
+        resellerActivationStatus: 'pending_onboarding',
+        trialEndDate: { $exists: true, $ne: null },
+    }).select('_id trialStartDate trialEndDate createdAt');
+
+    let updatedCount = 0;
+    for (const u of inTrialUsers) {
+        const anchor = u.trialStartDate || u.createdAt;
+        if (!anchor) continue;
+        const newTrialEndDate = new Date(anchor.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+        if (newTrialEndDate < u.trialEndDate) {
+            await User.updateOne({ _id: u._id }, { $set: { trialEndDate: newTrialEndDate } });
+            updatedCount++;
+        }
+    }
+    return updatedCount;
+};
+
+(async () => {
+    try {
+        const updatedCount = await migrateExistingTrialsTo3Days();
+        if (updatedCount > 0) {
+            console.log(`[Startup Migration] Shortened trialEndDate to 3 days for ${updatedCount} in-trial reseller(s)`);
+        }
+    } catch (err) {
+        // Non-blocking — log and continue
+        console.warn('[Startup Migration] Could not shorten existing trial periods:', err.message);
+    }
+})();
+
 
 
 // --- AUTHENTICATION HARDENING ---
