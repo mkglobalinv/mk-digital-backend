@@ -900,7 +900,7 @@ function App() {
                     if (unlockPin && unlockPin.length === 4) {
                        setUnlockPinLoading(true);
                        setUnlockError('');
-                       API.post('/api/auth/verify-pin', { transactionPin: unlockPin }, { headers: { Authorization: `Bearer ${token}` } })
+                       API.post('/auth/verify-pin', { transactionPin: unlockPin }, { headers: { Authorization: `Bearer ${token}` } })
                          .then(res => {
                              if(res.data.success) {
                                  sessionStorage.setItem('appUnlocked', 'true');
