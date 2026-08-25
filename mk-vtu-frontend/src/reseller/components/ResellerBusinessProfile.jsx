@@ -86,9 +86,6 @@ const ResellerBusinessProfile = ({ user }) => {
                     </div>
                     <div className="profile-info">
                         <h3>{profile.businessName} <ShieldCheck size={16} className="verified-badge" /></h3>
-                        <span className={`tier-badge tier-${profile.tier}`}>
-                            {profile.tier.toUpperCase()} RESELLER
-                        </span>
                     </div>
                 </div>
             </div>
