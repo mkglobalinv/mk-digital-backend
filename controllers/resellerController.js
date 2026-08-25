@@ -166,15 +166,6 @@ export const registerResellerUser = async (req, res) => {
 };
 
 export const registerResellerWithPayment = async (req, res) => {
-    // === EMERGENCY SECURITY CONTAINMENT (temporary) ===
-    // This endpoint grants role: "reseller_admin" (with isEmailVerified hardcoded
-    // to true) without ever verifying payment, despite its name. Disabled until
-    // real payment verification is restored. All original logic below is left
-    // intact and unreachable, for review — do not delete.
-    return res.status(503).json({
-        message: "Reseller registration is temporarily unavailable while we complete a security review. Please try again later or contact support."
-    });
-
     const reqStart = performance.now();
     console.log("=== ENTER registerResellerWithPayment ===");
     console.log("Request URL:", req.originalUrl);
