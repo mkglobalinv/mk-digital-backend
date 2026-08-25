@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, ArrowUpCircle, History, X, ShieldCheck, Clock, CheckCircle2, ChevronRight, Info, PlusCircle } from 'lucide-react';
+import { Copy, ArrowUpCircle, History, X, ShieldCheck, Clock, CheckCircle2, ChevronRight, Info, PlusCircle, AlertTriangle, ShieldAlert, Hourglass, RotateCcw } from 'lucide-react';
 import API from '../api';
 import './Wallet.css';
 
@@ -327,19 +327,25 @@ const Wallet = ({ token, user }) => {
                  </div>
               </div>
 
-              <div className="important-notice-box" style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '12px', padding: '16px', color: '#991b1b', fontSize: '13px', lineHeight: '1.5' }}>
-                 <p style={{ fontWeight: 800, margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><Info size={16} /> IMPORTANT NOTICE</p>
-                 <p style={{ margin: '0 0 8px 0' }}>This account was generated specifically for your wallet funding request.</p>
-                 <p style={{ margin: '0 0 8px 0' }}>Please transfer exactly <strong>₦{(localUser?.temporaryAmount || 0).toLocaleString()}</strong>.</p>
-                 <p style={{ margin: '0 0 4px 0' }}>Sending a lower or higher amount may result in:</p>
-                 <ul style={{ margin: '0 0 12px 0', paddingLeft: '20px' }}>
-                    <li>Funding failure</li>
-                    <li>Delayed wallet credit</li>
-                    <li>Manual review</li>
-                    <li>Transaction reversal by the provider</li>
-                 </ul>
-                 <p style={{ margin: '0 0 8px 0', color: '#111827' }}>Use the Copy button to copy the account number.</p>
-                 <p style={{ margin: 0, color: '#111827' }}>After payment is received, your wallet will be credited automatically.</p>
+              <div className="funding-notice">
+                 <p className="funding-notice-header"><Info size={16} /> Payment Instructions</p>
+
+                 <div className="funding-notice-amount">
+                    <p className="funding-notice-amount-label">Transfer exactly</p>
+                    <p className="funding-notice-amount-value">₦{(localUser?.temporaryAmount || 0).toLocaleString()}</p>
+                 </div>
+
+                 <div className="funding-risk-grid">
+                    <div className="funding-risk-item"><AlertTriangle size={14} color="#f59e0b" /> Funding failure</div>
+                    <div className="funding-risk-item"><Hourglass size={14} color="#f59e0b" /> Delayed credit</div>
+                    <div className="funding-risk-item"><ShieldAlert size={14} color="#f59e0b" /> Manual review</div>
+                    <div className="funding-risk-item"><RotateCcw size={14} color="#f59e0b" /> Provider reversal</div>
+                 </div>
+
+                 <div className="funding-notice-footer">
+                    <p><Copy size={14} /> Tap the copy icon above to copy the account number exactly.</p>
+                    <p className="success-line"><CheckCircle2 size={14} /> Your wallet is credited automatically once payment is received.</p>
+                 </div>
               </div>
             </div>
 

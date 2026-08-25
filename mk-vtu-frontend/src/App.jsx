@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -171,6 +171,15 @@ function App() {
     maintenanceTarget: "all"
   });
   const [appSocket, setAppSocket] = useState(null);
+  // Track the latest user/site IDs in refs so the socket's `connect` handler
+  // (registered once at mount) can always re-subscribe to the right rooms —
+  // including on reconnects after the OS suspends the socket while the app is
+  // backgrounded (e.g. the user switches to their banking app to complete a
+  // wallet-funding transfer). Without this, a reconnect gets a new socket.id
+  // that was never re-joined to `user_<id>`, so server-side wallet:sync pushes
+  // go nowhere and the balance only updates on a full app reload.
+  const userIdRef = useRef(null);
+  const siteIdRef = useRef(null);
 
   // Tenant Security Guard
   const [checkingTenant, setCheckingTenant] = useState(() => {
@@ -252,6 +261,17 @@ function App() {
       setSystemMaintenance(data);
     });
 
+    // Re-join per-user/per-reseller rooms on every connect, not just the
+    // first one. Socket.IO fires 'connect' again after every reconnect, and
+    // a reconnect always gets a fresh socket.id that starts in no rooms —
+    // without this, wallet balance pushes (and branding/pricing sync) silently
+    // stop reaching a client that reconnected after being backgrounded.
+    socket.on("connect", () => {
+      console.log("[WebSocket] Connected:", socket.id);
+      if (userIdRef.current) socket.emit('subscribe:user', userIdRef.current);
+      if (siteIdRef.current) socket.emit('subscribe:reseller_customer', siteIdRef.current);
+    });
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handlePrompt);
       window.removeEventListener('offline', handleOffline);
@@ -264,6 +284,7 @@ function App() {
 
   useEffect(() => {
     if (appSocket && siteInfo?._id) {
+      siteIdRef.current = siteInfo._id;
       appSocket.emit('subscribe:reseller_customer', siteInfo._id);
 
       const handleBrandingSync = (data) => {
@@ -291,6 +312,7 @@ function App() {
 
   useEffect(() => {
     if (appSocket && user?._id) {
+      userIdRef.current = user._id;
       appSocket.emit('subscribe:user', user._id);
 
       const handleWalletSync = (data) => {
