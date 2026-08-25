@@ -594,7 +594,17 @@ function App() {
       setUnlockError('');
     } catch (err) {
         console.error("App unlock failed", err);
-        setUnlockError("Biometric unlock is not supported or failed. Please use your 4-digit PIN.");
+        // Distinguish "this device has no fingerprint/face set up (or it was turned off
+        // after the user enabled biometric login in-app)" from "a fingerprint scan was
+        // attempted and didn't match/was cancelled" -- these need different guidance, and
+        // a single generic "not supported or failed" message left users unsure which one
+        // they were looking at.
+        const supported = await isBiometricAvailable().catch(() => false);
+        if (!supported) {
+          setUnlockError("Your fingerprint isn't set up on this device. Please use your 4-digit PIN to unlock.");
+        } else {
+          setUnlockError("We couldn't verify your fingerprint. Please try again or use your 4-digit PIN.");
+        }
     }
     finally { setBiometricLoading(false); }
   };
