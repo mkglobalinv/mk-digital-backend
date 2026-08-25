@@ -236,7 +236,7 @@ export const registerResellerWithPayment = async (req, res) => {
             existing.whiteLabelStatus = "pending";
             existing.isResellerActivated = false;
             existing.resellerTier = "basic";
-            existing.trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            existing.trialEndDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
             existing.subdomain = uniqueSubdomain;
             existing.admin_subdomain = uniqueSubdomain;
             existing.independence_redirect_enabled = true;
@@ -259,7 +259,7 @@ export const registerResellerWithPayment = async (req, res) => {
                 whiteLabelStatus: "pending",
                 isResellerActivated: false,
                 resellerTier: "basic",
-                trialEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                trialEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
                 isEmailVerified: true,
                 isSignupComplete: true,
                 subdomain: uniqueSubdomain,
@@ -357,7 +357,7 @@ export const claimSubdomain = async (req, res) => {
         user.subdomain = candidate;
         if (!user.isResellerActivated && !user.trialEndDate) {
             user.trialStartDate = new Date();
-            user.trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            user.trialEndDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
             user.resellerActivationStatus = "pending_onboarding";
         }
         await user.save();

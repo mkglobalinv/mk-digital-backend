@@ -26,7 +26,7 @@ export const startResellerMaintenanceWorker = () => {
                 await Notification.create({
                     userId: user._id,
                     title: 'Trial Expired',
-                    message: 'Your 7-day free trial has expired. Please pay the ₦5,000 Website Setup & Activation Fee to keep your website active.',
+                    message: 'Your 3-day free trial has expired. Please pay the ₦5,000 Website Setup & Activation Fee to keep your website active.',
                     type: 'system'
                 });
             }

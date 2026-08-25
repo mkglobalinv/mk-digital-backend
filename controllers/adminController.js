@@ -2028,7 +2028,7 @@ export const updateResellerLifecycle = async (req, res) => {
         // If activated, ensure trial dates or subscription logic is initialized
         if (status === 'active' && oldStatus !== 'active') {
             if (!user.trialEndDate) {
-                user.trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
+                user.trialEndDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
             }
         }
 
@@ -2265,7 +2265,7 @@ export const approveResellerRequest = async (req, res) => {
         user.resellerActivationStatus = 'active';
         user.isResellerActivated = false; // Start in trial mode
         user.trialStartDate = new Date();
-        user.trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days trial
+        user.trialEndDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days trial
         
         user.resellerTier = 'basic';
         user.features = {
