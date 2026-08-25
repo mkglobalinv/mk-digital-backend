@@ -157,6 +157,11 @@ function App() {
   const [unlockPin, setUnlockPin] = useState("");
   const [unlockPinLoading, setUnlockPinLoading] = useState(false);
   const [biometricLoading, setBiometricLoading] = useState(false);
+  // alert()/window.confirm() are silently no-ops in some WebView-based app
+  // wrappers — a failed unlock attempt there looked exactly like "nothing
+  // happens" with no way to tell what actually went wrong. Surface the
+  // real server message inline on the lock screen instead.
+  const [unlockError, setUnlockError] = useState('');
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isSlowNetwork, setIsSlowNetwork] = useState(false);
@@ -564,9 +569,10 @@ function App() {
       }
       sessionStorage.setItem('appUnlocked', 'true');
       setIsAppLocked(false);
+      setUnlockError('');
     } catch (err) {
-        console.error("App unlock failed", err); 
-        alert("Biometric unlock is not supported or failed. Please use your 4-digit PIN.");
+        console.error("App unlock failed", err);
+        setUnlockError("Biometric unlock is not supported or failed. Please use your 4-digit PIN.");
     }
     finally { setBiometricLoading(false); }
   };
@@ -875,7 +881,7 @@ function App() {
                           placeholder="_ _ _ _" 
                           maxLength={4}
                           value={unlockPin}
-                          onChange={(e) => setUnlockPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          onChange={(e) => { setUnlockPin(e.target.value.replace(/\D/g, '').slice(0, 4)); setUnlockError(''); }}
                           style={{
                               width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)',
                               background: 'var(--bg-color)', color: 'var(--text-dark)', fontSize: '24px', letterSpacing: '8px',
@@ -884,20 +890,27 @@ function App() {
                       />
                   </div>
 
+                  {unlockError && (
+                    <p style={{ color: '#EF4444', fontSize: '13px', fontWeight: '600', marginTop: '12px', marginBottom: 0, lineHeight: '1.4' }}>
+                      {unlockError}
+                    </p>
+                  )}
+
                   <button onClick={() => {
                     if (unlockPin && unlockPin.length === 4) {
                        setUnlockPinLoading(true);
+                       setUnlockError('');
                        API.post('/api/auth/verify-pin', { transactionPin: unlockPin }, { headers: { Authorization: `Bearer ${token}` } })
-                         .then(res => { 
-                             if(res.data.success) { 
-                                 sessionStorage.setItem('appUnlocked', 'true'); 
-                                 setIsAppLocked(false); 
+                         .then(res => {
+                             if(res.data.success) {
+                                 sessionStorage.setItem('appUnlocked', 'true');
+                                 setIsAppLocked(false);
                                  setUnlockPin('');
                              } else {
-                                 alert("Invalid PIN"); 
+                                 setUnlockError(res.data.message || "Invalid PIN");
                              }
                          })
-                         .catch(err => alert("Error verifying PIN"))
+                         .catch(err => setUnlockError(err.response?.data?.message || "Error verifying PIN. Please check your connection and try again."))
                          .finally(() => setUnlockPinLoading(false));
                     }
                   }} disabled={unlockPin.length !== 4 || unlockPinLoading} style={{
