@@ -9,7 +9,6 @@ import { getSiteName, isWhiteLabelSite } from '../utils/whiteLabelHelper';
 import { isActiveReseller, isPremiumReseller, checkBannerVisibility } from '../utils/bannerHelper';
 import { io } from 'socket.io-client';
 import MarketingPopup from '../components/marketing/MarketingPopup';
-import BiometricSetupPrompt from '../components/BiometricSetupPrompt';
 import CampaignGrid from '../components/marketing/CampaignGrid';
 import AnnouncementBanner from '../components/marketing/AnnouncementBanner';
 import FuturePlatformViewer from '../components/FuturePlatformViewer';
@@ -163,7 +162,6 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
   return (
     <div className="fintech-dashboard-wrapper">
       <MarketingPopup user={user} />
-      <BiometricSetupPrompt user={user} />
 
       <div className="fintech-glow glow-top-right"></div>
       <div className="fintech-glow glow-bottom-left"></div>
