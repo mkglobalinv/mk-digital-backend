@@ -900,7 +900,7 @@ function App() {
                          .catch(err => alert("Error verifying PIN"))
                          .finally(() => setUnlockPinLoading(false));
                     }
-                  }} disabled={unlockPin.length !== 4 || unlockPinLoading || biometricLoading} style={{
+                  }} disabled={unlockPin.length !== 4 || unlockPinLoading} style={{
                     width: '100%', marginTop: '16px', padding: '16px', borderRadius: '16px', 
                     border: 'none', background: unlockPin.length === 4 ? 'var(--primary-color, #3B82F6)' : 'var(--border-color)', 
                     color: unlockPin.length === 4 ? '#fff' : 'var(--text-gray)', fontWeight: 'bold', fontSize: '16px', 
