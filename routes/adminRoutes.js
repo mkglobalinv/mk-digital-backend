@@ -100,11 +100,12 @@ import {
   updatePlatform,
   deletePlatform
 } from "../controllers/futurePlatformController.js";
-import { 
-  getUserAudit, 
-  getResellerCustomersAudit, 
-  getProfitLedgerAudit, 
-  getWithdrawalVerification 
+import {
+  getUserAudit,
+  getResellerCustomersAudit,
+  getProfitLedgerAudit,
+  getWithdrawalVerification,
+  getResellerAnalyticsOverview
 } from "../controllers/auditController.js";
 
 import rateLimit from "express-rate-limit";
@@ -315,6 +316,7 @@ router.get("/referral-analytics", async (req, res) => {
 // --- AUDIT SYSTEM ROUTES (READ-ONLY) ---
 router.get("/audit/user/:userId", getUserAudit);
 router.get("/audit/reseller-customers/:resellerId", getResellerCustomersAudit);
+router.get("/reseller-analytics", requireOwner, getResellerAnalyticsOverview);
 router.get("/audit/profit-ledger/:resellerId", getProfitLedgerAudit);
 router.get("/audit/withdrawal-verification/:withdrawalId", getWithdrawalVerification);
 

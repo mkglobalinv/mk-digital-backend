@@ -121,6 +121,7 @@ const AdminLayout = ({ children, admin, logout }) => {
     menuGroups.push({
       title: 'SUPER ADMIN CONTROL CENTER',
       items: [
+        { name: 'Reseller Analytics', path: '/admin/reseller-analytics', icon: <TrendingUp size={18} />, badge: 'NEW' },
         { name: 'Deployment Center', path: '/admin/deployment', icon: <Layout size={18} />, badge: 'ROOT' },
         { name: 'Snapshots', path: '/admin/snapshots', icon: <Database size={18} /> },
         { name: 'Rollback', path: '/admin/rollback', icon: <History size={18} /> },
