@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("Verify your identity")
                 .setSubtitle("Use your fingerprint to continue")
                 .setNegativeButtonText("Cancel")
-                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.BIOMETRIC_WEAK)
                 .build();
 
         try {
@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public boolean isBiometricAvailable() {
             BiometricManager biometricManager = BiometricManager.from(MainActivity.this);
-            int result = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG);
+            int result = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.BIOMETRIC_WEAK);
             boolean available = result == BiometricManager.BIOMETRIC_SUCCESS;
 
             // Distinguishable diagnostics for each non-available case (no hardware, hardware

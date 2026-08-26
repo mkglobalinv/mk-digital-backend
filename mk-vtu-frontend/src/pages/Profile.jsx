@@ -163,7 +163,7 @@ const Profile = ({ logout, user, token, siteInfo }) => {
                 {user?.kycVerified ? 'Verified' : 'Unverified'}
              </span>
            </button>
-           {biometricSupported && (
+           {(biometricSupported || user?.biometricEnabled) && (
              <div className="premium-menu-item no-hover">
                <div className="menu-left">
                  <div className="menu-icon-wrapper purple"><Fingerprint size={18} /></div>
