@@ -262,7 +262,8 @@ app.get("/manifest.json", async (req, res) => {
         // Ensure absolute paths for asset rendering reliability inside PWABuilder Android engine
         const hostUrl = `${req.protocol}://${req.get('host')}`;
         const hasCustomAssets = reseller?.appSettings?.generatedAssets?.isReady;
-        
+        const brandingLogo = reseller?.branding?.logo;
+
         const defaultIcons = [
             {
                 src: `${hostUrl}/logo192.png`,
@@ -278,20 +279,25 @@ app.get("/manifest.json", async (req, res) => {
             }
         ];
 
-        const customIcons = hasCustomAssets ? [
-            {
-                src: `${hostUrl}/reseller-assets/${cleanBrand}/icon.png`,
-                sizes: "192x192",
-                type: "image/png",
-                purpose: "any maskable"
-            },
-            {
-                src: `${hostUrl}/reseller-assets/${cleanBrand}/icon.png`,
-                sizes: "512x512",
-                type: "image/png",
-                purpose: "any maskable"
-            }
-        ] : defaultIcons;
+        // Prefer the reseller's own configured branding logo (set during onboarding/
+        // branding setup, available to every reseller) over the platform default --
+        // the native-app-builder assets (generatedAssets) are a separate, opt-in flow
+        // most resellers never run, so gating the PWA icon on that left most reseller
+        // website installs showing the 9JASUB platform icon instead of their own.
+        let customIcons = defaultIcons;
+        if (hasCustomAssets) {
+            const genIconUrl = `${hostUrl}/reseller-assets/${cleanBrand}/icon.png`;
+            customIcons = [
+                { src: genIconUrl, sizes: "192x192", type: "image/png", purpose: "any maskable" },
+                { src: genIconUrl, sizes: "512x512", type: "image/png", purpose: "any maskable" }
+            ];
+        } else if (brandingLogo) {
+            const logoUrl = /^https?:\/\//i.test(brandingLogo) ? brandingLogo : `${hostUrl}${brandingLogo.startsWith('/') ? '' : '/'}${brandingLogo}`;
+            customIcons = [
+                { src: logoUrl, sizes: "192x192", type: "image/png", purpose: "any maskable" },
+                { src: logoUrl, sizes: "512x512", type: "image/png", purpose: "any maskable" }
+            ];
+        }
 
         const screenshots = hasCustomAssets && reseller.appSettings.generatedAssets.screenshots?.length > 0
             ? reseller.appSettings.generatedAssets.screenshots.map(ss => ({

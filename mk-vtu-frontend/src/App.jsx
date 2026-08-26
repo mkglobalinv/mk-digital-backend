@@ -758,10 +758,10 @@ function App() {
     <ThemeProvider>
       <ToastProvider>
         <BrandingProvider siteInfo={siteInfo}>
-        {location.pathname === '/' && (
-          <PWAInstallPrompt 
-              deferredPrompt={deferredPrompt} 
-              setDeferredPrompt={setDeferredPrompt} 
+        {location.pathname === '/' && isWhiteLabelSite(siteInfo) && (
+          <PWAInstallPrompt
+              deferredPrompt={deferredPrompt}
+              setDeferredPrompt={setDeferredPrompt}
               hasBottomNav={Boolean(token && !loadingUser && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/reseller') && !location.pathname.startsWith('/website'))}
           />
         )}
