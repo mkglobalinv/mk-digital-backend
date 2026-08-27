@@ -240,6 +240,24 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
                         Manage your website from your Admin Portal. Download the app and sign in to manage your website.
                     </p>
 
+                    {/* Live website link */}
+                    <a
+                        href={`https://${successInfo.adminSubdomain}.9jasub.com/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            gap: '10px', fontSize: '15px', fontWeight: '700', padding: '14px',
+                            borderRadius: '10px', background: 'rgba(16, 185, 129, 0.12)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10b981'
+                        }}
+                    >
+                        <span>🌐</span> Visit Your Website
+                    </a>
+                    <p style={{ fontSize: '13px', color: 'var(--bc-text-dim)', margin: '4px 0 16px', lineHeight: '1.5' }}>
+                        This is what your customers will see. Preview it anytime at <strong>{successInfo.adminSubdomain}.9jasub.com</strong>.
+                    </p>
+
                     {/* Secondary shortcut */}
                     <a
                         href="https://9jasub.com/website/dashboard"
