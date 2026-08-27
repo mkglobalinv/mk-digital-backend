@@ -224,7 +224,8 @@
 .saas-feature-card h3 { font-size: 1.3rem; font-weight: 700; margin: 0 0 12px; color: var(--gray-900); letter-spacing: -0.01em; }
 .saas-feature-card p { font-size: 1.05rem; color: var(--gray-500); line-height: 1.6; margin: 0; }
 @media (max-width: 992px) { .saas-features-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 768px) { .saas-features-grid { grid-template-columns: 1fr; gap: 24px; } .saas-feature-card { padding: 32px; } }
+@media (max-width: 768px) { .saas-features-grid { gap: 16px; } .saas-feature-card { padding: 20px 16px; } .saas-feature-card h3 { font-size: 1.05rem; } .saas-feature-card p { font-size: 0.85rem; } }
+@media (max-width: 480px) { .saas-features-grid { gap: 12px; } .saas-feature-card { padding: 16px 12px; border-radius: 16px; } .saas-feature-icon { width: 42px; height: 42px; border-radius: 12px; margin-bottom: 12px; } }
 
 /* 4. PLATFORM PREVIEW */
 .saas-preview-section { background: var(--gray-50); position: relative; border-radius: 40px; overflow: hidden; padding: 100px 24px 0; margin: 0 24px 100px; border: 1px solid var(--gray-100); box-shadow: inset 0 2px 20px rgba(0,0,0,0.02); text-align: center; }
@@ -250,7 +251,15 @@
 .saas-step-item h3 { font-size: 1.3rem; font-weight: 700; margin: 0 0 12px; color: var(--gray-900); }
 .saas-step-item p { font-size: 1.05rem; color: var(--gray-500); line-height: 1.6; margin: 0; }
 .saas-steps-line { position: absolute; top: 56px; left: 16%; right: 16%; height: 2px; background: linear-gradient(to right, transparent, var(--theme-primary-light) 20%, var(--theme-primary-light) 80%, transparent); z-index: 0; }
-@media (max-width: 768px) { .saas-steps { grid-template-columns: 1fr; gap: 32px; } .saas-steps-line { display: none; } .saas-step-item { padding: 16px; border: 1px solid var(--gray-100); box-shadow: var(--shadow-sm); } }
+@media (max-width: 768px) {
+  .saas-steps { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .saas-steps-line { display: none; }
+  .saas-step-item { padding: 16px; border: 1px solid var(--gray-100); box-shadow: var(--shadow-sm); }
+  .saas-step-item:last-child { grid-column: span 2; max-width: 260px; margin: 0 auto; }
+  .saas-step-number { width: 48px; height: 48px; font-size: 1.15rem; margin-bottom: 14px; }
+  .saas-step-item h3 { font-size: 1.05rem; }
+  .saas-step-item p { font-size: 0.85rem; }
+}
 
 /* 6. WHY CHOOSE US & BENEFITS */
 .saas-benefits-section { background: var(--gray-50); border-radius: 40px; margin: 0 24px 100px; padding-bottom: 100px; }
@@ -263,8 +272,14 @@
 .saas-benefit-icon { color: var(--theme-primary); flex-shrink: 0; background: var(--theme-primary-light); padding: 12px; border-radius: 12px; width: 56px; height: 56px; box-sizing: border-box; }
 .saas-benefit-content h3 { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0 0 12px; }
 .saas-benefit-content p { font-size: 1rem; color: var(--gray-500); line-height: 1.6; margin: 0; }
-@media (max-width: 992px) { .saas-benefits-grid { grid-template-columns: 1fr; } }
-@media (max-width: 768px) { .saas-benefits-section { margin: 0 0 60px; border-radius: 0; padding-bottom: 60px; } .saas-benefit-card { padding: 24px; flex-direction: column; gap: 16px; } }
+@media (max-width: 768px) {
+  .saas-benefits-section { margin: 0 0 60px; border-radius: 0; padding-bottom: 40px; }
+  .saas-benefits-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .saas-benefit-card { padding: 16px; flex-direction: column; gap: 10px; border-radius: 16px; }
+  .saas-benefit-icon { width: 40px; height: 40px; padding: 8px; border-radius: 10px; }
+  .saas-benefit-content h3 { font-size: 0.95rem; margin-bottom: 6px; }
+  .saas-benefit-content p { font-size: 0.8rem; line-height: 1.45; }
+}
 
 /* 7. FAQ */
 .saas-faq { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
@@ -305,12 +320,11 @@
 }
 
 /* SMALL PHONES -- desktop-scale card padding reads as cramped/oversized on
-   narrow screens; this tightens it without changing any copy or links. */
+   narrow screens; this tightens it without changing any copy or links.
+   (Feature/benefit/step cards have their own small-phone rules alongside
+   their grid-column rules above, so their grid columns stay in sync.) */
 @media (max-width: 480px) {
-  .saas-feature-card { padding: 24px 20px; border-radius: 20px; }
-  .saas-benefit-card { padding: 20px; border-radius: 16px; }
   .saas-faq-item { padding: 20px; border-radius: 16px; }
-  .saas-step-item { padding: 12px; }
   .saas-cta { padding: 48px 20px; }
   .saas-cta h2 { font-size: 1.8rem; }
   .saas-cta p { font-size: 1rem; margin-bottom: 32px; }
