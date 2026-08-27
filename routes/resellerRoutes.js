@@ -39,7 +39,8 @@ import {
     sendPremiumNotification,
     seenWelcomeBanner,
     seenBusinessGuide,
-    toggleManualService
+    toggleManualService,
+    getPublicResellerShowcase
 } from "../controllers/resellerController.js";
 import { getEmailCampaigns, sendEmailCampaign } from "../controllers/resellerEmailCampaignController.js";
 import { restrictToPremium, restrictToBasicOrPremium } from "../middlewares/tierMiddleware.js";
@@ -49,6 +50,7 @@ const router = express.Router();
 
 // Public routes (No auth required)
 router.post("/register-with-payment", restrictToMainDomain, registerResellerWithPayment);
+router.get("/public/showcase", restrictToMainDomain, getPublicResellerShowcase);
 
 // All routes below require auth
 router.use(auth);

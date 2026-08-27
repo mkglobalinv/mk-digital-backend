@@ -941,6 +941,46 @@ export const registerUser = async (req, res) => {
 };
 
 
+// Public Marketing Showcase — safe, name/logo-only reseller list for the
+// 9JASUB homepage social-proof carousel. No PII, no internal identifiers.
+export const getPublicResellerShowcase = async (req, res) => {
+    try {
+        const resellers = await User.find({
+            role: 'reseller_admin',
+            isResellerActivated: true,
+            resellerActivationStatus: 'active',
+            isSuspended: { $ne: true },
+            whiteLabelStatus: { $nin: ['suspended', 'disabled', 'under_review', 'rejected'] },
+            $or: [
+                { subdomain: { $exists: true, $nin: [null, ''] } },
+                { admin_subdomain: { $exists: true, $nin: [null, ''] } }
+            ]
+        })
+            .select('branding.siteName branding.logo onboardingData.brandName onboardingData.businessName subdomain admin_subdomain createdAt')
+            .sort({ createdAt: -1 })
+            .limit(15)
+            .lean();
+
+        const businesses = resellers
+            .map(r => {
+                const name = r.branding?.siteName || r.onboardingData?.brandName || r.onboardingData?.businessName;
+                const host = r.subdomain || r.admin_subdomain;
+                if (!name || !host) return null;
+                return {
+                    name,
+                    logo: r.branding?.logo || null,
+                    url: `https://${host}.9jasub.com`
+                };
+            })
+            .filter(Boolean)
+            .slice(0, 10);
+
+        res.json({ status: 'success', data: businesses });
+    } catch (err) {
+        res.status(500).json({ status: 'error', message: "Error fetching business showcase" });
+    }
+};
+
 // Premium Features & Upgrades
 export const getPremiumPricing = async (req, res) => {
     try {
