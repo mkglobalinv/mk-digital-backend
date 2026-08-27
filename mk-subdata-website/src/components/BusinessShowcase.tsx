@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Globe } from 'lucide-react';
 
 type ShowcaseBusiness = {
   name: string;
@@ -103,12 +104,18 @@ export default function BusinessShowcase() {
               className="flex items-center gap-3 shrink-0 snap-start bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5"
               style={{ minWidth: '220px' }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={biz.logo || '/logo.jpg'}
-                alt=""
-                className="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200 bg-white"
-              />
+              {biz.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={biz.logo}
+                  alt=""
+                  className="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200 bg-white"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                  <Globe className="w-4.5 h-4.5 text-emerald-600" />
+                </div>
+              )}
               <div className="min-w-0">
                 <p className="font-bold text-slate-900 text-sm truncate max-w-[140px]">{biz.name}</p>
                 <p className="text-[11px] text-slate-400 font-semibold">Powered by 9JASUB</p>
