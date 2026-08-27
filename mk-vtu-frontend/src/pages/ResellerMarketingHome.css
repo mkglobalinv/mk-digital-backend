@@ -28,8 +28,19 @@
 }
 .saas-container a { text-decoration: none; }
 .saas-container * { box-sizing: border-box; }
+.saas-container { scroll-behavior: smooth; }
 .hidden-mobile { display: block; }
 @media (max-width: 768px) { .hidden-mobile { display: none; } }
+
+/* Visible keyboard-focus ring on every interactive element -- links/buttons
+   keep their existing hover styling untouched, this only adds what was
+   missing for keyboard/accessibility use. */
+.saas-container a:focus-visible,
+.saas-container button:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
 
 /* ANIMATIONS */
 @keyframes fadeInUp {
@@ -44,9 +55,9 @@
 /* BUTTONS */
 .saas-btn-primary {
   background: var(--theme-primary); color: white;
-  font-weight: 600; padding: 12px 24px; border-radius: 12px;
+  font-weight: 600; padding: 12px 24px; border-radius: 12px; min-height: 44px;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent;
   box-shadow: 0 4px 14px 0 rgba(0,0,0,0.1);
 }
 .saas-btn-primary:hover {
@@ -55,7 +66,7 @@
 }
 .saas-btn-secondary {
   background: white; color: var(--gray-900);
-  font-weight: 600; padding: 12px 24px; border-radius: 12px;
+  font-weight: 600; padding: 12px 24px; border-radius: 12px; min-height: 44px;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);
 }
@@ -65,7 +76,8 @@
 }
 .saas-btn-outline {
   background: transparent; color: var(--gray-900);
-  font-weight: 600; padding: 10px 20px; border-radius: 12px;
+  font-weight: 600; padding: 10px 20px; border-radius: 12px; min-height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--gray-200); transition: all 0.2s ease;
 }
 .saas-btn-outline:hover { background: var(--gray-50); border-color: var(--gray-500); }
@@ -119,16 +131,17 @@
   border: 1px solid rgba(226,232,240,0.8); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: var(--gray-800);
   margin-bottom: 24px; box-shadow: var(--shadow-sm);
 }
-.saas-hero-title { font-size: 4.8rem; line-height: 1.1; font-weight: 800; letter-spacing: -0.04em; margin: 0 0 24px 0; color: var(--gray-900); }
+.saas-hero-title { font-size: clamp(2.25rem, 6vw + 1rem, 4.8rem); line-height: 1.1; font-weight: 800; letter-spacing: -0.04em; margin: 0 0 24px 0; color: var(--gray-900); }
 .saas-gradient-text { background: linear-gradient(135deg, var(--theme-primary) 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.saas-hero-subtitle { font-size: 1.3rem; line-height: 1.6; color: var(--gray-500); margin: 0 auto 40px; max-width: 650px; font-weight: 400; }
+.saas-hero-subtitle { font-size: clamp(1.05rem, 1vw + 0.85rem, 1.3rem); line-height: 1.6; color: var(--gray-500); margin: 0 auto 40px; max-width: 650px; font-weight: 400; }
 .saas-hero-actions { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
 @media (max-width: 768px) {
-  .saas-hero { padding: 140px 24px 60px; }
-  .saas-hero-title { font-size: 3rem; }
-  .saas-hero-subtitle { font-size: 1.1rem; }
+  .saas-hero { padding: 140px 20px 60px; }
   .saas-hero-actions { flex-direction: column; width: 100%; }
   .saas-hero-actions .saas-btn-large { width: 100%; }
+}
+@media (max-width: 480px) {
+  .saas-hero { padding: 128px 16px 48px; }
 }
 
 /* 2. TRUSTED SERVICES */
@@ -140,14 +153,20 @@
 .saas-trust-networks { display: flex; gap: 32px; align-items: center; justify-content: center; opacity: 0.5; filter: grayscale(100%); transition: all 0.4s ease; }
 .saas-trust-networks:hover { filter: grayscale(0%); opacity: 1; }
 .saas-network-badge { font-size: 1.3rem; font-weight: 800; color: var(--gray-900); letter-spacing: -0.03em; }
-@media (max-width: 768px) { .saas-trust-networks { display: none; } }
+@media (max-width: 768px) {
+  .saas-trust { padding: 32px 20px; }
+  .saas-trust-inner { flex-direction: column; gap: 24px; }
+  .saas-trust-networks { flex-wrap: wrap; gap: 16px 24px; opacity: 0.7; filter: grayscale(60%); order: 3; }
+  .saas-network-badge { font-size: 1.05rem; }
+}
 
 /* SECTION HEADERS */
 .saas-section { padding: 110px 24px; max-width: 1200px; margin: 0 auto; }
 .saas-section-header { text-align: center; margin-bottom: 64px; max-width: 700px; margin-inline: auto; }
-.saas-section-title { font-size: 2.5rem; font-weight: 800; color: var(--gray-900); margin: 0 0 16px; letter-spacing: -0.03em; }
-.saas-section-subtitle { font-size: 1.15rem; color: var(--gray-500); margin: 0; line-height: 1.6; }
-@media (max-width: 768px) { .saas-section { padding: 70px 24px; } .saas-section-title { font-size: 2rem; } }
+.saas-section-title { font-size: clamp(1.65rem, 2.2vw + 1.1rem, 2.5rem); font-weight: 800; color: var(--gray-900); margin: 0 0 16px; letter-spacing: -0.03em; }
+.saas-section-subtitle { font-size: clamp(1rem, 0.6vw + 0.85rem, 1.15rem); color: var(--gray-500); margin: 0; line-height: 1.6; }
+@media (max-width: 768px) { .saas-section { padding: 64px 20px; } .saas-section-header { margin-bottom: 44px; } }
+@media (max-width: 480px) { .saas-section { padding: 48px 16px; } }
 
 /* 3. CORE FEATURES */
 .saas-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
@@ -218,9 +237,9 @@
 /* 8. FINAL CTA */
 .saas-cta { position: relative; background: linear-gradient(135deg, var(--theme-primary) 0%, #4f46e5 100%); border-radius: 40px; padding: 100px 40px; margin: 0 24px 100px; text-align: center; color: white; overflow: hidden; box-shadow: 0 24px 48px -12px rgba(99,102,241,0.4); }
 .saas-cta-glow { position: absolute; top: -50%; left: -10%; width: 50%; height: 200%; background: radial-gradient(ellipse at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%); transform: rotate(30deg); pointer-events: none; }
-.saas-cta h2 { font-size: 3.2rem; font-weight: 800; margin: 0 0 24px; letter-spacing: -0.03em; position: relative; z-index: 1; }
-.saas-cta p { font-size: 1.3rem; opacity: 0.9; margin: 0 auto 48px; max-width: 700px; position: relative; z-index: 1; font-weight: 400; line-height: 1.6; }
-@media (max-width: 768px) { .saas-cta { padding: 60px 24px; margin: 0 0 60px; border-radius: 0; } .saas-cta h2 { font-size: 2.25rem; } .saas-cta p { font-size: 1.15rem; } }
+.saas-cta h2 { font-size: clamp(1.9rem, 3.5vw + 1rem, 3.2rem); font-weight: 800; margin: 0 0 24px; letter-spacing: -0.03em; position: relative; z-index: 1; }
+.saas-cta p { font-size: clamp(1.05rem, 0.8vw + 0.85rem, 1.3rem); opacity: 0.9; margin: 0 auto 48px; max-width: 700px; position: relative; z-index: 1; font-weight: 400; line-height: 1.6; }
+@media (max-width: 768px) { .saas-cta { padding: 60px 24px; margin: 0 0 60px; border-radius: 0; } }
 
 /* 9. FOOTER */
 .saas-footer { background: white; border-top: 1px solid var(--gray-100); padding: 80px 24px 40px; }
@@ -242,4 +261,18 @@
   .saas-footer-top { grid-template-columns: 1fr; gap: 48px; margin-bottom: 48px; }
   .saas-footer-bottom { flex-direction: column; gap: 24px; text-align: center; }
   .saas-footer-legal { justify-content: center; flex-wrap: wrap; }
+}
+
+/* SMALL PHONES -- desktop-scale card padding reads as cramped/oversized on
+   narrow screens; this tightens it without changing any copy or links. */
+@media (max-width: 480px) {
+  .saas-feature-card { padding: 24px 20px; border-radius: 20px; }
+  .saas-benefit-card { padding: 20px; border-radius: 16px; }
+  .saas-faq-item { padding: 20px; border-radius: 16px; }
+  .saas-step-item { padding: 12px; }
+  .saas-cta { padding: 48px 20px; }
+  .saas-cta h2 { font-size: 1.8rem; }
+  .saas-cta p { font-size: 1rem; margin-bottom: 32px; }
+  .saas-footer { padding: 56px 20px 32px; }
+  .saas-preview-wrapper { padding: 0 12px; }
 }
