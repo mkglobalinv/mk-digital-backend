@@ -941,9 +941,11 @@ export const registerUser = async (req, res) => {
 };
 
 
-// Public Marketing Showcase — safe, name/logo-only list of ALL registered
-// resellers (any tier, active or inactive) for the 9JASUB homepage
-// social-proof carousel. No PII, no internal identifiers.
+// Public Marketing Showcase — safe, name/logo-only list of EVERY registered
+// reseller website (any tier, active or inactive) for the 9JASUB homepage
+// social-proof carousel. No PII, no internal identifiers, no curation —
+// this is a live query, not a manually maintained/featured list, so a
+// newly created reseller website appears automatically on the next request.
 export const getPublicResellerShowcase = async (req, res) => {
     try {
         // Include every registered reseller regardless of tier (basic/premium)
@@ -961,7 +963,6 @@ export const getPublicResellerShowcase = async (req, res) => {
         })
             .select('branding.siteName branding.logo onboardingData.brandName onboardingData.businessName subdomain admin_subdomain createdAt')
             .sort({ createdAt: -1 })
-            .limit(15)
             .lean();
 
         const businesses = resellers
@@ -975,8 +976,7 @@ export const getPublicResellerShowcase = async (req, res) => {
                     url: `https://${host}.9jasub.com`
                 };
             })
-            .filter(Boolean)
-            .slice(0, 10);
+            .filter(Boolean);
 
         res.json({ status: 'success', data: businesses });
     } catch (err) {
