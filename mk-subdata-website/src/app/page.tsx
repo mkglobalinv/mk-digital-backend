@@ -6,6 +6,7 @@ import Referrals from '@/components/Referrals';
 import MobileApp from '@/components/MobileApp';
 import FinalCTA from '@/components/FinalCTA';
 import Footer from '@/components/Footer';
+import ReferralFloatingButton from '@/components/ReferralFloatingButton';
 
 export const metadata = {
   title: '9JASUB - Own Your VTU Website & App',
@@ -33,6 +34,7 @@ export default function Home() {
         <FinalCTA />
       </main>
       <Footer />
+      <ReferralFloatingButton />
     </div>
   );
 }
