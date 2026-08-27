@@ -941,15 +941,18 @@ export const registerUser = async (req, res) => {
 };
 
 
-// Public Marketing Showcase — safe, name/logo-only reseller list for the
-// 9JASUB homepage social-proof carousel. No PII, no internal identifiers.
+// Public Marketing Showcase — safe, name/logo-only list of ALL registered
+// resellers (any tier, active or inactive) for the 9JASUB homepage
+// social-proof carousel. No PII, no internal identifiers.
 export const getPublicResellerShowcase = async (req, res) => {
     try {
+        // Include every registered reseller regardless of tier (basic/premium)
+        // or activation status (active/inactive/trial) — only genuinely
+        // suspended/rejected/blocked accounts are excluded.
         const resellers = await User.find({
             role: 'reseller_admin',
-            isResellerActivated: true,
-            resellerActivationStatus: 'active',
             isSuspended: { $ne: true },
+            resellerActivationStatus: { $ne: 'suspended' },
             whiteLabelStatus: { $nin: ['suspended', 'disabled', 'under_review', 'rejected'] },
             $or: [
                 { subdomain: { $exists: true, $nin: [null, ''] } },
