@@ -7,7 +7,6 @@ import {
   Tv,
   GraduationCap,
   Wallet,
-  CheckCircle2,
   ArrowRight,
   Menu,
   X,
@@ -17,28 +16,31 @@ import {
   Clock,
   CreditCard,
   Headphones,
-  Fingerprint,
-  IdCard,
-  Building2,
-  Scale
+  Globe,
+  Star,
+  Activity
 } from 'lucide-react';
 import { getSiteName, getSiteSupportEmail } from '../utils/whiteLabelHelper';
 import vtuMockup from '../assets/vtu-app-mockup.png';
+import resellerHeroSupport from '../assets/reseller-hero-support.jpg';
 import './ResellerMarketingHome.css';
 
-// Real, already-built services this platform offers -- used for the hero
-// services-preview grid. Icons only, no new copy invented beyond the
-// existing service names shown elsewhere in the app (QuickServicesGrid /
-// IdentityServicesGrid).
-const HERO_SERVICES = [
-  { icon: Wifi, label: 'Buy Data' },
-  { icon: Smartphone, label: 'Airtime' },
-  { icon: Tv, label: 'Cable Subscription' },
-  { icon: GraduationCap, label: 'Exam PIN' },
-  { icon: Fingerprint, label: 'NIN Verify' },
-  { icon: IdCard, label: 'BVN Verify' },
-  { icon: Building2, label: 'CAC Reg.' },
-  { icon: Scale, label: 'Court Affidavit' },
+// Mirrors the main 9jasub.com marketing site's actual Hero.tsx trust-badge
+// row (same 4 icons/positions), so reseller sites share its visual language
+// instead of a one-off design.
+const HERO_TRUST_BADGES = [
+  { icon: ShieldCheck, line1: '100% Secure', line2: 'Transactions' },
+  { icon: Zap, line1: 'Instant', line2: 'Delivery' },
+  { icon: Star, line1: 'Trusted by', line2: 'Customers' },
+  { icon: Headphones, line1: '24/7 Customer', line2: 'Support' },
+];
+
+// Mirrors the main site's Stats.tsx section.
+const PLATFORM_STATS = [
+  { icon: Activity, value: '99.9%', label: 'Platform Uptime' },
+  { icon: Clock, value: '24/7', label: 'Dedicated Support' },
+  { icon: Zap, value: 'Instant', label: 'Service Delivery' },
+  { icon: ShieldCheck, value: '100%', label: 'Secure Transactions' },
 ];
 
 const ResellerMarketingHome = ({ siteInfo }) => {
@@ -111,9 +113,6 @@ const ResellerMarketingHome = ({ siteInfo }) => {
         <div className="saas-hero-bg-glow"></div>
 
         <div className="saas-hero-content">
-          <div className="saas-badge animate-fade-in-up">
-            <CheckCircle2 size={14} color={primaryColor} /> All-in-One Platform
-          </div>
           <h1 className="saas-hero-title animate-fade-in-up delay-100">
             Digital payments, <br className="hidden-mobile" />
             <span className="saas-gradient-text">simplified.</span>
@@ -121,15 +120,6 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           <p className="saas-hero-subtitle animate-fade-in-up delay-200">
             Purchase affordable data, airtime, and pay bills instantly. Experience seamless, bank-level secure transactions without the wait.
           </p>
-
-          <div className="saas-hero-services-grid animate-fade-in-up delay-200">
-            {HERO_SERVICES.map(({ icon: Icon, label }) => (
-              <div className="saas-hero-service-chip" key={label}>
-                <Icon size={20} />
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
 
           <div className="saas-hero-actions animate-fade-in-up delay-300">
             <Link to="/signup" className="saas-btn-primary saas-btn-large">
@@ -139,46 +129,32 @@ const ResellerMarketingHome = ({ siteInfo }) => {
               Login
             </Link>
           </div>
+
+          <div className="saas-hero-trust-row animate-fade-in-up delay-300">
+            {HERO_TRUST_BADGES.map(({ icon: Icon, line1, line2 }, idx) => (
+              <div className="saas-hero-trust-item" key={idx}>
+                <Icon size={20} />
+                <p>{line1}<br />{line2}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="saas-hero-visual animate-fade-in-up delay-300">
-          <div className="saas-hero-shape saas-hero-shape-1"></div>
-          <div className="saas-hero-shape saas-hero-shape-2"></div>
-          <div className="saas-hero-phone-frame">
-            <img src={vtuMockup} alt={`${siteName} app preview`} className="saas-hero-phone-img" loading="lazy" />
-          </div>
-          <div className="saas-hero-float-badge saas-float-support">
-            <Headphones size={18} />
-            <span>24/7<br />Customer Support</span>
-          </div>
-          <div className="saas-hero-float-badge saas-float-trust">
-            <ShieldCheck size={22} color="#10B981" />
-            <span className="saas-float-trust-text">
-              <strong>100%</strong> Trusted By Our Users
-            </span>
-          </div>
+          <img src={resellerHeroSupport} alt="Customer support" className="saas-hero-photo" loading="lazy" />
         </div>
       </section>
 
-      {/* 2. TRUST BAR */}
-      <section id="services" className="saas-trust">
-        <div className="saas-trust-inner">
-          <div className="saas-trust-item">
-            <ShieldCheck size={22} />
-            <span>Secure<br />Transactions</span>
-          </div>
-          <div className="saas-trust-item">
-            <Zap size={22} />
-            <span>Instant<br />Delivery</span>
-          </div>
-          <div className="saas-trust-item">
-            <CheckCircle2 size={22} />
-            <span>Reliable<br />Service</span>
-          </div>
-          <div className="saas-trust-item">
-            <Headphones size={22} />
-            <span>24/7<br />Support</span>
-          </div>
+      {/* 2. PLATFORM STATS */}
+      <section id="services" className="saas-stats">
+        <div className="saas-stats-grid">
+          {PLATFORM_STATS.map(({ icon: Icon, value, label }, idx) => (
+            <div className="saas-stat-card" key={idx}>
+              <div className="saas-stat-icon"><Icon size={22} /></div>
+              <h3>{value}</h3>
+              <p>{label}</p>
+            </div>
+          ))}
         </div>
         <div className="saas-trust-networks">
           <span className="saas-network-badge">MTN</span>

@@ -136,87 +136,68 @@
 .saas-hero-subtitle { font-size: clamp(1.05rem, 1vw + 0.85rem, 1.2rem); line-height: 1.6; color: var(--gray-500); margin: 0 0 32px; max-width: 560px; font-weight: 400; }
 .saas-hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
 
-/* Split hero: text + services grid on the left, phone visual on the right --
-   collapses to a single centered column on smaller screens (see below). */
+/* Split hero: text on the left, real support photo on the right -- mirrors
+   the main 9jasub.com marketing site's actual Hero.tsx layout (text column +
+   trust-badge row under the CTA, photo column with a floating status card),
+   adapted to this reseller's own theme color instead of the platform's. */
 .saas-hero-split {
   display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; gap: 48px;
   text-align: left; padding-top: 160px; padding-bottom: 80px;
 }
 .saas-hero-content { position: relative; z-index: 2; }
 
-.saas-hero-services-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; max-width: 520px;
+.saas-hero-trust-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px;
+  padding-top: 28px; border-top: 1px solid var(--gray-100); max-width: 560px;
 }
-.saas-hero-service-chip {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  background: white; border: 1px solid var(--gray-100); border-radius: 14px; padding: 14px 8px;
-  box-shadow: var(--shadow-sm); color: var(--theme-primary); transition: all 0.25s ease;
-}
-.saas-hero-service-chip span { color: var(--gray-800); font-size: 0.72rem; font-weight: 700; text-align: center; line-height: 1.25; }
-.saas-hero-service-chip:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(99,102,241,0.25); }
+.saas-hero-trust-item { display: flex; align-items: center; gap: 8px; }
+.saas-hero-trust-item svg { flex-shrink: 0; color: var(--theme-primary); }
+.saas-hero-trust-item p { margin: 0; font-size: 0.78rem; font-weight: 700; color: var(--gray-800); line-height: 1.25; }
 
-.saas-hero-visual { position: relative; display: flex; align-items: center; justify-content: center; min-height: 420px; }
-.saas-hero-shape { position: absolute; border-radius: 40px; z-index: 0; pointer-events: none; }
-.saas-hero-shape-1 { width: 70%; height: 70%; top: -6%; left: -8%; background: linear-gradient(135deg, var(--theme-primary) 0%, #4f46e5 100%); opacity: 0.08; transform: rotate(-8deg); }
-.saas-hero-shape-2 { width: 55%; height: 55%; bottom: -8%; right: -6%; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); opacity: 0.1; border-radius: 50%; }
-
-.saas-hero-phone-frame {
-  position: relative; z-index: 1; width: min(280px, 70%); background: var(--gray-900); border-radius: 36px; padding: 10px;
-  box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15,23,42,0.05);
-}
-.saas-hero-phone-img { width: 100%; height: auto; display: block; border-radius: 26px; }
-
-.saas-hero-float-badge {
-  position: absolute; z-index: 2; display: flex; align-items: center; gap: 10px; background: white;
-  border-radius: 16px; padding: 10px 14px; box-shadow: var(--shadow-lg); font-size: 0.78rem; font-weight: 700; color: var(--gray-800);
-  line-height: 1.25; animation: floatBadge 4s ease-in-out infinite;
-}
-.saas-float-support { top: 6%; right: -2%; background: var(--gray-900); color: white; }
-.saas-float-trust { bottom: 8%; left: -6%; animation-delay: 1.5s; }
-.saas-float-trust-text strong { color: #f59e0b; font-size: 0.95rem; display: block; }
-@keyframes floatBadge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.saas-hero-visual { position: relative; display: flex; align-items: center; justify-content: center; }
+.saas-hero-photo { width: 100%; height: auto; display: block; border-radius: 28px; box-shadow: 0 30px 60px -20px rgba(15,23,42,0.25); }
 
 @media (max-width: 992px) {
-  .saas-hero-split { grid-template-columns: 1fr; text-align: center; gap: 56px; padding-top: 150px; }
+  .saas-hero-split { grid-template-columns: 1fr; text-align: center; gap: 48px; padding-top: 150px; }
   .saas-hero-content { display: flex; flex-direction: column; align-items: center; }
   .saas-hero-subtitle { margin-left: auto; margin-right: auto; }
   .saas-hero-actions { justify-content: center; }
-  .saas-hero-services-grid { max-width: 460px; }
-  .saas-hero-visual { min-height: 360px; }
-  .saas-float-support { right: 4%; }
-  .saas-float-trust { left: 2%; }
+  .saas-hero-trust-row { max-width: 460px; }
 }
 @media (max-width: 768px) {
   .saas-hero-split { padding: 140px 20px 60px; }
   .saas-hero-actions { flex-direction: column; width: 100%; }
   .saas-hero-actions .saas-btn-large { width: 100%; }
-  .saas-hero-services-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 100%; }
-  .saas-hero-service-chip { padding: 10px 4px; border-radius: 12px; }
-  .saas-hero-service-chip span { font-size: 0.65rem; }
-  .saas-hero-visual { min-height: 300px; }
-  .saas-hero-phone-frame { width: min(220px, 60%); }
-  .saas-hero-float-badge { font-size: 0.68rem; padding: 8px 10px; }
+  .saas-hero-trust-row { grid-template-columns: repeat(2, 1fr); gap: 16px 12px; max-width: 100%; margin-top: 32px; padding-top: 24px; }
 }
 @media (max-width: 480px) {
   .saas-hero-split { padding: 128px 16px 48px; gap: 40px; }
-  .saas-hero-visual { min-height: 260px; }
-  .saas-float-support { top: 2%; right: 2%; }
-  .saas-float-trust { bottom: 4%; left: 0; }
+  .saas-hero-photo { border-radius: 20px; }
 }
 
-/* 2. TRUST BAR */
-.saas-trust { background: linear-gradient(135deg, var(--gray-900) 0%, #1e1b4b 100%); padding: 40px 24px 28px; }
-.saas-trust-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-.saas-trust-item { display: flex; align-items: center; justify-content: center; gap: 12px; color: white; }
-.saas-trust-item svg { flex-shrink: 0; color: #93c5fd; }
-.saas-trust-item span { font-size: 0.9rem; font-weight: 700; line-height: 1.25; }
-.saas-trust-networks { max-width: 1100px; margin: 24px auto 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); display: flex; gap: 32px; align-items: center; justify-content: center; flex-wrap: wrap; opacity: 0.55; }
+/* 2. PLATFORM STATS -- mirrors the main site's Stats.tsx (dark section,
+   bordered cards, icon + big value + label). */
+.saas-stats { background: linear-gradient(135deg, var(--gray-900) 0%, #1e1b4b 100%); padding: 72px 24px; }
+.saas-stats-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.saas-stat-card {
+  display: flex; flex-direction: column; align-items: center; text-align: center; padding: 28px 16px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; transition: background 0.3s ease;
+}
+.saas-stat-card:hover { background: rgba(255,255,255,0.07); }
+.saas-stat-icon {
+  width: 48px; height: 48px; border-radius: 12px; background: var(--theme-primary-light); color: #93c5fd;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+}
+.saas-stat-card h3 { font-size: 2rem; font-weight: 800; color: white; margin: 0 0 6px; letter-spacing: -0.02em; }
+.saas-stat-card p { font-size: 0.95rem; font-weight: 600; color: #cbd5e1; margin: 0; }
+.saas-trust-networks { max-width: 1100px; margin: 32px auto 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.12); display: flex; gap: 32px; align-items: center; justify-content: center; flex-wrap: wrap; opacity: 0.55; }
 .saas-network-badge { font-size: 1.1rem; font-weight: 800; color: white; letter-spacing: -0.03em; }
 @media (max-width: 768px) {
-  .saas-trust { padding: 32px 20px 24px; }
-  .saas-trust-inner { grid-template-columns: repeat(2, 1fr); gap: 20px 16px; }
-  .saas-trust-item { flex-direction: column; text-align: center; gap: 8px; }
-  .saas-trust-networks { gap: 16px 24px; margin-top: 20px; padding-top: 16px; }
+  .saas-stats { padding: 48px 20px; }
+  .saas-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .saas-stat-card { padding: 22px 12px; }
+  .saas-stat-card h3 { font-size: 1.6rem; }
+  .saas-trust-networks { gap: 16px 24px; margin-top: 24px; padding-top: 16px; }
   .saas-network-badge { font-size: 0.95rem; }
 }
 
