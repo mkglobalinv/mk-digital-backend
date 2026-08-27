@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Wifi, 
-  Smartphone, 
-  Lightbulb, 
-  Tv, 
-  GraduationCap, 
-  Wallet, 
+import {
+  Wifi,
+  Smartphone,
+  Lightbulb,
+  Tv,
+  GraduationCap,
+  Wallet,
   CheckCircle2,
   ArrowRight,
   Menu,
@@ -16,11 +16,30 @@ import {
   TrendingDown,
   Clock,
   CreditCard,
-  Headphones
+  Headphones,
+  Fingerprint,
+  IdCard,
+  Building2,
+  Scale
 } from 'lucide-react';
 import { getSiteName, getSiteSupportEmail } from '../utils/whiteLabelHelper';
 import vtuMockup from '../assets/vtu-app-mockup.png';
 import './ResellerMarketingHome.css';
+
+// Real, already-built services this platform offers -- used for the hero
+// services-preview grid. Icons only, no new copy invented beyond the
+// existing service names shown elsewhere in the app (QuickServicesGrid /
+// IdentityServicesGrid).
+const HERO_SERVICES = [
+  { icon: Wifi, label: 'Buy Data' },
+  { icon: Smartphone, label: 'Airtime' },
+  { icon: Tv, label: 'Cable Subscription' },
+  { icon: GraduationCap, label: 'Exam PIN' },
+  { icon: Fingerprint, label: 'NIN Verify' },
+  { icon: IdCard, label: 'BVN Verify' },
+  { icon: Building2, label: 'CAC Reg.' },
+  { icon: Scale, label: 'Court Affidavit' },
+];
 
 const ResellerMarketingHome = ({ siteInfo }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -87,47 +106,86 @@ const ResellerMarketingHome = ({ siteInfo }) => {
       </div>
 
       {/* 1. HERO SECTION */}
-      <section className="saas-hero">
+      <section className="saas-hero saas-hero-split">
         <div className="saas-hero-bg-gradient"></div>
         <div className="saas-hero-bg-glow"></div>
-        <div className="saas-badge animate-fade-in-up">
-          <Zap size={14} color={primaryColor} /> Fast, Secure & Automated
+
+        <div className="saas-hero-content">
+          <div className="saas-badge animate-fade-in-up">
+            <CheckCircle2 size={14} color={primaryColor} /> All-in-One Platform
+          </div>
+          <h1 className="saas-hero-title animate-fade-in-up delay-100">
+            Digital payments, <br className="hidden-mobile" />
+            <span className="saas-gradient-text">simplified.</span>
+          </h1>
+          <p className="saas-hero-subtitle animate-fade-in-up delay-200">
+            Purchase affordable data, airtime, and pay bills instantly. Experience seamless, bank-level secure transactions without the wait.
+          </p>
+
+          <div className="saas-hero-services-grid animate-fade-in-up delay-200">
+            {HERO_SERVICES.map(({ icon: Icon, label }) => (
+              <div className="saas-hero-service-chip" key={label}>
+                <Icon size={20} />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="saas-hero-actions animate-fade-in-up delay-300">
+            <Link to="/signup" className="saas-btn-primary saas-btn-large">
+              Create Account <ArrowRight size={18} />
+            </Link>
+            <Link to="/login" className="saas-btn-secondary saas-btn-large">
+              Login
+            </Link>
+          </div>
         </div>
-        <h1 className="saas-hero-title animate-fade-in-up delay-100">
-          Digital payments, <br className="hidden-mobile" />
-          <span className="saas-gradient-text">simplified.</span>
-        </h1>
-        <p className="saas-hero-subtitle animate-fade-in-up delay-200">
-          Purchase affordable data, airtime, and pay bills instantly. Experience seamless, bank-level secure transactions without the wait.
-        </p>
-        <div className="saas-hero-actions animate-fade-in-up delay-300">
-          <Link to="/signup" className="saas-btn-primary saas-btn-large">
-            Create Account <ArrowRight size={18} />
-          </Link>
-          <Link to="/login" className="saas-btn-secondary saas-btn-large">
-            Login
-          </Link>
+
+        <div className="saas-hero-visual animate-fade-in-up delay-300">
+          <div className="saas-hero-shape saas-hero-shape-1"></div>
+          <div className="saas-hero-shape saas-hero-shape-2"></div>
+          <div className="saas-hero-phone-frame">
+            <img src={vtuMockup} alt={`${siteName} app preview`} className="saas-hero-phone-img" loading="lazy" />
+          </div>
+          <div className="saas-hero-float-badge saas-float-support">
+            <Headphones size={18} />
+            <span>24/7<br />Customer Support</span>
+          </div>
+          <div className="saas-hero-float-badge saas-float-trust">
+            <ShieldCheck size={22} color="#10B981" />
+            <span className="saas-float-trust-text">
+              <strong>100%</strong> Trusted By Our Users
+            </span>
+          </div>
         </div>
       </section>
 
-      {/* 2. TRUSTED SERVICES */}
+      {/* 2. TRUST BAR */}
       <section id="services" className="saas-trust">
         <div className="saas-trust-inner">
-          <div className="saas-trust-stat">
-            <p className="saas-trust-val">99.9%</p>
-            <p className="saas-trust-label">Uptime Reliability</p>
+          <div className="saas-trust-item">
+            <ShieldCheck size={22} />
+            <span>Secure<br />Transactions</span>
           </div>
-          <div className="saas-trust-networks">
-            <span className="saas-network-badge">MTN</span>
-            <span className="saas-network-badge">AIRTEL</span>
-            <span className="saas-network-badge">GLO</span>
-            <span className="saas-network-badge">9MOBILE</span>
-            <span className="saas-network-badge">DSTV</span>
+          <div className="saas-trust-item">
+            <Zap size={22} />
+            <span>Instant<br />Delivery</span>
           </div>
-          <div className="saas-trust-stat">
-            <p className="saas-trust-val">&lt;3s</p>
-            <p className="saas-trust-label">Avg. Delivery</p>
+          <div className="saas-trust-item">
+            <CheckCircle2 size={22} />
+            <span>Reliable<br />Service</span>
           </div>
+          <div className="saas-trust-item">
+            <Headphones size={22} />
+            <span>24/7<br />Support</span>
+          </div>
+        </div>
+        <div className="saas-trust-networks">
+          <span className="saas-network-badge">MTN</span>
+          <span className="saas-network-badge">AIRTEL</span>
+          <span className="saas-network-badge">GLO</span>
+          <span className="saas-network-badge">9MOBILE</span>
+          <span className="saas-network-badge">DSTV</span>
         </div>
       </section>
 
