@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Globe, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 const slugify = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -29,14 +29,13 @@ export default function WebsiteDemo() {
   const displayName = trimmed || 'ABC Data';
   const slug = slugify(trimmed) || 'abcdata';
 
-  // Debounce so the iframe doesn't reload on every keystroke.
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setIframeLoaded(false);
-      setIframeSrc(`${APP_URL}/storefront-preview?brand=${encodeURIComponent(displayName)}`);
-    }, 500);
-    return () => clearTimeout(handle);
-  }, [displayName]);
+  // The preview only loads once the visitor explicitly asks for it — never
+  // automatically on page load or while typing.
+  const showWebsite = () => {
+    setIframeLoaded(false);
+    setIframeSrc(`${APP_URL}/storefront-preview?brand=${encodeURIComponent(displayName)}`);
+    previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
 
   // Safety net: some browsers don't fire onLoad reliably for cross-origin
   // iframes. Hide the loading spinner after a short delay regardless, so it
@@ -64,7 +63,13 @@ export default function WebsiteDemo() {
               Enter your business name and see a live preview of what your own branded website could look like.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto lg:mx-0">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                showWebsite();
+              }}
+              className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto lg:mx-0"
+            >
               <input
                 type="text"
                 value={businessName}
@@ -74,13 +79,12 @@ export default function WebsiteDemo() {
                 className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
               <button
-                type="button"
-                onClick={() => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                type="submit"
                 className="btn-primary px-6 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shrink-0"
               >
                 See My Website <ArrowRight size={18} />
               </button>
-            </div>
+            </form>
 
             <p className="mt-6 text-sm font-bold uppercase tracking-wide text-slate-400">
               Your Website. Your Brand. Your Business.
@@ -116,18 +120,29 @@ export default function WebsiteDemo() {
             </div>
 
             <div className="relative bg-white" style={{ height: '520px' }}>
-              {!iframeLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
-                  <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
+              {!iframeSrc ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-slate-50">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mb-4">
+                    <Globe className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <p className="text-slate-500 font-medium text-sm">
+                    Enter your business name and click <span className="font-bold text-slate-700">&ldquo;See My Website&rdquo;</span> to preview it here.
+                  </p>
                 </div>
-              )}
-              {iframeSrc && (
-                <iframe
-                  src={iframeSrc}
-                  title="Live preview of your VTU website"
-                  className="w-full h-full border-0"
-                  onLoad={() => setIframeLoaded(true)}
-                />
+              ) : (
+                <>
+                  {!iframeLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+                      <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
+                    </div>
+                  )}
+                  <iframe
+                    src={iframeSrc}
+                    title="Live preview of your VTU website"
+                    className="w-full h-full border-0"
+                    onLoad={() => setIframeLoaded(true)}
+                  />
+                </>
               )}
             </div>
           </motion.div>
