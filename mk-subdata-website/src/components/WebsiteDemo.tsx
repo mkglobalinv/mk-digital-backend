@@ -1,25 +1,51 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Wifi, Phone, Lightbulb, Tv } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 const slugify = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.9jasub.com';
+
 /**
  * WebsiteDemo — "See Your Website" interactive marketing demo.
- * Purely client-side: typing a business name only updates a local preview
- * mock. No API calls, no account/reseller creation happens here — the CTA
- * routes to the existing /get-started flow, same as the rest of the site.
+ *
+ * The preview panel embeds the REAL ResellerMarketingHome component (the
+ * exact same one every live reseller storefront uses) via the dedicated
+ * /storefront-preview route in the main app, fed only an in-memory brand
+ * name through a URL query param — no API call from this site, no
+ * account/reseller is created. The CTA routes to the existing /get-started
+ * flow, same as the rest of the site.
  */
 export default function WebsiteDemo() {
   const [businessName, setBusinessName] = useState('');
+  const [iframeSrc, setIframeSrc] = useState('');
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const trimmed = businessName.trim();
   const displayName = trimmed || 'ABC Data';
   const slug = slugify(trimmed) || 'abcdata';
+
+  // Debounce so the iframe doesn't reload on every keystroke.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setIframeLoaded(false);
+      setIframeSrc(`${APP_URL}/storefront-preview?brand=${encodeURIComponent(displayName)}`);
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [displayName]);
+
+  // Safety net: some browsers don't fire onLoad reliably for cross-origin
+  // iframes. Hide the loading spinner after a short delay regardless, so it
+  // never gets stuck even if onLoad doesn't fire.
+  useEffect(() => {
+    if (!iframeSrc) return;
+    const handle = setTimeout(() => setIframeLoaded(true), 3000);
+    return () => clearTimeout(handle);
+  }, [iframeSrc]);
 
   return (
     <section className="py-20 bg-white" id="see-your-website">
@@ -89,27 +115,20 @@ export default function WebsiteDemo() {
               </span>
             </div>
 
-            <div className="p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-extrabold text-lg shrink-0">
-                  {displayName.charAt(0).toUpperCase()}
+            <div className="relative bg-white" style={{ height: '520px' }}>
+              {!iframeLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+                  <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
                 </div>
-                <div className="min-w-0">
-                  <p className="font-extrabold text-slate-900 leading-tight truncate">{displayName}</p>
-                  <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live & Selling
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2 mb-3">
-                {[Wifi, Phone, Lightbulb, Tv].map((Icon, i) => (
-                  <div key={i} className="flex flex-col items-center gap-1 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                    <Icon className="w-4 h-4 text-emerald-600" />
-                  </div>
-                ))}
-              </div>
-              <p className="text-[11px] text-slate-400 text-center">Data · Airtime · Electricity · Cable TV & more</p>
+              )}
+              {iframeSrc && (
+                <iframe
+                  src={iframeSrc}
+                  title="Live preview of your VTU website"
+                  className="w-full h-full border-0"
+                  onLoad={() => setIframeLoaded(true)}
+                />
+              )}
             </div>
           </motion.div>
         </div>

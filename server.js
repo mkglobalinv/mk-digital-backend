@@ -214,6 +214,20 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads"), {
 
 // SECURITY MIDDLEWARE
 app.use(helmet({ contentSecurityPolicy: false }));
+
+// Scoped exception: ONLY the /storefront-preview path (the marketing
+// homepage's "See Your Website" demo) may be framed, and only from the
+// production marketing domains. Every other route — every real reseller
+// website, admin, auth, and payment page — keeps helmet's default
+// X-Frame-Options: SAMEORIGIN exactly as before.
+app.use((req, res, next) => {
+    if (req.path === '/storefront-preview') {
+        res.removeHeader('X-Frame-Options');
+        res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://9jasub.com https://www.9jasub.com");
+    }
+    next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Root Health Check (must be before SPA wildcard and whiteLabel)

@@ -43,13 +43,29 @@ const PLATFORM_STATS = [
   { icon: ShieldCheck, value: '100%', label: 'Secure Transactions' },
 ];
 
-const ResellerMarketingHome = ({ siteInfo }) => {
+// In preview mode (marketing-site "See Your Website" demo) these are the
+// only elements that could otherwise trigger a real account action, so
+// instead of navigating client-side, they break out of the iframe to the
+// real signup flow on the main marketing site. Real reseller websites never
+// pass previewMode, so this never changes their behavior.
+const CTALink = ({ to, previewMode, className, children, onClick, style }) =>
+  previewMode ? (
+    <a href="https://9jasub.com/get-started" target="_top" rel="noopener noreferrer" className={className} onClick={onClick} style={style}>
+      {children}
+    </a>
+  ) : (
+    <Link to={to} className={className} onClick={onClick} style={style}>
+      {children}
+    </Link>
+  );
+
+const ResellerMarketingHome = ({ siteInfo, previewMode = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const siteName = getSiteName(siteInfo);
   const logoUrl = siteInfo?.branding?.logo || null;
-  const primaryColor = siteInfo?.branding?.primaryColor || '#6366f1'; 
+  const primaryColor = siteInfo?.branding?.primaryColor || '#6366f1';
   const supportEmail = getSiteSupportEmail(siteInfo);
 
   useEffect(() => {
@@ -83,8 +99,8 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           </nav>
 
           <div className="saas-cta-group">
-            <Link to="/login" className="saas-btn-outline">Sign In</Link>
-            <Link to="/signup" className="saas-btn-primary">Get Started</Link>
+            <CTALink to="/login" previewMode={previewMode} className="saas-btn-outline">Sign In</CTALink>
+            <CTALink to="/signup" previewMode={previewMode} className="saas-btn-primary">Get Started</CTALink>
           </div>
 
           <button className="saas-mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -102,8 +118,8 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           <a href="#faq" onClick={closeMobileMenu}>FAQ</a>
         </div>
         <div className="saas-mobile-cta">
-          <Link to="/login" onClick={closeMobileMenu} className="saas-btn-outline">Sign In</Link>
-          <Link to="/signup" onClick={closeMobileMenu} className="saas-btn-primary">Get Started</Link>
+          <CTALink to="/login" previewMode={previewMode} onClick={closeMobileMenu} className="saas-btn-outline">Sign In</CTALink>
+          <CTALink to="/signup" previewMode={previewMode} onClick={closeMobileMenu} className="saas-btn-primary">Get Started</CTALink>
         </div>
       </div>
 
@@ -122,12 +138,12 @@ const ResellerMarketingHome = ({ siteInfo }) => {
           </p>
 
           <div className="saas-hero-actions animate-fade-in-up delay-300">
-            <Link to="/signup" className="saas-btn-primary saas-btn-large">
+            <CTALink to="/signup" previewMode={previewMode} className="saas-btn-primary saas-btn-large">
               Create Account <ArrowRight size={18} />
-            </Link>
-            <Link to="/login" className="saas-btn-secondary saas-btn-large">
+            </CTALink>
+            <CTALink to="/login" previewMode={previewMode} className="saas-btn-secondary saas-btn-large">
               Login
-            </Link>
+            </CTALink>
           </div>
 
           <div className="saas-hero-trust-row animate-fade-in-up delay-300">
@@ -332,9 +348,9 @@ const ResellerMarketingHome = ({ siteInfo }) => {
         <div className="saas-cta-glow"></div>
         <h2>Ready to simplify your payments?</h2>
         <p>Join thousands of happy customers using {siteName} for fast, reliable, and secure digital transactions.</p>
-        <Link to="/signup" className="saas-btn-secondary saas-btn-large" style={{ color: 'var(--theme-primary)' }}>
+        <CTALink to="/signup" previewMode={previewMode} className="saas-btn-secondary saas-btn-large" style={{ color: 'var(--theme-primary)' }}>
           Create Account Now
-        </Link>
+        </CTALink>
       </section>
 
       {/* 9. FOOTER */}

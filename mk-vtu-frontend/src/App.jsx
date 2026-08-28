@@ -47,6 +47,7 @@ import AdminLogin from "./admin/pages/AdminLogin";
 import AdminLayout from "./admin/components/AdminLayout";
 import BusinessLogin from "./reseller/pages/BusinessLogin";
 import ResellerMarketingHome from "./pages/ResellerMarketingHome";
+import StorefrontPreview from "./pages/StorefrontPreview";
 import BusinessSignup from "./reseller/pages/BusinessSignup";
 import ResellerLayout from "./reseller/components/ResellerLayout";
 import { io } from "socket.io-client";
@@ -1028,6 +1029,7 @@ function App() {
                 
                 <Route path="/onboarding" element={<Onboarding />} />
                 {/* Public / Entry Routes (Guard against authenticated users) */}
+                <Route path="/storefront-preview" element={<StorefrontPreview />} />
                 <Route path="/login" element={token ? <Navigate to="/home" replace /> : <Login setToken={setToken} siteInfo={siteInfo} />} />
                 <Route path="/signup" element={token ? <Navigate to="/home" replace /> : <Signup setToken={setToken} siteInfo={siteInfo} />} />
                 <Route path="/register" element={token ? <Navigate to="/home" replace /> : <Signup setToken={setToken} siteInfo={siteInfo} />} />
