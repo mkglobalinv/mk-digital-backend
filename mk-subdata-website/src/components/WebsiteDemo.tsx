@@ -47,7 +47,7 @@ export default function WebsiteDemo() {
   }, [iframeSrc]);
 
   return (
-    <section className="pt-32 pb-20 lg:pt-44 bg-white" id="see-your-website">
+    <section className="py-20 lg:py-24 bg-white" id="see-your-website">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
           <div className="text-center lg:text-left">

@@ -13,7 +13,7 @@ const trustBadges = [
 
 export default function Hero() {
   return (
-    <section className="relative py-20 lg:py-24 overflow-hidden min-h-screen flex items-center bg-white">
+    <section className="relative pt-32 pb-20 lg:pt-44 lg:pb-32 overflow-hidden min-h-screen flex items-center bg-white">
       {/* Soft ambient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-200/60 rounded-full glow-soft pointer-events-none" />
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-100/70 rounded-full glow-soft pointer-events-none" />

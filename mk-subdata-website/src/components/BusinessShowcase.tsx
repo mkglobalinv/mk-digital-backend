@@ -81,7 +81,7 @@ export default function BusinessShowcase() {
   if (!businesses || businesses.length < MIN_ITEMS_TO_SHOW) return null;
 
   return (
-    <section className="py-10 bg-white border-y border-slate-100">
+    <section className="py-10 bg-slate-50 border-y border-slate-100">
       <div className="container mx-auto px-4 md:px-6">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
@@ -101,7 +101,7 @@ export default function BusinessShowcase() {
           {businesses.map((biz, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-3 shrink-0 snap-start bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5"
+              className="flex items-center gap-3 shrink-0 snap-start bg-white border border-slate-200 rounded-2xl px-5 py-3.5"
               style={{ minWidth: '220px' }}
             >
               {biz.logo ? (

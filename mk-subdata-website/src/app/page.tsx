@@ -30,12 +30,12 @@ export default function Home() {
     <div className="min-h-screen bg-white text-slate-600 font-sans selection:bg-emerald-500/20 selection:text-emerald-900">
       <Navbar />
       <main>
-        <WebsiteDemo />
         <Hero />
         <BusinessShowcase />
+        <WebsiteDemo />
+        <LiveWebsitePreview />
         <HowItWorks />
         <Services />
-        <LiveWebsitePreview />
         <WhatYouGet />
         <Referrals />
         <MobileApp />
