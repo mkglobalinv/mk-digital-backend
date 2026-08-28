@@ -1,8 +1,11 @@
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
+import WebsiteDemo from '@/components/WebsiteDemo';
 import BusinessShowcase from '@/components/BusinessShowcase';
 import HowItWorks from '@/components/HowItWorks';
 import Services from '@/components/Services';
+import LiveWebsitePreview from '@/components/LiveWebsitePreview';
+import WhatYouGet from '@/components/WhatYouGet';
 import Referrals from '@/components/Referrals';
 import MobileApp from '@/components/MobileApp';
 import FinalCTA from '@/components/FinalCTA';
@@ -28,9 +31,12 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
+        <WebsiteDemo />
         <BusinessShowcase />
         <HowItWorks />
         <Services />
+        <LiveWebsitePreview />
+        <WhatYouGet />
         <Referrals />
         <MobileApp />
         <FinalCTA />
