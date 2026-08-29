@@ -107,41 +107,22 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
         let result;
         let finalProvider = pName;
 
+        // NOTE: Data-plan codes are provider-specific (Peyflex uses e.g. "M1GBA",
+        // ClubKonnect uses its own numeric PRODUCT_IDs) and the DataPlan schema
+        // only stores one api_plan_id per provider — there is no cross-provider
+        // plan code mapping. Failing over to the other provider with the same
+        // plan code can never succeed (it always returns an invalid-plan error),
+        // so unlike airtime/electricity/cable (which use provider-agnostic
+        // identifiers), data purchases do not attempt a cross-provider failover.
         if (primaryOffline) {
-            const secondaryName = pName === 'clubkonnect' ? 'peyflex' : 'clubkonnect';
-            const secStatus = await ProviderStatus.findOne({ providerName: secondaryName });
-            const secondaryOffline = secStatus && (!secStatus.isAvailable || secStatus.apiStatus === 'disconnected' || secStatus.isUnderMaintenance);
+            return { status: "failed", message: `Provider (${pName}) for this data plan is currently offline. Please try again shortly.` };
+        }
 
-            if (secondaryOffline) {
-                return { status: "failed", message: `Both primary (${pName}) and failover (${secondaryName}) providers are offline.` };
-            }
-
-            console.log(`[Switcher] [${transactionId}] Primary provider ${pName} is offline. Routing directly to failover: ${secondaryName}`);
-            finalProvider = secondaryName;
-            if (secondaryName === 'clubkonnect') {
-                result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
-            } else {
-                result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
-            }
+        console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
+        if (pName === 'clubkonnect') {
+            result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
         } else {
-            console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
-            if (pName === 'clubkonnect') {
-                result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
-                if (result && result.status === "failed") {
-                    const reason = result.message || "Unknown Provider Error";
-                    console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: peyflex...`);
-                    result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
-                    finalProvider = 'peyflex';
-                }
-            } else {
-                result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
-                if (result && result.status === "failed") {
-                    const reason = result.message || "Unknown Provider Error";
-                    console.log(`[Switcher] [${transactionId}] ${pName} failed. Reason: ${reason}. Secondary provider attempt: clubkonnect...`);
-                    result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
-                    finalProvider = 'clubkonnect';
-                }
-            }
+            result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
         }
 
         const duration = Date.now() - startTime;
