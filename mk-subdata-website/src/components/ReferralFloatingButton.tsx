@@ -24,7 +24,7 @@ export default function ReferralFloatingButton() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.6, duration: 0.4 }}
-        className="btn-gold fixed right-3 md:right-5 top-1/2 -translate-y-1/2 z-40 flex items-center gap-2 p-3 md:pl-3 md:pr-4 rounded-full shadow-lg"
+        className="btn-gold fixed right-3 md:right-5 bottom-5 md:bottom-6 z-40 flex items-center gap-2 p-3 md:pl-3 md:pr-4 rounded-full shadow-lg"
         aria-label="Open referral program details"
       >
         <Gift className="w-5 h-5 shrink-0" />

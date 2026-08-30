@@ -3,7 +3,6 @@ import Hero from '@/components/Hero';
 import WebsiteDemo from '@/components/WebsiteDemo';
 import BusinessShowcase from '@/components/BusinessShowcase';
 import HowItWorks from '@/components/HowItWorks';
-import Services from '@/components/Services';
 import LiveWebsitePreview from '@/components/LiveWebsitePreview';
 import WhatYouGet from '@/components/WhatYouGet';
 import Referrals from '@/components/Referrals';
@@ -13,14 +12,14 @@ import Footer from '@/components/Footer';
 import ReferralFloatingButton from '@/components/ReferralFloatingButton';
 
 export const metadata = {
-  title: '9JASUB - Own Your VTU Website & App',
-  description: 'Launch your own fully automated, branded digital services business in just 5 minutes with zero coding required.',
+  title: '9JASUB - Data, Airtime, NIN, BVN & Bills',
+  description: 'Buy cheap data and airtime, pay bills, cable and exam fees, and handle NIN/BVN enrollment, modification and verification instantly with 9JASUB — plus create your own branded platform for free in just 3 minutes.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: '9JASUB - Own Your VTU Website & App',
-    description: 'Launch your own fully automated, branded digital services business in just 5 minutes with zero coding required.',
+    title: '9JASUB - Data, Airtime, NIN, BVN & Bills',
+    description: 'Buy cheap data and airtime, pay bills, cable and exam fees, and handle NIN/BVN enrollment, modification and verification instantly with 9JASUB — plus create your own branded platform for free in just 3 minutes.',
     url: '/',
   },
 };
@@ -31,11 +30,10 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <BusinessShowcase />
         <WebsiteDemo />
+        <BusinessShowcase />
         <LiveWebsitePreview />
         <HowItWorks />
-        <Services />
         <WhatYouGet />
         <Referrals />
         <MobileApp />

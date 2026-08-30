@@ -10,13 +10,14 @@ const slugify = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.9jasub.com';
 
 /**
- * WebsiteDemo — "See Your Website" interactive marketing demo.
+ * WebsiteDemo — "Own Your Platform" pitch, paired with the "See Your
+ * Website" interactive preview demo.
  *
  * The preview panel embeds the REAL ResellerMarketingHome component (the
  * exact same one every live reseller storefront uses) via the dedicated
  * /storefront-preview route in the main app, fed only an in-memory brand
  * name through a URL query param — no API call from this site, no
- * account/reseller is created. The CTA routes to the existing /get-started
+ * account/platform is created. The CTAs route to the existing /get-started
  * flow, same as the rest of the site.
  */
 export default function WebsiteDemo() {
@@ -57,49 +58,59 @@ export default function WebsiteDemo() {
               viewport={{ once: true }}
               className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 leading-tight"
             >
-              Create Your Own VTU Website
+              Own Your Branded Website & App Like Ours
             </motion.h2>
-            <p className="text-lg text-slate-500 font-medium mb-6">
-              Enter your business name and see a live preview of what your own branded website could look like.
+            <p className="text-lg text-slate-500 font-medium mb-2">
+              It&apos;s <span className="font-extrabold text-emerald-600">FREE</span> to get started — automatically create your own platform in just 3 minutes with 9JASUB.
             </p>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                showWebsite();
-              }}
-              className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto lg:mx-0"
-            >
-              <input
-                type="text"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Enter your business name"
-                maxLength={40}
-                className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
-              <button
-                type="submit"
-                className="btn-primary px-6 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shrink-0"
-              >
-                See My Website <ArrowRight size={18} />
-              </button>
-            </form>
-
-            <p className="mt-6 text-sm font-bold uppercase tracking-wide text-slate-400">
-              Your Website. Your Brand. Your Business.
+            <p className="text-base text-slate-500 font-medium mb-6">
+              Start offering digital services under your own brand, just like us.
             </p>
 
             <Link
               href="/get-started"
-              className="btn-gold inline-flex mt-6 px-7 py-3.5 rounded-2xl font-bold items-center justify-center gap-2"
+              className="btn-primary inline-flex w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-lg items-center justify-center gap-3"
             >
-              Start My 3-Day Free Trial
+              Create My Platform <ArrowRight size={20} />
             </Link>
 
-            <p className="text-xs text-slate-400 mt-4">
-              This is a visual preview only — no website or account is created until you sign up.
+            <p className="mt-6 text-sm font-bold uppercase tracking-wide text-slate-400">
+              Your Website &nbsp;&bull;&nbsp; Your Brand &nbsp;&bull;&nbsp; Your Business
             </p>
+
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <p className="text-slate-700 font-bold mb-1">Want to see it first?</p>
+              <p className="text-sm text-slate-500 font-medium mb-4">
+                Enter your platform name to preview it before creating.
+              </p>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  showWebsite();
+                }}
+                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto lg:mx-0"
+              >
+                <input
+                  type="text"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="Enter your platform name"
+                  maxLength={40}
+                  className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  className="btn-outline px-6 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shrink-0"
+                >
+                  Preview My Platform <ArrowRight size={18} />
+                </button>
+              </form>
+
+              <p className="text-xs text-slate-400 mt-4">
+                This is a visual preview only — no website or account is created until you sign up.
+              </p>
+            </div>
           </div>
 
           <motion.div
@@ -126,7 +137,7 @@ export default function WebsiteDemo() {
                     <Globe className="w-6 h-6 text-emerald-600" />
                   </div>
                   <p className="text-slate-500 font-medium text-sm">
-                    Enter your business name and click <span className="font-bold text-slate-700">&ldquo;See My Website&rdquo;</span> to preview it here.
+                    Enter your platform name and click <span className="font-bold text-slate-700">&ldquo;Preview My Platform&rdquo;</span> to see it here.
                   </p>
                 </div>
               ) : (

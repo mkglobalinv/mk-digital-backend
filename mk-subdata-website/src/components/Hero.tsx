@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Globe, ShieldCheck, Zap, Star, Headphones } from 'lucide-react';
+import { ArrowRight, Zap, ShieldCheck, Star, Headphones } from 'lucide-react';
 import Link from 'next/link';
 
 const trustBadges = [
@@ -30,39 +30,16 @@ export default function Hero() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.1]"
             >
-              Own Your VTU Website & App in Just <span className="gradient-text">5 Minutes</span>
+              Cheap & Lasting <span className="gradient-text">Data, NIN, BVN</span> & More
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg md:text-xl text-slate-500 mb-6 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
+              className="text-lg md:text-xl text-slate-500 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
             >
-              Start your own branded digital services business with a 3-day free trial. After your 3-day trial, pay just ₦5,000 one-time activation fee to keep your website live and continue selling.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8"
-            >
-              <div className="px-4 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-sm">
-                3-Day Free Trial
-              </div>
-              <div className="px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 font-bold text-sm">
-                ₦5,000 One-Time Activation Fee After Trial
-              </div>
-            </motion.div>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.28 }}
-              className="text-slate-500 font-bold tracking-wide uppercase mb-8"
-            >
-              YOUR WEBSITE &nbsp;•&nbsp; YOUR BRAND &nbsp;•&nbsp; YOUR BUSINESS
+              NIN & BVN enrollment, modification and verification &bull; Buy cable &bull; Pay exam fees &bull; Pay your bills &bull; Airtime & more with 9JASUB.
             </motion.p>
 
             <motion.div
@@ -71,9 +48,9 @@ export default function Hero() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start"
             >
-              <Link href="/get-started" className="w-full sm:w-auto">
+              <Link href="/services" className="w-full sm:w-auto">
                 <button className="btn-primary w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3">
-                  Start Your Free Trial <ArrowRight size={20} />
+                  Explore Our Services <ArrowRight size={20} />
                 </button>
               </Link>
             </motion.div>
@@ -114,13 +91,13 @@ export default function Hero() {
               className="absolute -left-2 md:-left-4 bottom-4 lg:-left-8 p-4 md:p-5 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl z-20 flex items-center gap-4"
             >
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                <Globe className="w-5 h-5 md:w-6 md:h-6" />
+                <Zap className="w-5 h-5 md:w-6 md:h-6" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Delivery</p>
                 <p className="text-base md:text-lg font-bold text-slate-900 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  Live & Selling
+                  Instant & Secure
                 </p>
               </div>
             </motion.div>

@@ -21,10 +21,10 @@ import Link from 'next/link';
  */
 const benefits = [
   { icon: Globe, text: 'Your own branded VTU website & web address' },
-  { icon: LayoutDashboard, text: 'A full reseller dashboard to manage your business' },
+  { icon: LayoutDashboard, text: 'A full business dashboard to manage everything' },
   { icon: TrendingUp, text: 'Real-time profit tracking' },
   { icon: Users, text: 'Full customer management system' },
-  { icon: SlidersHorizontal, text: 'Reseller pricing control' },
+  { icon: SlidersHorizontal, text: 'Full pricing control' },
   { icon: Smartphone, text: 'Custom mobile app experience (Android/iOS)' },
   { icon: Layers, text: 'Access to the full digital services catalog — Data, Airtime, Electricity, Cable TV, Education e-pins & more' },
   { icon: Headphones, text: '24/7 platform support' },
