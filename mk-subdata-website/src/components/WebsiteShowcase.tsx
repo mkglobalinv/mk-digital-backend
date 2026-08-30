@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Lock } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Lock, ShieldCheck, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 type ShowcaseBusiness = {
   name: string;
   logo: string | null;
+  primaryColor: string | null;
   url: string;
 };
 
@@ -16,25 +17,34 @@ const MAX_DOTS = 10;
 const GAP_PX = 16; // gap-4
 const AUTO_ADVANCE_MS = 3400;
 const RESUME_AFTER_INTERACTION_MS = 4500;
+const DEFAULT_ACCENT = '#059669'; // 9JASUB emerald, used only when a business hasn't set a color
+const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 
 const hostname = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const accentOf = (color: string | null) => (color && HEX_COLOR.test(color) ? color : DEFAULT_ACCENT);
 
 /**
  * WebsiteShowcase — "Websites Created With 9JASUB" carousel.
  *
  * Reuses the same real, existing public GET /api/reseller/public/showcase
  * endpoint as the (now-removed) BusinessShowcase/LiveWebsitePreview did —
- * real registered business name/logo/url only, nothing invented. Renders
- * nothing if too few qualify.
+ * real registered business name/logo/url/primaryColor only, nothing
+ * invented. Renders nothing if too few qualify.
  *
- * Each card shows only fields the API actually returns (real name, real
- * logo or initial, real domain) inside a polished browser-chrome frame —
- * the visual treatment (address bar, glow, live badge) is presentation
- * only, never a claim about the business's actual page content. Live
- * reseller sites keep the default X-Frame-Options: SAMEORIGIN (see
+ * Every reseller site shares the exact same live template
+ * (ResellerMarketingHome) with only name/logo/color swapped per business —
+ * the "Digital payments, simplified." headline, subtitle, and trust badges
+ * are hardcoded in that component, not business-authored, so reproducing
+ * them here is accurate for every card, not fabricated. The business's
+ * real primaryColor (also already stored, just newly exposed by this
+ * endpoint) themes the accent so the mini preview actually matches what's
+ * live at their real domain — e.g. a business that picked blue shows blue
+ * here, not a default green.
+ *
+ * Live reseller sites keep the default X-Frame-Options: SAMEORIGIN (see
  * server.js — only /storefront-preview, fed synthetic demo branding, is
- * ever framed), so a live embed of the real page isn't available here;
- * cards link out to the real site in a new tab instead.
+ * ever framed), so a live iframe embed of the real page isn't available
+ * here; cards link out to the real site in a new tab instead.
  */
 export default function WebsiteShowcase() {
   const [businesses, setBusinesses] = useState<ShowcaseBusiness[] | null>(null);
@@ -143,6 +153,7 @@ export default function WebsiteShowcase() {
           >
             {businesses.map((biz, idx) => {
               const initial = biz.name.charAt(0).toUpperCase();
+              const accent = accentOf(biz.primaryColor);
               return (
                 <motion.a
                   key={idx}
@@ -153,7 +164,7 @@ export default function WebsiteShowcase() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: Math.min(idx, 4) * 0.06 }}
-                  className="group shrink-0 snap-start w-[78vw] max-w-[310px] sm:w-[310px] rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-md hover:shadow-2xl hover:shadow-emerald-900/10 hover:-translate-y-1.5 hover:border-emerald-200 transition-all duration-300"
+                  className="group shrink-0 snap-start w-[80vw] max-w-[320px] sm:w-[320px] rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300"
                 >
                   {/* Browser chrome — realistic address bar */}
                   <div className="flex items-center gap-2 px-3.5 py-3 bg-gradient-to-b from-slate-100 to-slate-50 border-b border-slate-200">
@@ -163,40 +174,61 @@ export default function WebsiteShowcase() {
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
                     </div>
                     <div className="flex-1 flex items-center gap-1.5 bg-white rounded-lg border border-slate-200 px-2.5 py-1.5 min-w-0">
-                      <Lock size={10} className="text-emerald-600 shrink-0" />
+                      <Lock size={10} className="shrink-0" style={{ color: accent }} />
                       <span className="text-[11px] font-medium text-slate-500 truncate">{hostname(biz.url)}</span>
                     </div>
                   </div>
 
-                  {/* Real data only — name, logo, domain from the API. No fabricated page content. */}
-                  <div className="relative h-[196px] flex flex-col items-center justify-center gap-3.5 px-6 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/60 overflow-hidden">
-                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-200/40 rounded-full blur-2xl pointer-events-none" />
-                    <div className="absolute -bottom-12 -left-10 w-32 h-32 bg-emerald-100/50 rounded-full blur-2xl pointer-events-none" />
+                  {/* Mini nav bar — mirrors the real shared site header (real name/logo, real accent color) */}
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {biz.logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={biz.logo} alt="" className="w-5 h-5 rounded-md object-cover border border-slate-200 shrink-0" />
+                      ) : (
+                        <div
+                          className="w-5 h-5 rounded-md text-white text-[10px] font-extrabold flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: accent }}
+                        >
+                          {initial}
+                        </div>
+                      )}
+                      <span className="text-[12px] font-extrabold text-slate-900 truncate">{biz.name}</span>
+                    </div>
+                    <span
+                      className="text-[8px] font-bold text-white px-2 py-1 rounded-md shrink-0"
+                      style={{ backgroundColor: accent }}
+                    >
+                      Get Started
+                    </span>
+                  </div>
 
-                    {biz.logo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={biz.logo}
-                        alt=""
-                        className="relative z-10 w-[72px] h-[72px] rounded-2xl object-cover bg-white shadow-lg ring-2 ring-white border border-slate-100 shrink-0 group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="relative z-10 w-[72px] h-[72px] rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white text-3xl font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white shrink-0 group-hover:scale-105 transition-transform duration-300">
-                        {initial}
-                      </div>
-                    )}
-
-                    <p className="relative z-10 font-extrabold text-slate-900 text-lg text-center truncate max-w-full leading-tight">
-                      {biz.name}
+                  {/* Hero mini-preview — the real, hardcoded headline/subtitle/badges every reseller site renders */}
+                  <div className="px-5 py-6 bg-gradient-to-b from-slate-50/80 to-white text-center">
+                    <p className="text-[15px] font-extrabold text-slate-900 leading-tight">
+                      Digital payments,
+                      <br />
+                      <span style={{ color: accent }}>simplified.</span>
                     </p>
-
-                    <div className="relative z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100/80 border border-emerald-200/80">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Live Platform</span>
+                    <p className="text-[10.5px] text-slate-500 font-medium mt-2.5 leading-snug px-1">
+                      Purchase affordable data, airtime, and pay bills instantly.
+                    </p>
+                    <div className="flex items-center justify-center gap-4 mt-4">
+                      <div className="flex items-center gap-1">
+                        <ShieldCheck size={12} style={{ color: accent }} />
+                        <span className="text-[9px] font-bold text-slate-600">100% Secure</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Zap size={12} style={{ color: accent }} />
+                        <span className="text-[9px] font-bold text-slate-600">Instant Delivery</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="px-4 py-3.5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-sm font-bold text-emerald-600 group-hover:gap-2.5 transition-all">
+                  <div
+                    className="px-4 py-3.5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-sm font-bold group-hover:gap-2.5 transition-all"
+                    style={{ color: accent }}
+                  >
                     Visit Website <ExternalLink size={14} />
                   </div>
                 </motion.a>

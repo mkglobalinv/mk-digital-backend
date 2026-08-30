@@ -961,7 +961,7 @@ export const getPublicResellerShowcase = async (req, res) => {
                 { admin_subdomain: { $exists: true, $nin: [null, ''] } }
             ]
         })
-            .select('branding.siteName branding.logo onboardingData.brandName onboardingData.businessName subdomain admin_subdomain createdAt')
+            .select('branding.siteName branding.logo branding.primaryColor onboardingData.brandName onboardingData.businessName subdomain admin_subdomain createdAt')
             .sort({ createdAt: -1 })
             .lean();
 
@@ -973,6 +973,7 @@ export const getPublicResellerShowcase = async (req, res) => {
                 return {
                     name,
                     logo: r.branding?.logo || null,
+                    primaryColor: r.branding?.primaryColor || null,
                     url: `https://${host}.9jasub.com`
                 };
             })
