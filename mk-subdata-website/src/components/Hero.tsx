@@ -39,7 +39,7 @@ export default function Hero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-lg md:text-xl text-slate-500 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
             >
-              NIN & BVN enrollment, modification and verification &bull; Buy cable &bull; Pay exam fees &bull; Pay your bills &bull; Airtime & more with 9JASUB.
+              NIN & BVN enrollment, modification and verification &bull; Buy cable &bull; Pay exam fees &bull; Pay your bills &bull; Airtime &bull; CAC Reg, Court Affidavit & more with 9JASUB.
             </motion.p>
 
             <motion.div
