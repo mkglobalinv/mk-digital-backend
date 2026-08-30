@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Globe } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Lock } from 'lucide-react';
 import Link from 'next/link';
 
 type ShowcaseBusiness = {
@@ -28,12 +28,13 @@ const hostname = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/,
  * nothing if too few qualify.
  *
  * Each card shows only fields the API actually returns (real name, real
- * logo or initial, real domain) inside a browser-chrome frame — no
- * fabricated page content. Live reseller sites keep the default
- * X-Frame-Options: SAMEORIGIN (see server.js — only /storefront-preview,
- * fed synthetic demo branding, is ever framed), so a live embed of the
- * real page isn't available here; cards link out to the real site in a
- * new tab instead.
+ * logo or initial, real domain) inside a polished browser-chrome frame —
+ * the visual treatment (address bar, glow, live badge) is presentation
+ * only, never a claim about the business's actual page content. Live
+ * reseller sites keep the default X-Frame-Options: SAMEORIGIN (see
+ * server.js — only /storefront-preview, fed synthetic demo branding, is
+ * ever framed), so a live embed of the real page isn't available here;
+ * cards link out to the real site in a new tab instead.
  */
 export default function WebsiteShowcase() {
   const [businesses, setBusinesses] = useState<ShowcaseBusiness[] | null>(null);
@@ -143,45 +144,62 @@ export default function WebsiteShowcase() {
             {businesses.map((biz, idx) => {
               const initial = biz.name.charAt(0).toUpperCase();
               return (
-                <a
+                <motion.a
                   key={idx}
                   href={biz.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-[300px] rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: Math.min(idx, 4) * 0.06 }}
+                  className="group shrink-0 snap-start w-[78vw] max-w-[310px] sm:w-[310px] rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-md hover:shadow-2xl hover:shadow-emerald-900/10 hover:-translate-y-1.5 hover:border-emerald-200 transition-all duration-300"
                 >
-                  {/* Browser chrome */}
-                  <div className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 border-b border-slate-200">
-                    <span className="w-2 h-2 rounded-full bg-red-400" />
-                    <span className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="ml-2 text-[10px] font-medium text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200 truncate">
-                      {hostname(biz.url)}
-                    </span>
-                  </div>
-
-                  {/* Real data only — name, logo, domain from the API. No fabricated page content. */}
-                  <div className="h-[170px] flex flex-col items-center justify-center gap-3 px-6 bg-gradient-to-b from-emerald-50/60 to-white">
-                    {biz.logo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={biz.logo} alt="" className="w-16 h-16 rounded-2xl object-cover border border-slate-200 bg-white shrink-0" />
-                    ) : (
-                      <div className="w-16 h-16 rounded-2xl bg-emerald-600 text-white text-2xl font-extrabold flex items-center justify-center shrink-0">
-                        {initial}
-                      </div>
-                    )}
-                    <div className="text-center min-w-0">
-                      <p className="font-extrabold text-slate-900 text-base truncate max-w-full">{biz.name}</p>
-                      <p className="text-[11px] text-slate-400 font-semibold mt-0.5 flex items-center justify-center gap-1">
-                        <Globe size={11} /> Powered by 9JASUB
-                      </p>
+                  {/* Browser chrome — realistic address bar */}
+                  <div className="flex items-center gap-2 px-3.5 py-3 bg-gradient-to-b from-slate-100 to-slate-50 border-b border-slate-200">
+                    <div className="flex gap-1.5 shrink-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                    </div>
+                    <div className="flex-1 flex items-center gap-1.5 bg-white rounded-lg border border-slate-200 px-2.5 py-1.5 min-w-0">
+                      <Lock size={10} className="text-emerald-600 shrink-0" />
+                      <span className="text-[11px] font-medium text-slate-500 truncate">{hostname(biz.url)}</span>
                     </div>
                   </div>
 
-                  <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-600 group-hover:gap-2.5 transition-all">
-                    Visit Website <ExternalLink size={13} />
+                  {/* Real data only — name, logo, domain from the API. No fabricated page content. */}
+                  <div className="relative h-[196px] flex flex-col items-center justify-center gap-3.5 px-6 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/60 overflow-hidden">
+                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-200/40 rounded-full blur-2xl pointer-events-none" />
+                    <div className="absolute -bottom-12 -left-10 w-32 h-32 bg-emerald-100/50 rounded-full blur-2xl pointer-events-none" />
+
+                    {biz.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={biz.logo}
+                        alt=""
+                        className="relative z-10 w-[72px] h-[72px] rounded-2xl object-cover bg-white shadow-lg ring-2 ring-white border border-slate-100 shrink-0 group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="relative z-10 w-[72px] h-[72px] rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white text-3xl font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white shrink-0 group-hover:scale-105 transition-transform duration-300">
+                        {initial}
+                      </div>
+                    )}
+
+                    <p className="relative z-10 font-extrabold text-slate-900 text-lg text-center truncate max-w-full leading-tight">
+                      {biz.name}
+                    </p>
+
+                    <div className="relative z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100/80 border border-emerald-200/80">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Live Platform</span>
+                    </div>
                   </div>
-                </a>
+
+                  <div className="px-4 py-3.5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-sm font-bold text-emerald-600 group-hover:gap-2.5 transition-all">
+                    Visit Website <ExternalLink size={14} />
+                  </div>
+                </motion.a>
               );
             })}
           </div>
