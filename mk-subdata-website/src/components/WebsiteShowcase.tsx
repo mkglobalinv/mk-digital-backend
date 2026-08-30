@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Wifi, Smartphone, Lightbulb, Tv } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Globe } from 'lucide-react';
 import Link from 'next/link';
 
 type ShowcaseBusiness = {
@@ -17,8 +17,6 @@ const GAP_PX = 16; // gap-4
 const AUTO_ADVANCE_MS = 3400;
 const RESUME_AFTER_INTERACTION_MS = 4500;
 
-const FEATURE_ICONS = [Wifi, Smartphone, Lightbulb, Tv];
-
 const hostname = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
 /**
@@ -29,15 +27,13 @@ const hostname = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/,
  * real registered business name/logo/url only, nothing invented. Renders
  * nothing if too few qualify.
  *
- * Every reseller site built with 9JASUB shares the exact same live
- * template (ResellerMarketingHome — nav with logo/name, "Digital
- * payments, simplified." hero, Data/Airtime/Bills/Cable icon row), so the
- * mini preview inside each card mirrors that real, shared layout with the
- * business's real name/logo — an accurate miniature, not a fabricated one.
- *
- * Live reseller sites keep the default X-Frame-Options: SAMEORIGIN (see
- * server.js — only /storefront-preview is ever framed), so cards link out
- * to the real site in a new tab instead of embedding it.
+ * Each card shows only fields the API actually returns (real name, real
+ * logo or initial, real domain) inside a browser-chrome frame — no
+ * fabricated page content. Live reseller sites keep the default
+ * X-Frame-Options: SAMEORIGIN (see server.js — only /storefront-preview,
+ * fed synthetic demo branding, is ever framed), so a live embed of the
+ * real page isn't available here; cards link out to the real site in a
+ * new tab instead.
  */
 export default function WebsiteShowcase() {
   const [businesses, setBusinesses] = useState<ShowcaseBusiness[] | null>(null);
@@ -164,34 +160,21 @@ export default function WebsiteShowcase() {
                     </span>
                   </div>
 
-                  {/* Mini live-site preview — mirrors the real shared template */}
-                  <div className="bg-white">
-                    <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {biz.logo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={biz.logo} alt="" className="w-5 h-5 rounded-md object-cover border border-slate-200 shrink-0" />
-                        ) : (
-                          <div className="w-5 h-5 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold flex items-center justify-center shrink-0">
-                            {initial}
-                          </div>
-                        )}
-                        <span className="text-[11px] font-extrabold text-slate-900 truncate">{biz.name}</span>
+                  {/* Real data only — name, logo, domain from the API. No fabricated page content. */}
+                  <div className="h-[170px] flex flex-col items-center justify-center gap-3 px-6 bg-gradient-to-b from-emerald-50/60 to-white">
+                    {biz.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={biz.logo} alt="" className="w-16 h-16 rounded-2xl object-cover border border-slate-200 bg-white shrink-0" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-2xl bg-emerald-600 text-white text-2xl font-extrabold flex items-center justify-center shrink-0">
+                        {initial}
                       </div>
-                      <span className="text-[8px] font-bold text-white bg-emerald-600 px-2 py-1 rounded-md shrink-0">Get Started</span>
-                    </div>
-
-                    <div className="px-4 py-6 bg-gradient-to-b from-emerald-50/70 to-white text-center">
-                      <p className="text-[13px] font-extrabold text-slate-900 leading-snug mb-4">
-                        Digital payments, <span className="text-emerald-600">simplified.</span>
+                    )}
+                    <div className="text-center min-w-0">
+                      <p className="font-extrabold text-slate-900 text-base truncate max-w-full">{biz.name}</p>
+                      <p className="text-[11px] text-slate-400 font-semibold mt-0.5 flex items-center justify-center gap-1">
+                        <Globe size={11} /> Powered by 9JASUB
                       </p>
-                      <div className="flex items-center justify-center gap-2.5">
-                        {FEATURE_ICONS.map((Icon, i) => (
-                          <div key={i} className="w-7 h-7 rounded-lg bg-white border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                            <Icon size={13} />
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
 
