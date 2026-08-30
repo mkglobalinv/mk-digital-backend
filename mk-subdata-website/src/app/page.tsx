@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
-import WebsiteDemo from '@/components/WebsiteDemo';
+import PlatformAnnouncement from '@/components/PlatformAnnouncement';
+import WebsiteShowcase from '@/components/WebsiteShowcase';
 import BusinessShowcase from '@/components/BusinessShowcase';
 import HowItWorks from '@/components/HowItWorks';
 import LiveWebsitePreview from '@/components/LiveWebsitePreview';
@@ -30,7 +31,8 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <WebsiteDemo />
+        <PlatformAnnouncement />
+        <WebsiteShowcase />
         <BusinessShowcase />
         <LiveWebsitePreview />
         <HowItWorks />
