@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Zap, ShieldCheck, Star, Headphones } from 'lucide-react';
 import Link from 'next/link';
+import PlatformAnnouncement from './PlatformAnnouncement';
 
 const trustBadges = [
   { icon: ShieldCheck, line1: "100% Secure", line2: "Transactions" },
@@ -53,6 +54,15 @@ export default function Hero() {
                   Explore Our Services <ArrowRight size={20} />
                 </button>
               </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.32 }}
+              className="mt-8"
+            >
+              <PlatformAnnouncement />
             </motion.div>
 
             <motion.div
