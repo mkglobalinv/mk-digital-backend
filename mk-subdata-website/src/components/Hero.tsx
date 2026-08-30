@@ -46,7 +46,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto lg:mx-0"
+              className="grid grid-cols-2 gap-2.5 sm:gap-4 max-w-xl mx-auto lg:mx-0"
             >
               <button
                 type="button"
@@ -54,17 +54,21 @@ export default function Hero() {
                   trackMetaEvent('Lead', { content_name: 'Personal Account' });
                   window.location.assign('/onboarding');
                 }}
-                className="group text-left w-full bg-white border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/60 rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="group text-left w-full min-w-0 bg-white border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/60 rounded-xl sm:rounded-2xl p-3 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <User size={22} />
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-2 sm:mb-4 group-hover:scale-110 transition-transform">
+                  <User size={16} className="sm:hidden" />
+                  <User size={22} className="hidden sm:block" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 text-base sm:text-lg mb-1.5">Personal Account</h3>
-                <p className="text-sm text-slate-500 font-medium leading-snug mb-5">
+                <h3 className="font-extrabold text-slate-900 text-xs sm:text-lg mb-1 sm:mb-1.5 leading-tight">Personal Account</h3>
+                <p className="hidden sm:block text-sm text-slate-500 font-medium leading-snug mb-5">
                   Buy data, airtime, pay bills and access all 9JASUB services.
                 </p>
-                <span className="btn-primary inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm">
-                  Buy Data, Airtime & More <ArrowRight size={16} />
+                <span className="btn-primary inline-flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-sm leading-tight w-full sm:w-auto justify-center">
+                  <span className="sm:hidden">Buy Data & More</span>
+                  <span className="hidden sm:inline">Buy Data, Airtime & More</span>
+                  <ArrowRight size={14} className="sm:hidden shrink-0" />
+                  <ArrowRight size={16} className="hidden sm:block shrink-0" />
                 </span>
               </button>
 
@@ -74,18 +78,22 @@ export default function Hero() {
                   trackMetaEvent('Lead', { content_name: 'Own Your VTU Website & App' });
                   window.location.assign('/business/signup');
                 }}
-                className="group relative text-left w-full bg-slate-900 border-2 border-slate-900 hover:bg-slate-800 rounded-2xl p-5 sm:p-6 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="group relative text-left w-full min-w-0 bg-slate-900 border-2 border-slate-900 hover:bg-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-6 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
                 <div className="absolute top-0 right-0 w-28 h-28 bg-emerald-500/15 rounded-full glow-soft pointer-events-none group-hover:bg-emerald-500/25 transition-colors" />
-                <div className="relative w-12 h-12 rounded-xl bg-white/10 text-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Briefcase size={22} />
+                <div className="relative w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-white/10 text-white flex items-center justify-center mb-2 sm:mb-4 group-hover:scale-110 transition-transform">
+                  <Briefcase size={16} className="sm:hidden" />
+                  <Briefcase size={22} className="hidden sm:block" />
                 </div>
-                <h3 className="relative font-extrabold text-white text-base sm:text-lg mb-1.5">VTU Website Creator</h3>
-                <p className="relative text-sm text-slate-300 font-medium leading-snug mb-5">
+                <h3 className="relative font-extrabold text-white text-xs sm:text-lg mb-1 sm:mb-1.5 leading-tight">VTU Website Creator</h3>
+                <p className="hidden sm:block relative text-sm text-slate-300 font-medium leading-snug mb-5">
                   Create your own branded VTU website and start selling online.
                 </p>
-                <span className="relative inline-flex items-center gap-2 bg-white text-slate-900 px-4 py-2.5 rounded-xl text-sm font-bold">
-                  Create Your Own VTU Website <ArrowRight size={16} />
+                <span className="relative inline-flex items-center gap-1 sm:gap-2 bg-white text-slate-900 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-sm font-bold leading-tight w-full sm:w-auto justify-center">
+                  <span className="sm:hidden">Create Website</span>
+                  <span className="hidden sm:inline">Create Your Own VTU Website</span>
+                  <ArrowRight size={14} className="sm:hidden shrink-0" />
+                  <ArrowRight size={16} className="hidden sm:block shrink-0" />
                 </span>
               </button>
             </motion.div>
