@@ -45,7 +45,7 @@ const PremiumWalletCard = ({
       
       <div className="wallet-balance-row">
         <div className={"wallet-balance " + (hideBalance ? "blurred" : "")}>
-          {hideBalance ? ', ****.**' : `,${(user?.totalBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+          {hideBalance ? '₦ ****.**' : `₦${(user?.totalBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
         </div>
       </div>
 
