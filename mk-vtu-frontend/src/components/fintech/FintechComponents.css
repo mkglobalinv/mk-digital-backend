@@ -166,6 +166,29 @@ body.dark-theme .nav-avatar {
 }
 .wallet-balance.blurred { filter: blur(10px); user-select: none; }
 
+/* Account No. / Bank row */
+.wallet-account-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  position: relative; z-index: 1;
+  margin-bottom: 7px;
+  cursor: pointer;
+}
+.wallet-account-text {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wallet-account-text.muted { color: rgba(255,255,255,0.45); }
+.wallet-account-copy-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.75); border-radius: 6px;
+  width: 22px; height: 22px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.2s ease;
+}
+.wallet-account-copy-btn:hover { background: rgba(255,255,255,0.16); }
+
 /* Action buttons */
 .wallet-actions {
   display: flex; gap: 8px;
@@ -246,6 +269,25 @@ body.dark-theme .kyc-status-pill.unverified { color: #F4B400; }
 .section-header span {
   font-size: 11px; font-weight: 600;
   color: var(--text-gray); cursor: pointer;
+}
+
+/* -----------------------------------------------------------
+   3b. SERVICES CARD — consolidates Quick Services + Identity
+   Services into one visual block/grid, JaraPoint-style.
+   ----------------------------------------------------------- */
+.services-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 14px 12px 12px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+.services-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 14px 0 12px;
 }
 
 /* -----------------------------------------------------------

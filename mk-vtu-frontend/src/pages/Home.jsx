@@ -210,20 +210,22 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
           </div>
         )}
 
-        <QuickServicesGrid
-          showAllServices={showAllServices}
-          setShowAllServices={setShowAllServices}
-        />
+        <div className="services-card">
+          <QuickServicesGrid
+            showAllServices={showAllServices}
+            setShowAllServices={setShowAllServices}
+          />
+          <div className="services-divider" />
+          <IdentityServicesGrid />
+        </div>
 
         <CampaignGrid user={user} />
 
-        <PromoBanners 
+        <PromoBanners
           user={user}
-          referralAnalytics={referralAnalytics} 
-          siteInfo={siteInfo} 
+          referralAnalytics={referralAnalytics}
+          siteInfo={siteInfo}
         />
-
-        <IdentityServicesGrid />
 
         <TransactionHistory 
           transactions={transactions} 

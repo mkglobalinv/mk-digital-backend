@@ -1,23 +1,32 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, CheckCircle, ArrowDownLeft, ArrowUpRight, LayoutGrid } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, ArrowDownLeft, ArrowUpRight, LayoutGrid, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './FintechComponents.css';
 
-const PremiumWalletCard = ({ 
-  user, 
-  recentlyFundedStatus, 
-  setShowMoreMenu, 
-  isReseller = false 
+const PremiumWalletCard = ({
+  user,
+  recentlyFundedStatus,
+  setShowMoreMenu,
+  isReseller = false
 }) => {
   const navigate = useNavigate();
   const [hideBalance, setHideBalance] = useState(() => {
     return sessionStorage.getItem('hideBalance') === 'true';
   });
+  const [copied, setCopied] = useState(false);
 
   const toggleBalancePrivacy = () => {
     const newVal = !hideBalance;
     setHideBalance(newVal);
     sessionStorage.setItem('hideBalance', newVal);
+  };
+
+  const copyAccountNumber = (e) => {
+    e.stopPropagation();
+    if (!user?.account_number) return;
+    navigator.clipboard.writeText(user.account_number);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   return (
@@ -38,6 +47,24 @@ const PremiumWalletCard = ({
         <div className={"wallet-balance " + (hideBalance ? "blurred" : "")}>
           {hideBalance ? ', ****.**' : `,${(user?.totalBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
         </div>
+      </div>
+
+      <div
+        className="wallet-account-row"
+        onClick={() => navigate(isReseller ? '/reseller/wallet' : '/wallet')}
+      >
+        {user?.account_number ? (
+          <>
+            <span className="wallet-account-text">
+              {user.account_number} · {user.bank_name}
+            </span>
+            <button className="wallet-account-copy-btn" onClick={copyAccountNumber}>
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+            </button>
+          </>
+        ) : (
+          <span className="wallet-account-text muted">Generate your account number →</span>
+        )}
       </div>
 
       <div className="wallet-actions">
