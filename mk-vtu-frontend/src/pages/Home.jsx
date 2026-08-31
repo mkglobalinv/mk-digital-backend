@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ShieldCheck, ShieldAlert, ChevronRight } from 'lucide-react';
 import API from '../api';
 import '../components/fintech/FintechComponents.css';
 import { getCleanStatus, getCleanStatusText } from '../utils/statusMapper';
@@ -195,6 +196,19 @@ const Home = ({ token, user, refreshUser, siteInfo }) => {
           recentlyFundedStatus={recentlyFundedStatus}
           setShowMoreMenu={setShowMoreMenu}
         />
+
+        {user && (
+          <div
+            className={`kyc-status-pill ${user.kycVerified ? 'verified' : 'unverified'}`}
+            onClick={() => { if (!user.kycVerified) navigate('/kyc'); }}
+            role={user.kycVerified ? undefined : 'button'}
+            tabIndex={user.kycVerified ? undefined : 0}
+          >
+            {user.kycVerified ? <ShieldCheck size={13} /> : <ShieldAlert size={13} />}
+            <span>{user.kycVerified ? 'Verified Account' : 'Complete Your KYC'}</span>
+            {!user.kycVerified && <ChevronRight size={12} />}
+          </div>
+        )}
 
         <QuickServicesGrid
           showAllServices={showAllServices}

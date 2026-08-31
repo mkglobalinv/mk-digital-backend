@@ -201,6 +201,37 @@ body.dark-theme .nav-avatar {
 }
 
 /* -----------------------------------------------------------
+   2b. KYC STATUS PILL — real kycVerified flag, not decorative
+   ----------------------------------------------------------- */
+.kyc-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: center;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+}
+.kyc-status-pill.verified {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  cursor: default;
+}
+body.dark-theme .kyc-status-pill.verified { color: #34D399; }
+.kyc-status-pill.unverified {
+  background: rgba(244, 180, 0, 0.12);
+  color: #92600A;
+  border: 1px solid rgba(244, 180, 0, 0.3);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+body.dark-theme .kyc-status-pill.unverified { color: #F4B400; }
+.kyc-status-pill.unverified:hover { background: rgba(244, 180, 0, 0.2); }
+
+/* -----------------------------------------------------------
    3. SECTION HEADER
    ----------------------------------------------------------- */
 .section-header {
