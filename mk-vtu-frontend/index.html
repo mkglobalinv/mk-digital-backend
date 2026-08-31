@@ -37,6 +37,15 @@
     <script type="module" src="/src/main.jsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
+        // When a new service worker takes control (after a deploy bumps its
+        // cache version), auto-reload once so users see the update
+        // immediately instead of needing a second manual refresh.
+        let swRefreshed = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (swRefreshed) return;
+          swRefreshed = true;
+          window.location.reload();
+        });
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
             .then(reg => console.log('SW Registered:', reg.scope))
