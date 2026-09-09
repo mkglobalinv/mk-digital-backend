@@ -187,3 +187,38 @@
 .a2c-steps .dot.active {
   background: #16a34a;
 }
+
+.a2c-sim-balance {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.a2c-sim-balance strong {
+  font-size: 15px;
+  color: #15803d;
+}
+
+.a2c-sim-balance p {
+  width: 100%;
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: #dc2626;
+}
+
+.a2c-sim-balance.low {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.a2c-sim-balance.low strong {
+  color: #dc2626;
+}

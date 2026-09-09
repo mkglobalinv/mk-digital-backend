@@ -888,6 +888,24 @@ describe('AirtimeBridgeProvider integrated through AirtimeToCashService (real pr
         return tx;
     }
 
+    test('verifyOtp captures the SIM airtimeBalance/tariff/type from the provider response, exposed to the customer via toSafeTransactionView', async () => {
+        nock(BASE_URL).post('/api/v1/generate/otp').reply(200, { code: 2000, message: 'sent' });
+        nock(BASE_URL).post('/api/v1/verify/otp').reply(200, {
+            code: 2000,
+            message: 'verified',
+            data: { sessionId: 'sess-bal-1', airtimeBalance: '₦0.42', tariff: 'SMEPlus', type: 'Prepaid' }
+        });
+
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '123456' });
+
+        expect(tx.providerAirtimeSnapshot.balance).toBe('₦0.42');
+        expect(tx.providerAirtimeSnapshot.tariff).toBe('SMEPlus');
+
+        const view = toSafeTransactionView(tx);
+        expect(view.providerAirtimeSnapshot.balance).toBe('₦0.42');
+    });
+
     test('full real-provider flow: OTP -> verify (captures sessionId) -> availability -> transfer -> SUCCESS, wallet credited exactly once, provider accounting stored separately from 9jaSub payout', async () => {
         let tx = await driveToReadyForTransfer();
         expect(tx.status).toBe('READY_FOR_TRANSFER');
