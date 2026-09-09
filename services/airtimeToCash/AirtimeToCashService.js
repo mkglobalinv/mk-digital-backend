@@ -267,6 +267,11 @@ export async function verifyOtp({ reference, customerId, otp, ip }) {
                 tariff: result.data.tariff,
                 type: result.data.type
             };
+        } else {
+            // Diagnostic only, server-side console -- the documented response shape
+            // (data.airtimeBalance/tariff/type) didn't match what actually came back,
+            // so log the raw body to see the real shape rather than assuming.
+            console.warn('[AirtimeToCash] verifyOtp succeeded but no airtimeBalance found in provider response:', JSON.stringify(result.raw));
         }
         tx.status = 'OTP_VERIFIED';
         tx.otpVerifiedAt = new Date();
