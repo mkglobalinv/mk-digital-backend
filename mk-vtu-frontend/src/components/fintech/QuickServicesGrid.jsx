@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Wifi, Smartphone, Tv2, Zap, Hash, Monitor, FileText,
-  Globe, History, ChevronDown, ChevronUp, Sparkles
+  Globe, History, ChevronDown, ChevronUp, Sparkles, Banknote
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import API from '../../api';
 import './FintechComponents.css';
 
 const PRIMARY_SERVICES = [
@@ -20,9 +21,27 @@ const MORE_SERVICES = [
   { id: 'history', label: 'History',     icon: History,   cls: 'srv-gray',   route: '/transactions' },
 ];
 
+// Airtime-to-Cash is shown only once the backend confirms it, so a tenant with the
+// global service off, or their own tenant-specific override disabled, never sees a
+// tile that would just fail server-side anyway -- the backend stays authoritative.
+const AIRTIME_TO_CASH_SERVICE = { id: 'airtime-to-cash', label: 'Airtime to Cash', icon: Banknote, cls: 'srv-teal', route: '/airtime-to-cash' };
+
 const QuickServicesGrid = ({ isReseller = false }) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
+  const [airtimeToCashAvailable, setAirtimeToCashAvailable] = useState(false);
+
+  useEffect(() => {
+    API.get('/api/airtime-to-cash/config')
+      .then((res) => {
+        const data = res.data?.data;
+        const anyNetworkEnabled = data?.networks && Object.values(data.networks).some(Boolean);
+        setAirtimeToCashAvailable(Boolean(data?.enabled && anyNetworkEnabled));
+      })
+      .catch(() => setAirtimeToCashAvailable(false));
+  }, []);
+
+  const moreServices = airtimeToCashAvailable ? [...MORE_SERVICES, AIRTIME_TO_CASH_SERVICE] : MORE_SERVICES;
 
   const handleServiceClick = (svc) => {
     if (svc.route) {
@@ -73,7 +92,7 @@ const QuickServicesGrid = ({ isReseller = false }) => {
       {/* Expanded panel */}
       <div className={`more-services-panel ${expanded ? 'open' : ''}`}>
         <div className="services-grid secondary-grid">
-          {MORE_SERVICES.map(svc => {
+          {moreServices.map(svc => {
             const Icon = svc.icon;
             return (
               <div key={svc.id} className={`service-card ${svc.cls}`} onClick={() => handleServiceClick(svc)}>

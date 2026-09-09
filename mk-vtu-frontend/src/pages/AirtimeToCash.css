@@ -1,0 +1,189 @@
+.a2c-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: 48px;
+}
+
+.a2c-page h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 4px 0 4px;
+}
+
+.a2c-page .subtitle {
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.a2c-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 8px;
+}
+
+.a2c-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid #f1f5f9;
+}
+
+.a2c-network-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.a2c-network-picker button {
+  padding: 12px 4px;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.a2c-network-picker button.selected {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.a2c-network-picker button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.a2c-field {
+  margin-bottom: 14px;
+}
+
+.a2c-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.a2c-field input {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.a2c-quote-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.a2c-quote-box .payout {
+  font-size: 28px;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.a2c-quote-box .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #4b5563;
+  margin-top: 4px;
+}
+
+.a2c-otp-input {
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: 8px;
+  font-weight: 700;
+}
+
+.a2c-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: #16a34a;
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.a2c-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.a2c-btn.secondary {
+  background: transparent;
+  color: #16a34a;
+  border: 1px solid #16a34a;
+}
+
+.a2c-error {
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.a2c-result {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.a2c-result .icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.a2c-result .icon.success { background: #dcfce7; color: #16a34a; }
+.a2c-result .icon.failed { background: #fee2e2; color: #dc2626; }
+.a2c-result .icon.review { background: #fef3c7; color: #d97706; }
+
+.a2c-steps {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.a2c-steps .dot {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.a2c-steps .dot.active {
+  background: #16a34a;
+}
