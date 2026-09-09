@@ -657,8 +657,8 @@ describe('AirtimeBridgeProvider (real HTTP client, mocked at the network layer w
         nock.cleanAll();
     });
 
-    test('requestOtp: no Authorization header is sent (documented as unauthenticated)', async () => {
-        const scope = nock(BASE_URL, { badheaders: ['authorization'] })
+    test('requestOtp: sends the Authorization: Bearer header (documented as unauthenticated, but the live server 401s without it -- confirmed against production)', async () => {
+        const scope = nock(BASE_URL, { reqheaders: { authorization: 'Bearer test-token-123' } })
             .post('/api/v1/generate/otp', { networkName: 'MTN', sender: '08031234567' })
             .reply(200, { code: 2000, message: 'Otp sent successfully to +23480*****67' });
 

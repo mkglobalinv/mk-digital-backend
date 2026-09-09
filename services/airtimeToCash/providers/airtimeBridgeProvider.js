@@ -13,10 +13,14 @@ import { AirtimeToCashProviderInterface, AIRTIME_CASH_STATUS } from '../provider
 //   5030 service/recipient unavailable (see the quota-check exception noted below)
 // Documented HTTP status codes: 401, 403, 404, 422, 429, and 500 ("set to pending").
 //
-// Auth: Generate OTP and Verify OTP take only Content-Type/Accept -- no token.
-// Every other endpoint requires Authorization: Bearer {token}, where the token is
-// a static credential generated in AirtimeBridge's own "Developer's Module" (this
-// is exactly AirtimeCashProviderConfig.credentials.apiToken -- not derived from the
+// Auth: documented as Content-Type/Accept only (no token) for Generate OTP and
+// Verify OTP, with every other endpoint requiring Authorization: Bearer {token}.
+// In practice, AirtimeBridge's live server rejects an unauthenticated
+// generate/otp call with 401 {"message":"Unauthenticated."} -- confirmed against
+// production, not assumed -- so both OTP endpoints also send the Bearer token,
+// same as every other call. The token is a static credential generated in
+// AirtimeBridge's own "Developer's Module" (this is exactly
+// AirtimeCashProviderConfig.credentials.apiToken -- not derived from the
 // OTP/session flow at all).
 //
 // Per-network amount ranges (documented; NOT the same as 9jaSub's own admin-
@@ -105,7 +109,7 @@ export class AirtimeBridgeProvider extends AirtimeToCashProviderInterface {
     }
 
     async requestOtp({ network, phone }) {
-        const data = await this._post('/api/v1/generate/otp', { networkName: network, sender: phone }, this._publicHeaders());
+        const data = await this._post('/api/v1/generate/otp', { networkName: network, sender: phone }, this._authHeaders());
         if (data.code === CODE.SUCCESS) {
             return { success: true, status: AIRTIME_CASH_STATUS.SUCCESS, message: data.message, raw: data };
         }
@@ -113,7 +117,7 @@ export class AirtimeBridgeProvider extends AirtimeToCashProviderInterface {
     }
 
     async verifyOtp({ otp, phone, network }) {
-        const data = await this._post('/api/v1/verify/otp', { networkName: network, sender: phone, otp }, this._publicHeaders());
+        const data = await this._post('/api/v1/verify/otp', { networkName: network, sender: phone, otp }, this._authHeaders());
         if (data.code === CODE.SUCCESS) {
             return {
                 success: true,
