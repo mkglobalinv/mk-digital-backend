@@ -123,6 +123,7 @@ const ResellerPricing = lazyWithRetry(() => import("./reseller/pages/ResellerPri
 const ResellerBranding = lazyWithRetry(() => import("./reseller/pages/ResellerBranding"));
 const ResellerSecurity = lazyWithRetry(() => import("./reseller/pages/ResellerSecurity"));
 const ResellerWallet = lazyWithRetry(() => import("./reseller/pages/ResellerWallet"));
+const ResellerAirtimeToCash = lazyWithRetry(() => import("./reseller/pages/ResellerAirtimeToCash"));
 const ResellerSupport = lazyWithRetry(() => import("./reseller/pages/ResellerSupport"));
 const ResellerApp = lazyWithRetry(() => import("./reseller/pages/ResellerApp"));
 const ResellerPremium = lazyWithRetry(() => import("./reseller/pages/ResellerPremium"));
@@ -1020,6 +1021,7 @@ function App() {
                           <Route path="/email-campaigns" element={<PremiumGuard user={user}><ResellerEmailCampaign user={user} /></PremiumGuard>} />
                           <Route path="/branding" element={<PremiumGuard user={user}><ResellerBranding user={user} refreshUser={fetchUserInfo} refreshBranding={fetchSiteInfo} /></PremiumGuard>} />
                           <Route path="/wallet" element={<ResellerWallet user={user} />} />
+                          <Route path="/airtime-to-cash" element={<ResellerAirtimeToCash />} />
                           <Route path="/security" element={<ResellerSecurity />} />
                           <Route path="/support" element={<ResellerSupport />} />
                           <Route path="/mobile-app" element={<PremiumGuard user={user}><ResellerApp user={user} refreshUser={fetchUserInfo} /></PremiumGuard>} />

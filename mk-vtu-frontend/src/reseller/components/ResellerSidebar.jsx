@@ -18,7 +18,8 @@ import {
   Zap,
   X,
   Lock,
-  Gift
+  Gift,
+  Banknote
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
@@ -52,7 +53,8 @@ const ResellerSidebar = ({ user, logout, isOpen, onClose }) => {
             label: "Financials",
             items: [
                 { id: 'wallet', label: 'Wallet & Profit', icon: <BarChart2 size={20} />, path: '/reseller/wallet' },
-                { id: 'analytics', label: 'Website Analytics', icon: <BarChart2 size={20} />, path: '/reseller/analytics' }
+                { id: 'analytics', label: 'Website Analytics', icon: <BarChart2 size={20} />, path: '/reseller/analytics' },
+                { id: 'airtime-to-cash', label: 'Airtime to Cash', icon: <Banknote size={20} />, path: '/reseller/airtime-to-cash' }
             ]
         },
         {

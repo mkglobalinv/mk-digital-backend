@@ -242,6 +242,17 @@ describe('AirtimeCashPricing calculation', () => {
     test('throws PricingNotConfiguredError when no rate exists for the network at all', async () => {
         await expect(pricing.calculateAirtimeCashQuote({ tenantId: null, network: 'GLO', amount: 1000 })).rejects.toThrow(/not configured/);
     });
+
+    test('a tenant-specific row explicitly disabled blocks the service for that tenant -- it does NOT fall back to the global rate', async () => {
+        await fakeAirtimeCashPricing.create({ tenantId: null, network: 'MTN', conversionPercentage: 80, fixedFee: 0, minAmount: 500, maxAmount: 50000, isEnabled: true });
+        await fakeAirtimeCashPricing.create({ tenantId: 'tenantBlocked', network: 'MTN', conversionPercentage: 78, fixedFee: 0, minAmount: 500, maxAmount: 50000, isEnabled: false });
+
+        await expect(pricing.calculateAirtimeCashQuote({ tenantId: 'tenantBlocked', network: 'MTN', amount: 10000 })).rejects.toThrow(/not configured/);
+
+        // A different tenant with no row of its own is unaffected and still gets global.
+        const quote = await pricing.calculateAirtimeCashQuote({ tenantId: 'tenantOther', network: 'MTN', amount: 10000 });
+        expect(quote.source).toBe('global');
+    });
 });
 
 describe('AirtimeToCashService end-to-end state machine (mock provider, fake models)', () => {

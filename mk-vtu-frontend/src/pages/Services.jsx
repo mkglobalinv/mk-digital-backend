@@ -1,10 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wifi, Smartphone, Zap, GraduationCap, PlaySquare, FileText, SmartphoneIcon, Globe, Banknote } from 'lucide-react';
+import API from '../api';
 import './Services.css';
 
 const Services = () => {
   const navigate = useNavigate();
+  // Airtime-to-Cash is shown only once the backend confirms it's actually usable
+  // (global switch on, and at least one network available for this tenant) --
+  // never hard-coded on, since the backend stays authoritative.
+  const [airtimeToCashAvailable, setAirtimeToCashAvailable] = useState(false);
+
+  useEffect(() => {
+    API.get('/api/airtime-to-cash/config')
+      .then((res) => {
+        const data = res.data?.data;
+        const anyNetworkEnabled = data?.networks && Object.values(data.networks).some(Boolean);
+        setAirtimeToCashAvailable(Boolean(data?.enabled && anyNetworkEnabled));
+      })
+      .catch(() => setAirtimeToCashAvailable(false));
+  }, []);
 
   const serviceCategories = [
     {
@@ -13,7 +28,7 @@ const Services = () => {
         { id: 'data', name: 'Buy Data', icon: <Wifi />, color: '#3B82F6', desc: 'SME, CG & Gifting' },
         { id: 'airtime', name: 'Airtime', icon: <Smartphone />, color: '#10B981', desc: 'Instant Top-up' },
         { id: 'epin', name: 'Airtime PIN', icon: <SmartphoneIcon />, color: '#F59E0B', desc: 'Recharge Printing' },
-        { id: 'airtime-to-cash', name: 'Airtime to Cash', icon: <Banknote />, color: '#16A34A', desc: 'Convert Airtime to Wallet Cash' },
+        ...(airtimeToCashAvailable ? [{ id: 'airtime-to-cash', name: 'Airtime to Cash', icon: <Banknote />, color: '#16A34A', desc: 'Convert Airtime to Wallet Cash' }] : []),
       ]
     },
     {

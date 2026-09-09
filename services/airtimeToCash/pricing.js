@@ -16,15 +16,22 @@ export class AmountOutOfRangeError extends Error {
 
 /**
  * Resolves the effective pricing row for a tenant+network: a tenant-specific row
- * overrides the global (tenantId: null) row for that network. Returns null if
- * neither exists yet.
+ * overrides the global (tenantId: null) row for that network.
+ *
+ * An EXISTING tenant-specific row is authoritative for that tenant, including when
+ * its isEnabled is false -- that is the admin explicitly disabling Airtime-to-Cash
+ * for this one tenant/network, and must block the service entirely, not silently
+ * fall back to the global rate. Falling back to global only happens when the
+ * tenant has no row for this network at all.
  */
 export async function resolveEffectivePricing(tenantId, network) {
     const net = String(network || '').toUpperCase();
 
     if (tenantId) {
-        const tenantRow = await AirtimeCashPricing.findOne({ tenantId, network: net, isEnabled: true });
-        if (tenantRow) return { row: tenantRow, source: 'tenant' };
+        const tenantRow = await AirtimeCashPricing.findOne({ tenantId, network: net });
+        if (tenantRow) {
+            return tenantRow.isEnabled ? { row: tenantRow, source: 'tenant' } : null;
+        }
     }
 
     const globalRow = await AirtimeCashPricing.findOne({ tenantId: null, network: net, isEnabled: true });
