@@ -86,6 +86,14 @@ async function safeProviderCall(fn, label) {
         return await fn();
     } catch (err) {
         console.error(`[AirtimeToCash] Provider call threw during ${label}:`, err.message);
+        // Diagnostic only, server-side console -- never included in the returned
+        // message/errorMessage below, so this never reaches the audit trail or the
+        // customer-facing error. Logged specifically so a real provider-side
+        // rejection (e.g. a 401/403 body explaining why) is visible in ops logs
+        // instead of just axios's generic "Request failed with status code N".
+        if (err.response) {
+            console.error(`[AirtimeToCash] Provider HTTP ${err.response.status} response body during ${label}:`, JSON.stringify(err.response.data));
+        }
         return {
             success: false,
             status: AIRTIME_CASH_STATUS.AMBIGUOUS,
