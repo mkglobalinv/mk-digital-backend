@@ -41,9 +41,14 @@ export class AirtimeToCashProviderInterface {
     /**
      * Submit the actual airtime transfer. `transferPin` is the customer's airtime
      * transfer PIN -- pass-through only, must never be logged, stored, or echoed back.
+     * `reference` is 9jaSub's own transaction reference; AirtimeBridge's documented
+     * /transfer/airtime endpoint requires a caller-supplied unique reference
+     * (10-40 chars), which is also what lets a provider that supports it dedupe a
+     * retried call -- always pass the transaction's own `reference`, never a
+     * freshly generated one.
      * @returns {Promise<{success, status, message, data:{providerReference?}}>}
      */
-    async transfer({ sessionId, network, phone, amount, transferPin }) {
+    async transfer({ sessionId, network, phone, amount, transferPin, reference }) {
         throw new Error('transfer() not implemented');
     }
 

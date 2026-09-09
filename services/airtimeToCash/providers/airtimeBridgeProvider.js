@@ -1,71 +1,68 @@
-import { AirtimeToCashProviderInterface } from '../providerInterface.js';
+import axios from 'axios';
+import { AirtimeToCashProviderInterface, AIRTIME_CASH_STATUS } from '../providerInterface.js';
 
 // ============================================================================
-// STOP -- REAL PROVIDER CONTRACT NOT YET AVAILABLE
+// AirtimeBridge Automation API client, implemented against the vendor's own
+// published documentation (Getting Started / Authentication / Supported Networks /
+// API Endpoints sections, as supplied directly -- not inferred, not guessed).
 // ============================================================================
-// This file implements the AirtimeToCashProviderInterface for AirtimeBridge
-// (https://automation.airtimetocash.com), but the actual API contract --
-// endpoint paths, request/response bodies, auth header format, sessionId
-// lifecycle, quota mechanism, network identifiers, transfer PIN field name,
-// webhook shape -- has not been implemented, because it has not been seen.
 //
-// The documentation URL (https://automation.airtimetocash.com/api/documentation)
-// is blocked by this environment's network egress proxy (confirmed via WebFetch:
-// EGRESS_BLOCKED, and via the proxy's own status endpoint, which does not list
-// this host in any reachable allowlist). No endpoint, field name, header, or
-// behavior below has been invented to fill that gap.
+// Documented JSON response codes (returned in the body regardless of HTTP status):
+//   2000 success | 3000 failed | 4000 pending, needs manual intervention |
+//   4030 forbidden | 4010 session expired | 4290 too many requests |
+//   5030 service/recipient unavailable (see the quota-check exception noted below)
+// Documented HTTP status codes: 401, 403, 404, 422, 429, and 500 ("set to pending").
 //
-// Every method here throws ProviderContractMissingError instead of guessing.
-// Per the explicit instruction governing this feature: "Do not assume undocumented
-// endpoints exist... If an undocumented endpoint is required, stop and report
-// exactly what is missing." This file IS that stop-and-report, made durable in
-// code so the system fails loudly and specifically instead of silently doing the
-// wrong thing against a real provider.
+// Auth: Generate OTP and Verify OTP take only Content-Type/Accept -- no token.
+// Every other endpoint requires Authorization: Bearer {token}, where the token is
+// a static credential generated in AirtimeBridge's own "Developer's Module" (this
+// is exactly AirtimeCashProviderConfig.credentials.apiToken -- not derived from the
+// OTP/session flow at all).
 //
-// This provider is never reached by a live request today: AirtimeCashProviderConfig
-// .isActive defaults to false, and the customer-facing routes refuse to start a
-// transaction while it is false (see AirtimeToCashService.assertServiceEnabled).
-// It only becomes reachable once an admin explicitly flips isActive to true --
-// which per the brief must happen only after the API contract below has been
-// filled in and verified.
-//
-// TO COMPLETE THIS FILE, the following must be supplied (from the real docs, not
-// inferred):
-//   1. Base URL + auth: exact header name/format for the API token (Authorization:
-//      Bearer? X-Api-Key? request-body field?).
-//   2. POST endpoint + body to request an OTP (network, phone, amount -- exact
-//      field names and casing).
-//   3. POST endpoint + body to verify an OTP, and how the sessionId is returned
-//      and must be resupplied on subsequent calls.
-//   4. Endpoint for quota / recipient-availability check, and its request/response
-//      shape (or confirmation that no separate step exists and availability is
-//      only known at transfer time).
-//   5. POST endpoint + body to submit the transfer, including the exact field name
-//      for the customer's airtime transfer PIN, and the network identifiers/codes
-//      AirtimeBridge expects (their own MTN/AIRTEL/GLO/9MOBILE codes, which may not
-//      match 9jaSub's internal ones).
-//   6. Endpoint + response shape to re-query a transfer's status by reference/
-//      sessionId (for the reconciliation job), OR confirmation that AirtimeBridge
-//      is webhook-only with no working requery endpoint (as is already true for
-//      one of 9jaSub's existing VTU providers, PeyFlex -- see
-//      services/requeryService.js's handling of it).
-//   7. Whether a webhook exists, its payload shape, and how to verify its
-//      authenticity (signature header, shared secret, IP allowlist, etc).
-//   8. Whether AirtimeBridge itself ever pays the end customer directly (in which
-//      case bank/account fields flow straight through to AirtimeBridge), or
-//      whether AirtimeBridge only converts airtime into AirtimeBridge's own
-//      balance/session with settlement to 9jaSub happening on a separate,
-//      undocumented channel -- this determines whether 9jaSub's own payout phase
-//      (deliberately out of scope for this implementation) is even meaningful.
-// ============================================================================
+// Per-network amount ranges (documented; NOT the same as 9jaSub's own admin-
+// configured AirtimeCashPricing min/max, which an admin could mis-set wider than
+// these -- exported below for a future admin-UI validation pass, not enforced here
+// since that's outside "implement the provider operations"):
+export const AIRTIMEBRIDGE_NETWORK_LIMITS = Object.freeze({
+    MTN: { min: 50, max: 10000 },
+    AIRTEL: { min: 50, max: 20000 },
+    GLO: { min: 50, max: 1000 },
+    '9MOBILE': { min: 50, max: 20000 }
+});
 
+const CODE = Object.freeze({
+    SUCCESS: 2000,
+    FAILED: 3000,
+    PENDING: 4000,
+    FORBIDDEN: 4030,
+    SESSION_EXPIRED: 4010,
+    TOO_MANY_REQUESTS: 4290,
+    UNAVAILABLE: 5030
+});
+
+export class AirtimeBridgeApiError extends Error {
+    constructor(message, { code, httpStatus, raw } = {}) {
+        super(message);
+        this.name = 'AirtimeBridgeApiError';
+        this.code = code;
+        this.httpStatus = httpStatus;
+        this.raw = raw;
+    }
+}
+
+// NOT documented anywhere supplied: a "check transaction status by reference"
+// endpoint, and a webhook. AirtimeBridge's only session-related GET-like operation
+// is POST /api/v1/login/with/session/id, which re-validates a SIM session (returns
+// airtimeBalance/tariff/type/sessionId) -- it does not report the outcome of a
+// specific past transfer, so it cannot serve as a requery-by-reference endpoint.
+// This is the ONE required-but-undocumented capability: reconciliation cannot ask
+// AirtimeBridge "did transfer X actually go through?" after an ambiguous/exception
+// response. checkStatus() below reports that plainly rather than guessing at an
+// endpoint. If AirtimeBridge adds one, or confirms Login-with-Session-Id is meant
+// to double as this, only this one method needs to change.
 export class ProviderContractMissingError extends Error {
     constructor(method, detail) {
-        super(
-            `AirtimeBridge.${method}() cannot run: the real API contract is unknown ` +
-            `(https://automation.airtimetocash.com/api/documentation is unreachable from this ` +
-            `environment and has not been supplied). ${detail}`
-        );
+        super(`AirtimeBridge.${method}() cannot run: ${detail}`);
         this.name = 'ProviderContractMissingError';
         this.code = 'AIRTIME_CASH_PROVIDER_CONTRACT_MISSING';
     }
@@ -74,43 +71,121 @@ export class ProviderContractMissingError extends Error {
 export class AirtimeBridgeProvider extends AirtimeToCashProviderInterface {
     constructor({ apiBaseUrl, apiToken, isTestMode } = {}) {
         super();
-        this.apiBaseUrl = apiBaseUrl;
+        this.apiBaseUrl = String(apiBaseUrl || 'https://automation.airtimetocash.com').replace(/\/+$/, '');
         this.apiToken = apiToken; // never logged, never returned from any method
         this.isTestMode = isTestMode;
     }
 
-    async requestOtp() {
-        throw new ProviderContractMissingError(
-            'requestOtp',
-            'Need the documented OTP-request endpoint path and its request/response field names.'
-        );
+    _publicHeaders() {
+        return { 'Content-Type': 'application/json', Accept: 'application/json' };
     }
 
-    async verifyOtp() {
-        throw new ProviderContractMissingError(
-            'verifyOtp',
-            'Need the documented OTP-verify endpoint path, and how sessionId is issued/reused.'
-        );
+    _authHeaders() {
+        if (!this.apiToken) {
+            throw new AirtimeBridgeApiError('No AirtimeBridge API token configured.');
+        }
+        return { ...this._publicHeaders(), Authorization: `Bearer ${this.apiToken}` };
     }
 
-    async checkAvailability() {
-        throw new ProviderContractMissingError(
-            'checkAvailability',
-            'Need the documented quota/recipient-availability endpoint (or confirmation none exists).'
-        );
+    async _post(path, body, headers) {
+        // Any non-2xx HTTP response throws via axios -- caught by
+        // AirtimeToCashService.js's safeProviderCall(), which normalizes it to the
+        // same 'ambiguous' shape a pending (4000) JSON body gets. This matches the
+        // documented "500 Internal Server Error ... set to pending" convention:
+        // an HTTP-level failure is treated no more confidently than a pending one.
+        const response = await axios.post(`${this.apiBaseUrl}${path}`, body, { headers, timeout: 30000 });
+        return response.data;
     }
 
-    async transfer() {
-        throw new ProviderContractMissingError(
-            'transfer',
-            'Need the documented transfer endpoint, its request body (incl. the transfer PIN field name), and network codes.'
+    async requestOtp({ network, phone }) {
+        const data = await this._post('/api/v1/generate/otp', { networkName: network, sender: phone }, this._publicHeaders());
+        if (data.code === CODE.SUCCESS) {
+            return { success: true, status: AIRTIME_CASH_STATUS.SUCCESS, message: data.message, raw: data };
+        }
+        return { success: false, status: AIRTIME_CASH_STATUS.FAILED, message: data.message || 'Unable to send OTP.', raw: data };
+    }
+
+    async verifyOtp({ otp, phone, network }) {
+        const data = await this._post('/api/v1/verify/otp', { networkName: network, sender: phone, otp }, this._publicHeaders());
+        if (data.code === CODE.SUCCESS) {
+            return {
+                success: true,
+                status: AIRTIME_CASH_STATUS.SUCCESS,
+                message: data.message,
+                // sessionId is returned HERE, not by generate/otp -- AirtimeToCashService
+                // captures it from this response.
+                data: { sessionId: data.data?.sessionId },
+                raw: data
+            };
+        }
+        return { success: false, status: AIRTIME_CASH_STATUS.FAILED, message: data.message || 'Invalid OTP.', raw: data };
+    }
+
+    async checkAvailability({ network, amount }) {
+        const data = await this._post('/api/v1/check/quota/availability', { networkName: network, amount }, this._authHeaders());
+        // Documented anomaly: this endpoint's own "Success Response" example is
+        // { code: 5030, message: "Recipient(s) Available" } -- even though the
+        // top-level response-code table defines 5030 generically as "Service/
+        // Recipient is unavailable". Trusting the endpoint's own literal example
+        // over the generic table for this one case, but only when the message
+        // actually confirms availability -- anything else on code 5030 is treated
+        // as the generic table's meaning (unavailable).
+        const message = String(data.message || '');
+        const isDocumentedAvailableException = data.code === CODE.UNAVAILABLE && /available/i.test(message) && !/not\s+available|unavailable/i.test(message);
+        if (data.code === CODE.SUCCESS || isDocumentedAvailableException) {
+            return { success: true, status: AIRTIME_CASH_STATUS.SUCCESS, message: data.message, raw: data };
+        }
+        return { success: false, status: AIRTIME_CASH_STATUS.FAILED, message: data.message || 'Recipient/quota unavailable right now.', raw: data };
+    }
+
+    async transfer({ network, phone, amount, transferPin, sessionId, reference }) {
+        if (!sessionId) {
+            throw new AirtimeBridgeApiError('No sessionId available for transfer (OTP was never verified for this transaction).');
+        }
+        const data = await this._post(
+            '/api/v1/transfer/airtime',
+            { networkName: network, sender: phone, amount, reference, pin: transferPin, sessionId },
+            this._authHeaders()
         );
+
+        if (data.code === CODE.SUCCESS) {
+            return {
+                success: true,
+                status: AIRTIME_CASH_STATUS.SUCCESS,
+                message: data.message,
+                // No distinct provider-side transaction ID is documented in the
+                // transfer response -- `reference` (ours, sent in the request) is
+                // the only correlator AirtimeBridge's docs show.
+                data: { providerReference: reference },
+                raw: data
+            };
+        }
+
+        // 4000 (pending) is the provider's own definition of "not sure of delivery
+        // -- needs manual intervention": exactly our MANUAL_REVIEW case, not a
+        // guessed failure. 4290 (rate limited) is also treated as ambiguous here,
+        // specifically for this endpoint, because the docs do not state whether a
+        // rate-limited transfer request ever reached the network before being
+        // rejected -- safer to review manually than assume nothing happened.
+        // Every other documented code (3000 failed, 4010 session expired, 4030
+        // forbidden, 5030 recipient unavailable) is a definite pre-money-movement
+        // rejection.
+        if (data.code === CODE.PENDING || data.code === CODE.TOO_MANY_REQUESTS) {
+            return { success: false, status: AIRTIME_CASH_STATUS.AMBIGUOUS, message: data.message || 'Transfer outcome could not be confirmed.', data: { providerReference: reference }, raw: data };
+        }
+
+        return { success: false, status: AIRTIME_CASH_STATUS.FAILED, message: data.message || 'Transfer failed.', data: { providerReference: reference }, raw: data };
     }
 
     async checkStatus() {
         throw new ProviderContractMissingError(
             'checkStatus',
-            'Need the documented status/requery endpoint (or confirmation that only a webhook resolves status).'
+            'no transaction-status-by-reference endpoint (or webhook) is documented. ' +
+            'POST /api/v1/login/with/session/id re-validates a SIM session but does not ' +
+            'report a specific past transfer\'s outcome, so it cannot serve this purpose. ' +
+            'A MANUAL_REVIEW transaction from an ambiguous transfer response must be ' +
+            'resolved by an admin (see adminResolveManualReview) until AirtimeBridge ' +
+            'documents a real requery mechanism.'
         );
     }
 }

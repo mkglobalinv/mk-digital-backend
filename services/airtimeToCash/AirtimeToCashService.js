@@ -247,6 +247,12 @@ export async function verifyOtp({ reference, customerId, otp, ip }) {
     );
 
     if (result.success) {
+        // AirtimeBridge's documented /verify/otp response is where sessionId is
+        // actually returned (generate/otp's response never includes one) -- capture
+        // it here rather than assuming it arrived earlier.
+        if (result.data?.sessionId) {
+            tx.providerSessionId = result.data.sessionId;
+        }
         tx.status = 'OTP_VERIFIED';
         tx.otpVerifiedAt = new Date();
         await tx.save();
@@ -427,7 +433,7 @@ export async function transfer({ reference, customerId, transferPin, ip }) {
     // MANUAL_REVIEW -- never FAILED (that would be a guess) and never retried
     // automatically (that could double-deduct the customer's airtime).
     const result = await safeProviderCall(
-        () => provider.transfer({ sessionId: tx.providerSessionId, network: tx.network, phone: tx.senderPhone, amount: tx.airtimeAmount, transferPin }),
+        () => provider.transfer({ sessionId: tx.providerSessionId, network: tx.network, phone: tx.senderPhone, amount: tx.airtimeAmount, transferPin, reference: tx.reference }),
         'transfer'
     );
 

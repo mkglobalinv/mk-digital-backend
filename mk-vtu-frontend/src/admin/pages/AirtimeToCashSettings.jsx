@@ -141,9 +141,11 @@ const AirtimeToCashSettings = () => {
             <div className="a2c-card" style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
                 <h3>Before enabling Live mode</h3>
                 <p style={{ fontSize: 13, color: '#92400e', margin: 0 }}>
-                    The real AirtimeBridge request/response contract (OTP, quota, transfer, status endpoints) must be
-                    confirmed against the actual API documentation before this is switched out of Sandbox mode — see
-                    services/airtimeToCash/providers/airtimeBridgeProvider.js for exactly what is still missing.
+                    OTP, quota-check, and transfer are implemented against AirtimeBridge's documented API. One gap
+                    remains: no transaction-status-by-reference endpoint is documented, so a MANUAL_REVIEW
+                    transaction from an ambiguous transfer response must be resolved by hand under
+                    Airtime-to-Cash → Transactions, not automatically. Test with a small real transfer in Live mode
+                    before wider rollout.
                 </p>
             </div>
         </div>

@@ -628,3 +628,141 @@ describe('Reseller authorization (Fix 1 regression)', () => {
         expect(allowed).toBe(false);
     });
 });
+
+describe('AirtimeBridgeProvider (real HTTP client, mocked at the network layer with nock -- no live call)', () => {
+    let AirtimeBridgeProvider, ProviderContractMissingError, nock, provider;
+    const BASE_URL = 'https://automation.airtimetocash.com';
+
+    beforeAll(async () => {
+        nock = (await import('nock')).default;
+        ({ AirtimeBridgeProvider, ProviderContractMissingError } = await import('../services/airtimeToCash/providers/airtimeBridgeProvider.js'));
+    });
+
+    beforeEach(() => {
+        provider = new AirtimeBridgeProvider({ apiBaseUrl: BASE_URL, apiToken: 'test-token-123', isTestMode: false });
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    test('requestOtp: no Authorization header is sent (documented as unauthenticated)', async () => {
+        const scope = nock(BASE_URL, { badheaders: ['authorization'] })
+            .post('/api/v1/generate/otp', { networkName: 'MTN', sender: '08031234567' })
+            .reply(200, { code: 2000, message: 'Otp sent successfully to +23480*****67' });
+
+        const res = await provider.requestOtp({ network: 'MTN', phone: '08031234567' });
+        expect(res.success).toBe(true);
+        expect(scope.isDone()).toBe(true);
+    });
+
+    test('verifyOtp: success returns the sessionId from data.sessionId', async () => {
+        nock(BASE_URL)
+            .post('/api/v1/verify/otp', { networkName: 'MTN', sender: '08031234567', otp: '123456' })
+            .reply(200, { code: 2000, message: 'Otp verified.', data: { airtimeBalance: '₦0.42', tariff: 'SMEPlus', type: 'Prepaid', sessionId: '20230521232229|744673|18' } });
+
+        const res = await provider.verifyOtp({ network: 'MTN', phone: '08031234567', otp: '123456' });
+        expect(res.success).toBe(true);
+        expect(res.data.sessionId).toBe('20230521232229|744673|18');
+    });
+
+    test('verifyOtp: a non-2000 code is a clean failure, not an exception', async () => {
+        nock(BASE_URL).post('/api/v1/verify/otp').reply(200, { code: 3000, message: 'Invalid OTP' });
+        const res = await provider.verifyOtp({ network: 'MTN', phone: '08031234567', otp: '000000' });
+        expect(res.success).toBe(false);
+        expect(res.status).toBe('failed');
+    });
+
+    test('checkAvailability: sends the Authorization: Bearer header, and code 2000 is success', async () => {
+        const scope = nock(BASE_URL, { reqheaders: { authorization: 'Bearer test-token-123' } })
+            .post('/api/v1/check/quota/availability', { networkName: 'MTN', amount: 1000 })
+            .reply(200, { code: 2000, message: 'ok' });
+
+        const res = await provider.checkAvailability({ network: 'MTN', amount: 1000 });
+        expect(res.success).toBe(true);
+        expect(scope.isDone()).toBe(true);
+    });
+
+    test('checkAvailability: the documented code-5030 "Recipient(s) Available" example is treated as success', async () => {
+        nock(BASE_URL).post('/api/v1/check/quota/availability').reply(200, { code: 5030, message: 'Recipient(s) Available' });
+        const res = await provider.checkAvailability({ network: 'MTN', amount: 1000 });
+        expect(res.success).toBe(true);
+    });
+
+    test('checkAvailability: code 5030 WITHOUT an "available" message falls back to the generic table meaning (unavailable/failed)', async () => {
+        nock(BASE_URL).post('/api/v1/check/quota/availability').reply(200, { code: 5030, message: 'Service temporarily unavailable' });
+        const res = await provider.checkAvailability({ network: 'MTN', amount: 1000 });
+        expect(res.success).toBe(false);
+    });
+
+    test('transfer: throws before making any request if sessionId is missing', async () => {
+        await expect(provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', reference: 'AC2C-TEST-REF-001' }))
+            .rejects.toThrow(/sessionId/);
+    });
+
+    test('transfer: success sends reference/pin/sessionId in the body and reports success', async () => {
+        const scope = nock(BASE_URL, { reqheaders: { authorization: 'Bearer test-token-123' } })
+            .post('/api/v1/transfer/airtime', {
+                networkName: 'MTN',
+                sender: '08031234567',
+                amount: 1000,
+                reference: 'AC2C-TEST-REF-001',
+                pin: '1111',
+                sessionId: '20230521232229|744673|18'
+            })
+            .reply(200, {
+                code: 2000,
+                message: 'Yello! You have gifted...',
+                data: { amountConverted: '₦1000', recipient: '234****67', balanceBefore: '₦1', balanceAfter: '₦0', automationCharges: '₦2', sessionId: '20230521232229|744673|18' }
+            });
+
+        const res = await provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: '20230521232229|744673|18', reference: 'AC2C-TEST-REF-001' });
+        expect(res.success).toBe(true);
+        expect(res.status).toBe('success');
+        expect(res.data.providerReference).toBe('AC2C-TEST-REF-001');
+        expect(scope.isDone()).toBe(true);
+    });
+
+    test('transfer: code 4000 (pending) is ambiguous, not failed', async () => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(200, { code: 4000, message: 'Not sure of delivery' });
+        const res = await provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-002' });
+        expect(res.status).toBe('ambiguous');
+        expect(res.success).toBe(false);
+    });
+
+    test('transfer: code 4290 (too many requests) is treated as ambiguous, not a clean failure', async () => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(200, { code: 4290, message: 'Too many requests' });
+        const res = await provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-003' });
+        expect(res.status).toBe('ambiguous');
+    });
+
+    test.each([
+        [3000, 'failed'],
+        [4010, 'failed'],
+        [4030, 'failed'],
+        [5030, 'failed']
+    ])('transfer: code %i is a definite failure, not ambiguous', async (code) => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(200, { code, message: 'x' });
+        const res = await provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-004' });
+        expect(res.status).toBe('failed');
+        expect(res.success).toBe(false);
+    });
+
+    test('transfer: an HTTP 500 throws (caller\'s safeProviderCall treats it as ambiguous -- matches the documented "set to pending" convention)', async () => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(500, { error: 'boom' });
+        await expect(provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-005' }))
+            .rejects.toThrow();
+    });
+
+    test('checkStatus: throws ProviderContractMissingError (no requery-by-reference endpoint is documented) without making any request', async () => {
+        const scope = nock(BASE_URL).post(/.*/).reply(200, {});
+        await expect(provider.checkStatus({ providerReference: 'AC2C-TEST-REF-001' })).rejects.toThrow(ProviderContractMissingError);
+        expect(scope.isDone()).toBe(false); // never even tried to call anything
+    });
+
+    test('the transfer PIN never appears in a thrown error message', async () => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(200, { code: 3000, message: 'Invalid PIN' });
+        const res = await provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: 'sekret-9999', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-006' });
+        expect(JSON.stringify(res)).not.toMatch(/sekret-9999/);
+    });
+});
