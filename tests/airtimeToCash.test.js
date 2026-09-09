@@ -667,6 +667,21 @@ describe('AirtimeBridgeProvider (real HTTP client, mocked at the network layer w
         expect(scope.isDone()).toBe(true);
     });
 
+    test('a configured base URL with a trailing /api does not double up into /api/api/v1/... (production 405 regression)', async () => {
+        const trailingApiProvider = new AirtimeBridgeProvider({
+            apiBaseUrl: `${BASE_URL}/api`,
+            apiToken: 'test-token-123',
+            isTestMode: false
+        });
+        const scope = nock(BASE_URL)
+            .post('/api/v1/generate/otp', { networkName: 'MTN', sender: '08031234567' })
+            .reply(200, { code: 2000, message: 'Otp sent successfully to +23480*****67' });
+
+        const res = await trailingApiProvider.requestOtp({ network: 'MTN', phone: '08031234567' });
+        expect(res.success).toBe(true);
+        expect(scope.isDone()).toBe(true);
+    });
+
     test('verifyOtp: success returns the sessionId from data.sessionId', async () => {
         nock(BASE_URL)
             .post('/api/v1/verify/otp', { networkName: 'MTN', sender: '08031234567', otp: '123456' })

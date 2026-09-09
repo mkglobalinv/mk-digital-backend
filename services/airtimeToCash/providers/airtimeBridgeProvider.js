@@ -71,7 +71,14 @@ export class ProviderContractMissingError extends Error {
 export class AirtimeBridgeProvider extends AirtimeToCashProviderInterface {
     constructor({ apiBaseUrl, apiToken, isTestMode } = {}) {
         super();
-        this.apiBaseUrl = String(apiBaseUrl || 'https://automation.airtimetocash.com').replace(/\/+$/, '');
+        // Every path passed to _post() below already starts with '/api/v1/...', so a
+        // configured base URL ending in '/api' (e.g. a stale value saved before the
+        // AirtimeCashProviderConfig default was corrected) would double up into
+        // '/api/api/v1/...' and get rejected by AirtimeBridge with a 405. Strip a
+        // trailing '/api' defensively so an already-stored config self-heals.
+        this.apiBaseUrl = String(apiBaseUrl || 'https://automation.airtimetocash.com')
+            .replace(/\/+$/, '')
+            .replace(/\/api$/i, '');
         this.apiToken = apiToken; // never logged, never returned from any method
         this.isTestMode = isTestMode;
     }

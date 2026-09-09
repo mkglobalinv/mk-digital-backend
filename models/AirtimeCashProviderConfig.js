@@ -67,7 +67,7 @@ const airtimeCashProviderConfigSchema = new mongoose.Schema({
     },
     credentials: {
         apiToken: { type: String, set: encrypt, get: decrypt },
-        apiBaseUrl: { type: String, default: 'https://automation.airtimetocash.com/api' }
+        apiBaseUrl: { type: String, default: 'https://automation.airtimetocash.com' }
     },
     // Independently disable/enable a network without touching the master switch.
     // All default to false so enabling the service does not silently accept every
