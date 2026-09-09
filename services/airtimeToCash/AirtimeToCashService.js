@@ -11,6 +11,24 @@ import { AIRTIME_CASH_STATUS } from './providerInterface.js';
 const NETWORKS = ['MTN', 'AIRTEL', 'GLO', '9MOBILE'];
 const MAX_RECONCILE_RETRIES = 20;
 
+// Phase 2.1 hardening constants -------------------------------------------------
+// How long a credit "claim" (see creditWalletExactlyOnce) is honored before a later
+// attempt is allowed to reclaim it -- recovers from a process crash mid-credit
+// without letting two live attempts overlap.
+const CREDIT_CLAIM_STALE_MS = 60 * 1000;
+// A transaction stuck in PENDING this long almost certainly means the process
+// crashed between creating the record and the (now try/caught) OTP-request call
+// ever completing -- there is nothing left to retry, the customer must start over.
+const PENDING_STALE_MS = 2 * 60 * 1000;
+// A transaction stuck in QUOTA_CHECKING this long means we genuinely don't know
+// whether the provider received the request -- never guessed at, always routed to
+// MANUAL_REVIEW rather than retried automatically.
+const QUOTA_STALE_MS = 2 * 60 * 1000;
+// Minimum time between reconciliation status-check attempts for the same stuck
+// transaction, so an overlapping or slow reconciliation pass can't re-query (or
+// re-claim a credit for) the same transaction back-to-back.
+const RECONCILE_MIN_INTERVAL_MS = 20 * 1000;
+
 export class ServiceDisabledError extends Error {
     constructor(message = 'Airtime-to-Cash is currently unavailable. Please try again later.') {
         super(message);
@@ -50,6 +68,31 @@ async function writeAudit({ transactionId, actorType, actorId, action, fromStatu
         });
     } catch (err) {
         console.error('[AirtimeToCash] Failed to write audit log:', err.message);
+    }
+}
+
+/**
+ * Runs a provider call and normalizes a thrown exception (network error, timeout,
+ * malformed response, whatever a real HTTP client raises) into the same
+ * {success, status, message} shape a provider is expected to return on a clean
+ * failure -- so every call site has exactly one code path to handle, instead of a
+ * try/catch duplicated five times. The real exception is logged server-side only
+ * (never included in the returned message, and only err.message -- never the raw
+ * error object, which could in principle echo request fields -- ever reaches the
+ * audit trail via the caller's writeAudit metadata).
+ */
+async function safeProviderCall(fn, label) {
+    try {
+        return await fn();
+    } catch (err) {
+        console.error(`[AirtimeToCash] Provider call threw during ${label}:`, err.message);
+        return {
+            success: false,
+            status: AIRTIME_CASH_STATUS.AMBIGUOUS,
+            message: 'A technical error occurred communicating with the provider.',
+            threw: true,
+            errorMessage: err.message
+        };
     }
 }
 
@@ -146,7 +189,14 @@ export async function requestOtp({ customerId, tenantId, network, phone, amount,
 
     await writeAudit({ transactionId: tx._id, actorType: 'customer', actorId: customerId, action: 'CREATED', toStatus: 'PENDING', ip });
 
-    const result = await provider.requestOtp({ network: tx.network, phone: tx.senderPhone, amount: tx.airtimeAmount, sandbox: config.isTestMode });
+    // Safe pre-transfer operation: nothing has been sent to the network yet, so a
+    // thrown exception here is handled identically to a clean {success:false}
+    // response -- FAILED, retryable only by starting a new transaction, never
+    // auto-repeated.
+    const result = await safeProviderCall(
+        () => provider.requestOtp({ network: tx.network, phone: tx.senderPhone, amount: tx.airtimeAmount, sandbox: config.isTestMode }),
+        'requestOtp'
+    );
 
     if (result.success) {
         tx.providerSessionId = result.data?.sessionId;
@@ -159,7 +209,15 @@ export async function requestOtp({ customerId, tenantId, network, phone, amount,
         tx.failureReason = result.message || 'Unable to send OTP.';
         tx.providerResponseStatus = result.status;
         await tx.save();
-        await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'OTP_REQUEST_FAILED', fromStatus: 'PENDING', toStatus: 'FAILED', metadata: { reason: tx.failureReason }, ip });
+        await writeAudit({
+            transactionId: tx._id,
+            actorType: 'system',
+            action: result.threw ? 'OTP_REQUEST_ERROR' : 'OTP_REQUEST_FAILED',
+            fromStatus: 'PENDING',
+            toStatus: 'FAILED',
+            metadata: { reason: tx.failureReason, providerError: result.threw ? result.errorMessage : undefined },
+            ip
+        });
     }
 
     return tx;
@@ -180,7 +238,13 @@ export async function verifyOtp({ reference, customerId, otp, ip }) {
     }
 
     const { provider } = await getProvider();
-    const result = await provider.verifyOtp({ sessionId: tx.providerSessionId, otp, phone: tx.senderPhone, network: tx.network });
+    // otp is passed through only -- it is never included in the result the provider
+    // returns to us, so no scrubbing is needed on the way back; it's simply never
+    // written anywhere below.
+    const result = await safeProviderCall(
+        () => provider.verifyOtp({ sessionId: tx.providerSessionId, otp, phone: tx.senderPhone, network: tx.network }),
+        'verifyOtp'
+    );
 
     if (result.success) {
         tx.status = 'OTP_VERIFIED';
@@ -189,9 +253,18 @@ export async function verifyOtp({ reference, customerId, otp, ip }) {
         await writeAudit({ transactionId: tx._id, actorType: 'customer', actorId: customerId, action: 'OTP_VERIFIED', fromStatus: 'OTP_REQUIRED', toStatus: 'OTP_VERIFIED', ip });
     } else {
         tx.retryCount = (tx.retryCount || 0) + 1;
-        tx.failureReason = result.message || 'Invalid OTP.';
+        tx.failureReason = result.threw ? 'Could not verify OTP due to a technical error. Please try again.' : (result.message || 'Invalid OTP.');
         await tx.save();
-        await writeAudit({ transactionId: tx._id, actorType: 'customer', actorId: customerId, action: 'OTP_VERIFY_FAILED', fromStatus: 'OTP_REQUIRED', toStatus: 'OTP_REQUIRED', metadata: { reason: tx.failureReason }, ip });
+        await writeAudit({
+            transactionId: tx._id,
+            actorType: 'customer',
+            actorId: customerId,
+            action: result.threw ? 'OTP_VERIFY_ERROR' : 'OTP_VERIFY_FAILED',
+            fromStatus: 'OTP_REQUIRED',
+            toStatus: 'OTP_REQUIRED',
+            metadata: { reason: tx.failureReason, providerError: result.threw ? result.errorMessage : undefined },
+            ip
+        });
     }
 
     return tx;
@@ -211,7 +284,12 @@ export async function checkAvailability({ reference, customerId, ip }) {
     await tx.save();
 
     const { provider } = await getProvider();
-    const result = await provider.checkAvailability({ sessionId: tx.providerSessionId, network: tx.network, phone: tx.senderPhone, amount: tx.airtimeAmount });
+    // Also a safe pre-transfer operation -- no airtime has moved yet, so an
+    // exception here is handled the same way a clean "unavailable" response is.
+    const result = await safeProviderCall(
+        () => provider.checkAvailability({ sessionId: tx.providerSessionId, network: tx.network, phone: tx.senderPhone, amount: tx.airtimeAmount }),
+        'checkAvailability'
+    );
 
     if (result.success) {
         tx.status = 'READY_FOR_TRANSFER';
@@ -220,22 +298,69 @@ export async function checkAvailability({ reference, customerId, ip }) {
         await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'QUOTA_CHECKED', fromStatus, toStatus: 'READY_FOR_TRANSFER', ip });
     } else {
         tx.status = 'FAILED';
-        tx.failureReason = result.message || 'Recipient/quota unavailable right now.';
+        tx.failureReason = result.threw ? 'Could not check availability due to a technical error. Please try again.' : (result.message || 'Recipient/quota unavailable right now.');
         await tx.save();
-        await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'QUOTA_CHECK_FAILED', fromStatus, toStatus: 'FAILED', metadata: { reason: tx.failureReason }, ip });
+        await writeAudit({
+            transactionId: tx._id,
+            actorType: 'system',
+            action: result.threw ? 'QUOTA_CHECK_ERROR' : 'QUOTA_CHECK_FAILED',
+            fromStatus,
+            toStatus: 'FAILED',
+            metadata: { reason: tx.failureReason, providerError: result.threw ? result.errorMessage : undefined },
+            ip
+        });
     }
 
     return tx;
 }
 
 /**
- * Attempts the wallet credit exactly once. Safe to call multiple times: relies on
- * walletService.creditBalance()'s own reference-based dedup PLUS the walletCredited
- * flag here, so a reconciliation retry after a transient failure can never double
- * -credit. Only ever called after providerConfirmedAt has been set.
+ * Atomically claims the right to attempt this transaction's wallet credit. Backed
+ * by a single MongoDB findOneAndUpdate, which is atomic per-document regardless of
+ * replica-set/session availability -- this is what actually prevents two
+ * concurrent callers (the transfer() request path and the reconciliation job can
+ * both reach the same transaction) from both proceeding to call
+ * walletService.creditBalance() at once, which is what made the original
+ * "if (tx.walletCredited) return" in-memory check racy (Phase 2.1 audit finding).
+ * Only one concurrent caller's filter can match at a time: once it sets
+ * creditClaimedAt, every other concurrent call's filter (creditClaimedAt: null or
+ * older than CREDIT_CLAIM_STALE_MS) no longer matches, so it gets null back.
+ * Returns the freshly-claimed document, or null if someone else holds/held the
+ * claim (already succeeded, or is actively attempting it right now).
+ */
+async function claimCreditAttempt(transactionId) {
+    const staleThreshold = new Date(Date.now() - CREDIT_CLAIM_STALE_MS);
+    return AirtimeCashTransaction.findOneAndUpdate(
+        {
+            _id: transactionId,
+            walletCredited: false,
+            $or: [{ creditClaimedAt: null }, { creditClaimedAt: { $lt: staleThreshold } }]
+        },
+        { $set: { creditClaimedAt: new Date() } },
+        { new: true }
+    );
+}
+
+/**
+ * Attempts the wallet credit exactly once, safe under concurrency: re-fetches and
+ * atomically claims the transaction from the database (never trusts the in-memory
+ * `tx` passed in for the exactly-once decision) before ever calling
+ * walletService.creditBalance(). walletCreditReference is still derived once,
+ * deterministically, from the transaction's own reference, so every claimed
+ * attempt (first try or a later reconciliation retry) uses the identical reference
+ * -- creditBalance()'s own reference-based dedup is a second, redundant layer of
+ * protection, not the only one. Only ever called after providerConfirmedAt has
+ * been set.
  */
 async function creditWalletExactlyOnce(tx) {
-    if (tx.walletCredited) return tx;
+    const claimed = await claimCreditAttempt(tx._id);
+    if (!claimed) {
+        // Either already credited, or another process is mid-attempt right now.
+        // Return the current DB state rather than the possibly-stale `tx` we were
+        // handed, so callers see the real outcome.
+        return (await AirtimeCashTransaction.findById(tx._id)) || tx;
+    }
+    tx = claimed;
 
     if (!tx.walletCreditReference) {
         tx.walletCreditReference = `AC2C-CREDIT-${tx.reference}`;
@@ -243,7 +368,13 @@ async function creditWalletExactlyOnce(tx) {
     }
 
     const description = `Airtime-to-Cash: ${tx.network} ₦${tx.airtimeAmount} converted`;
-    const updatedUser = await creditBalance(tx.customerId, tx.customerPayoutAmount, tx.walletCreditReference, description);
+    let updatedUser;
+    try {
+        updatedUser = await creditBalance(tx.customerId, tx.customerPayoutAmount, tx.walletCreditReference, description);
+    } catch (err) {
+        console.error('[AirtimeToCash] creditBalance threw:', err.message);
+        updatedUser = null;
+    }
 
     if (updatedUser) {
         tx.walletCredited = true;
@@ -263,9 +394,12 @@ async function creditWalletExactlyOnce(tx) {
         }
     } else {
         // Recoverable state: provider confirmed the transfer, but the credit did not
-        // apply this attempt (e.g. transient DB issue). Status stays PROCESSING with
-        // providerConfirmedAt set and walletCredited false -- the reconciliation job
-        // retries the credit only, never the provider transfer, until it succeeds.
+        // apply this attempt (e.g. transient DB issue). Release the claim so a later
+        // attempt (reconciliation, or another manual resolution) can retry it --
+        // status stays PROCESSING with providerConfirmedAt set and walletCredited
+        // false; the provider transfer itself is never repeated for this.
+        tx.creditClaimedAt = null;
+        await tx.save();
         await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'WALLET_CREDIT_RETRY_PENDING', metadata: { amount: tx.customerPayoutAmount, reference: tx.walletCreditReference } });
     }
 
@@ -285,7 +419,17 @@ export async function transfer({ reference, customerId, transferPin, ip }) {
     await writeAudit({ transactionId: tx._id, actorType: 'customer', actorId: customerId, action: 'TRANSFER_INITIATED', fromStatus: 'READY_FOR_TRANSFER', toStatus: 'PROCESSING', ip });
 
     const { provider } = await getProvider();
-    const result = await provider.transfer({ sessionId: tx.providerSessionId, network: tx.network, phone: tx.senderPhone, amount: tx.airtimeAmount, transferPin });
+    // The critical case: we do NOT know whether an exception here means the
+    // provider never received the request, or received it and the response was
+    // simply lost. safeProviderCall normalizes a thrown exception to the same
+    // {success:false, status:'ambiguous'} shape the mock/real provider returns for
+    // a genuinely ambiguous response, which the branching below already routes to
+    // MANUAL_REVIEW -- never FAILED (that would be a guess) and never retried
+    // automatically (that could double-deduct the customer's airtime).
+    const result = await safeProviderCall(
+        () => provider.transfer({ sessionId: tx.providerSessionId, network: tx.network, phone: tx.senderPhone, amount: tx.airtimeAmount, transferPin }),
+        'transfer'
+    );
 
     tx.providerReference = result.data?.providerReference || tx.providerReference;
     tx.providerResponseStatus = result.status;
@@ -305,64 +449,136 @@ export async function transfer({ reference, customerId, transferPin, ip }) {
         return tx;
     }
 
-    // Ambiguous/pending: do NOT retry the transfer, do NOT credit the wallet.
+    // Ambiguous/pending/threw: do NOT retry the transfer, do NOT credit the wallet.
     tx.status = 'MANUAL_REVIEW';
-    tx.failureReason = result.message || 'Provider response requires manual review.';
+    tx.failureReason = result.threw
+        ? 'A technical error occurred submitting the transfer; the outcome is unknown and requires manual review.'
+        : (result.message || 'Provider response requires manual review.');
     await tx.save();
-    await writeAudit({ transactionId: tx._id, actorType: 'provider', action: 'PROVIDER_AMBIGUOUS', fromStatus: 'PROCESSING', toStatus: 'MANUAL_REVIEW', metadata: { reason: tx.failureReason } });
+    await writeAudit({
+        transactionId: tx._id,
+        actorType: 'provider',
+        action: result.threw ? 'PROVIDER_TRANSFER_ERROR' : 'PROVIDER_AMBIGUOUS',
+        fromStatus: 'PROCESSING',
+        toStatus: 'MANUAL_REVIEW',
+        metadata: { reason: tx.failureReason, providerError: result.threw ? result.errorMessage : undefined }
+    });
     return tx;
 }
 
 /**
  * Background reconciliation pass. Mirrors the shape of services/requeryService.js's
- * job, adapted for a credit-only (never-refund) flow:
- *   1. Any transaction the provider already confirmed but that never got credited
- *      (a transient failure mid-credit) gets exactly one more credit attempt.
- *   2. Any transaction still PROCESSING (provider not yet confirmed) or
- *      MANUAL_REVIEW gets re-queried, up to MAX_RECONCILE_RETRIES times, after which
- *      it is left for admin manual review rather than guessed at.
+ * job, adapted for a credit-only (never-refund) flow. Four independent sweeps, each
+ * using timestamps to decide what's actually stale rather than relying solely on an
+ * open-ended retry loop:
+ *
+ *   1. Credit-pending: provider already confirmed, wallet credit never applied
+ *      (retries the credit only -- see creditWalletExactlyOnce's atomic claim).
+ *   2. Stale PENDING: the OTP-request call itself is now wrapped in
+ *      safeProviderCall (Phase 2.1), so a normal failure/exception already moves a
+ *      transaction out of PENDING immediately -- a transaction still PENDING after
+ *      PENDING_STALE_MS means the process most likely crashed mid-request. There is
+ *      nothing to recover; it's marked FAILED so the customer must start over.
+ *   3. Stale QUOTA_CHECKING: same reasoning, but the outcome (did the provider see
+ *      the request or not) is genuinely unknown, so it goes to MANUAL_REVIEW rather
+ *      than being guessed at as FAILED.
+ *   4. Stuck PROCESSING (pre-confirmation) / MANUAL_REVIEW *that already reached the
+ *      transfer stage* (transferInitiatedAt set): a provider status check only,
+ *      never a repeated transfer. Gated by lastReconcileAttemptAt so an overlapping
+ *      or slow pass can't re-query the same transaction back-to-back; retryCount is
+ *      still the final give-up cap (MAX_RECONCILE_RETRIES), after which it's left
+ *      for admin manual review.
  */
 export async function runReconciliationPass() {
+    const now = Date.now();
+
+    // 1. Credit-pending.
     const pendingCredit = await AirtimeCashTransaction.find({
         walletCredited: false,
         providerConfirmedAt: { $ne: null },
-        status: { $in: ['PROCESSING'] }
+        status: 'PROCESSING'
     });
     for (const tx of pendingCredit) {
         await creditWalletExactlyOnce(tx);
     }
 
+    // 2. Stale PENDING -- never retried, never guessed as anything but FAILED.
+    const stalePending = await AirtimeCashTransaction.find({
+        status: 'PENDING',
+        createdAt: { $lt: new Date(now - PENDING_STALE_MS) }
+    });
+    for (const tx of stalePending) {
+        tx.status = 'FAILED';
+        tx.failureReason = 'OTP request did not complete in time.';
+        await tx.save();
+        await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'RECONCILE_STALE_PENDING_FAILED', fromStatus: 'PENDING', toStatus: 'FAILED' });
+    }
+
+    // 3. Stale QUOTA_CHECKING -- outcome unknown, never guessed at.
+    const staleQuota = await AirtimeCashTransaction.find({
+        status: 'QUOTA_CHECKING',
+        updatedAt: { $lt: new Date(now - QUOTA_STALE_MS) }
+    });
+    for (const tx of staleQuota) {
+        tx.status = 'MANUAL_REVIEW';
+        tx.failureReason = 'Quota/availability check did not complete in time; outcome unknown.';
+        await tx.save();
+        await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'RECONCILE_STALE_QUOTA_MANUAL_REVIEW', toStatus: 'MANUAL_REVIEW' });
+    }
+
+    // 4. Stuck post-transfer-attempt PROCESSING/MANUAL_REVIEW -- status check only.
+    // transferInitiatedAt guards out the staleQuota transactions just moved to
+    // MANUAL_REVIEW above (and any other pre-transfer MANUAL_REVIEW) -- there is no
+    // provider transfer reference to check status for if a transfer was never
+    // attempted.
     const stuck = await AirtimeCashTransaction.find({
         status: { $in: ['PROCESSING', 'MANUAL_REVIEW'] },
         providerConfirmedAt: null,
-        retryCount: { $lt: MAX_RECONCILE_RETRIES }
+        transferInitiatedAt: { $ne: null },
+        retryCount: { $lt: MAX_RECONCILE_RETRIES },
+        $or: [
+            { lastReconcileAttemptAt: null },
+            { lastReconcileAttemptAt: { $lt: new Date(now - RECONCILE_MIN_INTERVAL_MS) } }
+        ]
     });
 
     if (stuck.length === 0) return;
 
     const { provider } = await getProvider();
     for (const tx of stuck) {
-        try {
-            const result = await provider.checkStatus({ providerReference: tx.providerReference, sessionId: tx.providerSessionId });
-            tx.retryCount = (tx.retryCount || 0) + 1;
-            tx.providerResponseStatus = result.status;
+        tx.lastReconcileAttemptAt = new Date();
+        tx.retryCount = (tx.retryCount || 0) + 1;
 
-            if (result.status === AIRTIME_CASH_STATUS.SUCCESS) {
-                tx.providerConfirmedAt = new Date();
-                await tx.save();
-                await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'RECONCILE_CONFIRMED', toStatus: 'PROCESSING' });
-                await creditWalletExactlyOnce(tx);
-            } else if (result.status === AIRTIME_CASH_STATUS.FAILED) {
-                tx.status = 'FAILED';
-                tx.failureReason = result.message || 'Transfer failed (confirmed on reconciliation).';
-                await tx.save();
-                await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'RECONCILE_FAILED', toStatus: 'FAILED', metadata: { reason: tx.failureReason } });
-            } else {
-                tx.status = 'MANUAL_REVIEW';
-                await tx.save();
-            }
-        } catch (err) {
-            console.error(`[AirtimeToCash Reconcile] Error checking ${tx.reference}:`, err.message);
+        const result = await safeProviderCall(
+            () => provider.checkStatus({ providerReference: tx.providerReference, sessionId: tx.providerSessionId }),
+            'checkStatus'
+        );
+
+        if (result.threw) {
+            // The status check itself failed -- record the attempt (so the retry
+            // cap still applies) but leave status untouched. Never escalate to
+            // FAILED off a status-check exception alone, and never call
+            // provider.transfer() again for this.
+            await tx.save();
+            await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'RECONCILE_STATUS_CHECK_ERROR', metadata: { reason: 'Status check failed.', providerError: result.errorMessage } });
+            continue;
+        }
+
+        tx.providerResponseStatus = result.status;
+
+        if (result.status === AIRTIME_CASH_STATUS.SUCCESS) {
+            tx.providerConfirmedAt = new Date();
+            await tx.save();
+            await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'RECONCILE_CONFIRMED', toStatus: 'PROCESSING' });
+            await creditWalletExactlyOnce(tx);
+        } else if (result.status === AIRTIME_CASH_STATUS.FAILED) {
+            tx.status = 'FAILED';
+            tx.failureReason = result.message || 'Transfer failed (confirmed on reconciliation).';
+            await tx.save();
+            await writeAudit({ transactionId: tx._id, actorType: 'system', action: 'RECONCILE_FAILED', toStatus: 'FAILED', metadata: { reason: tx.failureReason } });
+        } else {
+            tx.status = 'MANUAL_REVIEW';
+            await tx.save();
         }
     }
 }

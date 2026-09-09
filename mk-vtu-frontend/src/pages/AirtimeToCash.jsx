@@ -136,21 +136,29 @@ export default function AirtimeToCash() {
             setLoading(true);
             setError('');
             const res = await API.post('/api/airtime-to-cash/transfer', { reference: tx.reference, transferPin });
-            setTransferPin('');
             setTx(res.data.data);
             setStep('result');
         } catch (err) {
             setError(err.response?.data?.message || 'Transfer failed. Please try again.');
         } finally {
             setLoading(false);
+            // Cleared on both success and failure/exception -- the PIN must never
+            // remain sitting in component state after the request settles, whatever
+            // the outcome.
+            setTransferPin('');
         }
     };
+
+    // Clears the PIN whenever the transfer step is left/reset, on top of the
+    // unconditional clear in submitTransfer's finally block above (defense in
+    // depth -- covers navigating away or resetting before a submit ever happens).
+    const clearTransferPin = () => setTransferPin('');
 
     const stepIndex = { form: 0, otp: 1, availability: 2, transfer: 2, result: 3 }[step];
 
     return (
         <div className="a2c-page">
-            <button className="a2c-back" onClick={() => navigate(-1)}><ChevronLeft size={18} /> Back</button>
+            <button className="a2c-back" onClick={() => { clearTransferPin(); navigate(-1); }}><ChevronLeft size={18} /> Back</button>
             <h1>Airtime to Cash</h1>
             <p className="subtitle">Convert your airtime into cash, credited straight to your wallet.</p>
 
@@ -163,13 +171,20 @@ export default function AirtimeToCash() {
             <div className="a2c-panel">
                 {step === 'form' && (
                     <form onSubmit={submitDetails}>
+                        {!config && !error && (
+                            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>Loading available networks...</p>
+                        )}
                         <div className="a2c-network-picker">
                             {Object.keys(NETWORK_LABELS).map((net) => (
                                 <button
                                     type="button"
                                     key={net}
                                     className={network === net ? 'selected' : ''}
-                                    disabled={config && !enabledNetworks[net]}
+                                    // Stay disabled until config has actually loaded -- a network must
+                                    // never be briefly selectable before we know it's really enabled.
+                                    // The backend re-validates regardless, but the UI shouldn't offer a
+                                    // choice it doesn't yet know is valid.
+                                    disabled={!config || !enabledNetworks[net]}
                                     onClick={() => setNetwork(net)}
                                 >
                                     {NETWORK_LABELS[net]}
@@ -270,7 +285,7 @@ export default function AirtimeToCash() {
                                 <div className="icon failed"><XCircle size={32} /></div>
                                 <h2>Transfer Failed</h2>
                                 <p style={{ color: '#6b7280' }}>{tx.failureReason || 'Please try again.'}</p>
-                                <button className="a2c-btn" onClick={() => { setStep('form'); setTx(null); setError(''); }}>Try Again</button>
+                                <button className="a2c-btn" onClick={() => { clearTransferPin(); setStep('form'); setTx(null); setError(''); }}>Try Again</button>
                             </>
                         )}
                     </div>

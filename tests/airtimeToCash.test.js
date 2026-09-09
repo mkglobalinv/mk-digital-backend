@@ -20,10 +20,16 @@ function makeFakeModel() {
             // Emulate the handful of schema `default:` values AirtimeToCashService.js
             // relies on being present immediately after `.create()`, since this fake
             // has no real Mongoose schema to apply them.
-            Object.assign(this, { walletCredited: false, retryCount: 0, status: 'PENDING' }, data);
+            const now = new Date();
+            Object.assign(
+                this,
+                { walletCredited: false, retryCount: 0, status: 'PENDING', creditClaimedAt: null, lastReconcileAttemptAt: null, createdAt: now, updatedAt: now },
+                data
+            );
             if (!this._id) this._id = `fake_${++counter}`;
         }
         async save() {
+            this.updatedAt = new Date();
             const idx = store.findIndex((d) => d._id === this._id);
             if (idx === -1) store.push(this);
             else store[idx] = this;
@@ -35,12 +41,23 @@ function makeFakeModel() {
     }
 
     function matches(doc, query) {
+        if (query.$or) {
+            if (!query.$or.some((clause) => matches(doc, clause))) return false;
+        }
         return Object.entries(query).every(([k, v]) => {
+            if (k === '$or') return true; // handled above
             if (v && typeof v === 'object' && '$ne' in v) return doc[k] !== v.$ne;
             if (v && typeof v === 'object' && '$in' in v) return v.$in.includes(doc[k]);
-            if (v && typeof v === 'object' && '$lt' in v) return (doc[k] || 0) < v.$lt;
+            if (v && typeof v === 'object' && '$lt' in v) {
+                if (doc[k] === null || doc[k] === undefined) return true; // Mongo: missing/null < any date
+                return doc[k] < v.$lt;
+            }
             return doc[k] === v;
         });
+    }
+
+    function applyUpdate(doc, update) {
+        if (update.$set) Object.assign(doc, update.$set);
     }
 
     const model = {
@@ -52,6 +69,23 @@ function makeFakeModel() {
         },
         async findOne(query = {}) {
             return store.find((d) => matches(d, query)) || null;
+        },
+        async findById(id) {
+            return store.find((d) => d._id === id) || null;
+        },
+        // Synchronous body (no internal await before the mutation) is deliberate: it
+        // makes this behave like MongoDB's real single-document atomicity guarantee
+        // under concurrent callers -- two "simultaneous" calls (e.g. via Promise.all)
+        // still each run their full read-check-write to completion before the other
+        // gets a turn, so only one can ever match a filter the other has just
+        // invalidated. This is what lets the concurrency test in this file exercise
+        // the real race condition the atomic credit-claim guard is meant to close.
+        async findOneAndUpdate(query, update, options = {}) {
+            const doc = store.find((d) => matches(d, query));
+            if (!doc) return null;
+            applyUpdate(doc, update);
+            doc.updatedAt = new Date();
+            return doc;
         },
         find(query = {}) {
             const results = store.filter((d) => matches(d, query));
@@ -73,6 +107,11 @@ const fakeAirtimeCashPricing = makeFakeModel();
 const fakeNotification = makeFakeModel();
 
 let creditBalanceMock;
+// When set, replaces the mock provider entirely for the next getProvider() call --
+// used to test provider-exception handling (Fix 3) without touching the real
+// (still-stubbed) AirtimeBridgeProvider. A partial object is fine; only the
+// method(s) a given test needs to throw must be provided.
+let providerOverride = null;
 
 jest.unstable_mockModule('../models/AirtimeCashTransaction.js', () => ({ default: fakeAirtimeCashTransaction }));
 jest.unstable_mockModule('../models/AirtimeCashAuditLog.js', () => ({ default: fakeAirtimeCashAuditLog }));
@@ -85,7 +124,7 @@ const { MockAirtimeToCashProvider } = await import('../services/airtimeToCash/pr
 
 jest.unstable_mockModule('../services/airtimeToCash/providers/index.js', () => ({
     getProvider: async () => ({
-        provider: new MockAirtimeToCashProvider(),
+        provider: providerOverride || new MockAirtimeToCashProvider(),
         config: { isActive: true, isTestMode: true, networks: { MTN: true, AIRTEL: true, GLO: true, '9MOBILE': true } }
     })
 }));
@@ -218,6 +257,7 @@ describe('AirtimeToCashService end-to-end state machine (mock provider, fake mod
         fakeAirtimeCashPricing._store.length = 0;
         fakeNotification._store.length = 0;
         creditBalanceMock = jest.fn(async () => ({ balance1: 1000 })); // default: credit succeeds
+        providerOverride = null;
         await fakeAirtimeCashPricing.create({ tenantId: null, network: 'MTN', conversionPercentage: 80, fixedFee: 0, minAmount: 500, maxAmount: 50000, isEnabled: true });
     });
 
@@ -315,5 +355,276 @@ describe('AirtimeToCashService end-to-end state machine (mock provider, fake mod
     test('tenant isolation: a customer cannot look up another customer\'s transaction by reference', async () => {
         const tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
         await expect(Service.getOwnTransaction(tx.reference, 'cust2')).rejects.toThrow(/not found/i);
+    });
+
+    test('cross-tenant isolation: listTenantTransactions for tenant A never returns tenant B\'s transactions', async () => {
+        await Service.requestOtp({ customerId: 'custA', tenantId: 'tenantA', network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        await Service.requestOtp({ customerId: 'custB', tenantId: 'tenantB', network: 'MTN', phone: '08039876543', amount: 5000, bankName: 'Zenith', accountNumber: '9876543210' });
+
+        const tenantARows = await Service.listTenantTransactions('tenantA');
+        const tenantBRows = await Service.listTenantTransactions('tenantB');
+
+        expect(tenantARows).toHaveLength(1);
+        expect(tenantARows[0].customerId).toBe('custA');
+        expect(tenantBRows).toHaveLength(1);
+        expect(tenantBRows[0].customerId).toBe('custB');
+    });
+
+    // --- Fix 3: provider exceptions -------------------------------------------
+
+    test('exception thrown during requestOtp: transaction ends FAILED with a safe audit event, no OTP/PIN/token ever recorded', async () => {
+        providerOverride = { requestOtp: async () => { throw new Error('ECONNRESET: socket hang up'); } };
+        const tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+
+        expect(tx.status).toBe('FAILED');
+        expect(tx.failureReason).toBeTruthy();
+
+        const audit = fakeAirtimeCashAuditLog._store.filter((a) => a.transactionId === tx._id);
+        expect(audit.some((a) => a.action === 'OTP_REQUEST_ERROR')).toBe(true);
+        const serialized = JSON.stringify(audit);
+        expect(serialized).not.toMatch(/apiToken|Bearer /);
+    });
+
+    test('exception thrown during verifyOtp: transaction stays OTP_REQUIRED (retryable), not silently lost', async () => {
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        expect(tx.status).toBe('OTP_REQUIRED');
+
+        providerOverride = { verifyOtp: async () => { throw new Error('timeout of 30000ms exceeded'); } };
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '1234' });
+
+        expect(tx.status).toBe('OTP_REQUIRED'); // still retryable, not FAILED and not silently stuck
+        expect(tx.retryCount).toBe(1);
+        const audit = fakeAirtimeCashAuditLog._store.filter((a) => a.transactionId === tx._id);
+        expect(audit.some((a) => a.action === 'OTP_VERIFY_ERROR')).toBe(true);
+    });
+
+    test('exception thrown during checkAvailability: transaction ends FAILED, wallet never touched', async () => {
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '1234' });
+        expect(tx.status).toBe('OTP_VERIFIED');
+
+        providerOverride = { checkAvailability: async () => { throw new Error('502 Bad Gateway'); } };
+        tx = await Service.checkAvailability({ reference: tx.reference, customerId: 'cust1' });
+
+        expect(tx.status).toBe('FAILED');
+        expect(creditBalanceMock).not.toHaveBeenCalled();
+        const audit = fakeAirtimeCashAuditLog._store.filter((a) => a.transactionId === tx._id);
+        expect(audit.some((a) => a.action === 'QUOTA_CHECK_ERROR')).toBe(true);
+    });
+
+    test('exception thrown during transfer: outcome unknown -> MANUAL_REVIEW, never FAILED, never auto-retried, wallet never credited', async () => {
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '1234' });
+        tx = await Service.checkAvailability({ reference: tx.reference, customerId: 'cust1' });
+        expect(tx.status).toBe('READY_FOR_TRANSFER');
+
+        let transferCallCount = 0;
+        providerOverride = {
+            transfer: async () => { transferCallCount += 1; throw new Error('ETIMEDOUT'); }
+        };
+        tx = await Service.transfer({ reference: tx.reference, customerId: 'cust1', transferPin: '1111' });
+
+        expect(tx.status).toBe('MANUAL_REVIEW'); // outcome unknown -- never guessed as FAILED
+        expect(transferCallCount).toBe(1); // never auto-repeated
+        expect(creditBalanceMock).not.toHaveBeenCalled(); // never credited off an unknown outcome
+        const audit = fakeAirtimeCashAuditLog._store.filter((a) => a.transactionId === tx._id);
+        expect(audit.some((a) => a.action === 'PROVIDER_TRANSFER_ERROR')).toBe(true);
+        expect(JSON.stringify(audit)).not.toMatch(/1111/); // transferPin never recorded
+    });
+
+    // --- Fix 4: reconciliation of orphan states --------------------------------
+
+    test('stale PENDING (older than the threshold) is reconciled to FAILED', async () => {
+        const tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        // Force it back to PENDING with an old createdAt, simulating a process crash
+        // between transaction creation and the (now try/caught) OTP-request call
+        // ever completing.
+        tx.status = 'PENDING';
+        tx.createdAt = new Date(Date.now() - 10 * 60 * 1000); // 10 minutes ago
+        await tx.save();
+
+        await Service.runReconciliationPass();
+
+        const resolved = await fakeAirtimeCashTransaction.findOne({ reference: tx.reference });
+        expect(resolved.status).toBe('FAILED');
+    });
+
+    test('a fresh (non-stale) PENDING transaction is left untouched by reconciliation', async () => {
+        const tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx.status = 'PENDING'; // still fresh -- createdAt is "now"
+        await tx.save();
+
+        await Service.runReconciliationPass();
+
+        const resolved = await fakeAirtimeCashTransaction.findOne({ reference: tx.reference });
+        expect(resolved.status).toBe('PENDING'); // untouched -- never blindly retried/failed
+    });
+
+    test('stale QUOTA_CHECKING (older than the threshold) is reconciled to MANUAL_REVIEW, not guessed as FAILED', async () => {
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx.status = 'QUOTA_CHECKING';
+        await tx.save();
+        // Backdate updatedAt directly on the stored document *after* save(), since
+        // the fake model's save() -- correctly emulating Mongoose's own
+        // {timestamps:true} behavior -- always stamps updatedAt to "now" itself.
+        tx.updatedAt = new Date(Date.now() - 10 * 60 * 1000);
+
+        await Service.runReconciliationPass();
+
+        const resolved = await fakeAirtimeCashTransaction.findOne({ reference: tx.reference });
+        expect(resolved.status).toBe('MANUAL_REVIEW');
+        expect(creditBalanceMock).not.toHaveBeenCalled();
+    });
+
+    test('a fresh (non-stale) QUOTA_CHECKING transaction is left untouched by reconciliation', async () => {
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx.status = 'QUOTA_CHECKING';
+        await tx.save();
+
+        await Service.runReconciliationPass();
+
+        const resolved = await fakeAirtimeCashTransaction.findOne({ reference: tx.reference });
+        expect(resolved.status).toBe('QUOTA_CHECKING');
+    });
+
+    // --- Fix 2: atomic/concurrent wallet credit ---------------------------------
+
+    test('two simultaneous credit attempts for the same transaction result in exactly one successful wallet credit', async () => {
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '1234' });
+        tx = await Service.checkAvailability({ reference: tx.reference, customerId: 'cust1' });
+
+        // A deliberately slow credit call widens the race window so that, without
+        // the atomic claim, both concurrent reconciliation passes would reach
+        // creditBalance() before either finishes.
+        let creditCalls = 0;
+        creditBalanceMock = jest.fn(async () => {
+            creditCalls += 1;
+            await new Promise((resolve) => setTimeout(resolve, 15));
+            return { balance1: 1000 };
+        });
+
+        // Simulate the provider having confirmed success but the credit not yet
+        // applied -- the exact "recoverable" state creditWalletExactlyOnce's atomic
+        // claim is meant to protect.
+        tx.status = 'PROCESSING';
+        tx.providerConfirmedAt = new Date();
+        tx.walletCredited = false;
+        await tx.save();
+
+        // Two reconciliation passes racing for the same transaction, exactly as
+        // could happen if one pass is still running (slow provider/DB) when the
+        // next scheduled tick fires.
+        await Promise.all([Service.runReconciliationPass(), Service.runReconciliationPass()]);
+
+        expect(creditCalls).toBe(1); // exactly one attempt ever reached creditBalance()
+        const resolved = await fakeAirtimeCashTransaction.findOne({ reference: tx.reference });
+        expect(resolved.status).toBe('SUCCESS');
+        expect(resolved.walletCredited).toBe(true);
+    });
+
+    test('same walletCreditReference is used across a failed attempt and its retry', async () => {
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '1234' });
+        tx = await Service.checkAvailability({ reference: tx.reference, customerId: 'cust1' });
+
+        creditBalanceMock = jest.fn(async () => null); // fails first
+        tx = await Service.transfer({ reference: tx.reference, customerId: 'cust1', transferPin: '1111' });
+        const referenceAfterFirstAttempt = tx.walletCreditReference;
+        expect(referenceAfterFirstAttempt).toBeTruthy();
+
+        creditBalanceMock = jest.fn(async () => ({ balance1: 1000 })); // succeeds on retry
+        await Service.runReconciliationPass();
+
+        const resolved = await fakeAirtimeCashTransaction.findOne({ reference: tx.reference });
+        expect(resolved.walletCreditReference).toBe(referenceAfterFirstAttempt);
+        expect(creditBalanceMock).toHaveBeenCalledWith(expect.anything(), expect.anything(), referenceAfterFirstAttempt, expect.any(String));
+    });
+
+    test('provider.transfer() is never called again merely because a wallet credit is pending/retried', async () => {
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '1234' });
+        tx = await Service.checkAvailability({ reference: tx.reference, customerId: 'cust1' });
+
+        let transferCallCount = 0;
+        const realProvider = new MockAirtimeToCashProvider();
+        providerOverride = {
+            transfer: async (...args) => { transferCallCount += 1; return realProvider.transfer(...args); },
+            checkStatus: async (...args) => realProvider.checkStatus(...args)
+        };
+
+        creditBalanceMock = jest.fn(async () => null); // wallet credit fails on first attempt
+        tx = await Service.transfer({ reference: tx.reference, customerId: 'cust1', transferPin: '1111' });
+        expect(tx.status).toBe('PROCESSING');
+        expect(transferCallCount).toBe(1);
+
+        creditBalanceMock = jest.fn(async () => ({ balance1: 1000 }));
+        await Service.runReconciliationPass();
+        await Service.runReconciliationPass(); // a second pass, for good measure
+
+        expect(transferCallCount).toBe(1); // still exactly one -- reconciliation only ever retried the credit
+    });
+});
+
+describe('Reseller authorization (Fix 1 regression)', () => {
+    let restrictToBusinessSession, restrictToBasicOrPremium;
+
+    beforeAll(async () => {
+        ({ restrictToBusinessSession } = await import('../middlewares/auth.js'));
+        ({ restrictToBasicOrPremium } = await import('../middlewares/tierMiddleware.js'));
+    });
+
+    function makeRes() {
+        const res = {};
+        res.status = jest.fn(() => res);
+        res.json = jest.fn(() => res);
+        return res;
+    }
+
+    // Exercises the exact middleware combination used by
+    // routes/reseller/resellerAirtimeCashRoutes.js (auth already having populated
+    // req.user/req.session_type by this point -- these tests construct that output
+    // directly for each scenario rather than mocking JWT/DB, since that output is
+    // exactly what the fix changes the route's behavior in response to).
+    function runGuardChain(req) {
+        const res = makeRes();
+        const next = jest.fn();
+        restrictToBusinessSession(req, res, next);
+        if (res.status.mock.calls.length > 0) return { allowed: false, res };
+        restrictToBasicOrPremium(req, res, next);
+        return { allowed: res.status.mock.calls.length === 0, res };
+    }
+
+    test('reseller_admin managing their own site (main domain, business session) is allowed', () => {
+        const req = { user: { role: 'reseller_admin' }, session_type: 'business' };
+        const { allowed } = runGuardChain(req);
+        expect(allowed).toBe(true);
+    });
+
+    test('platform admin is allowed regardless of session_type', () => {
+        const req = { user: { role: 'admin' }, session_type: 'retail' };
+        const { allowed } = runGuardChain(req);
+        expect(allowed).toBe(true);
+    });
+
+    test('an ordinary customer/visitor on a reseller domain is denied (role masked to "user", session_type forced to "retail" by auth.js\'s Proxy)', () => {
+        // This is exactly the req shape middlewares/auth.js produces for ANY
+        // authenticated request once req.reseller is set, regardless of the real
+        // user's actual role -- see auth.js's Proxy wrapper.
+        const req = { user: { role: 'user' }, session_type: 'retail' };
+        const { allowed } = runGuardChain(req);
+        expect(allowed).toBe(false);
+    });
+
+    test('a plain retail user (no reseller privileges, main domain) is denied', () => {
+        const req = { user: { role: 'user' }, session_type: 'retail' };
+        const { allowed } = runGuardChain(req);
+        expect(allowed).toBe(false);
+    });
+
+    test('a reseller_admin whose session_type is not yet "business" (e.g. mid-login) is denied rather than trusted on role alone', () => {
+        const req = { user: { role: 'reseller_admin' }, session_type: 'retail' };
+        const { allowed } = runGuardChain(req);
+        expect(allowed).toBe(false);
     });
 });

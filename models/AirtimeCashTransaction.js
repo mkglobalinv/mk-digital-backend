@@ -16,6 +16,13 @@ const STATUSES = [
     'PROCESSING',
     'SUCCESS',
     'FAILED',
+    // Kept in the enum for a future provider-reversal phase only. NOTHING in this
+    // codebase transitions a transaction into REVERSED today -- there is no
+    // reversal/clawback mechanism implemented, and none should be inferred from its
+    // presence here. It exists so a later phase (once AirtimeBridge's real API is
+    // known and a genuine, verified reversal operation exists) doesn't need a schema
+    // migration to add it. Do not set this status without an actual verified
+    // reversal having occurred.
     'REVERSED',
     'MANUAL_REVIEW'
 ];
@@ -63,6 +70,17 @@ const airtimeCashTransactionSchema = new mongoose.Schema({
     walletCredited: { type: Boolean, default: false },
     walletCreditReference: { type: String }, // the models/Transaction.js reference used for the credit
 
+    // Atomic in-flight guard for the credit step (Phase 2.1 hardening). Set via a
+    // single findOneAndUpdate({walletCredited:false, creditClaimedAt: null-or-stale})
+    // filter, which MongoDB evaluates atomically per document -- this is what
+    // actually prevents two concurrent processes (the transfer() request path and
+    // the reconciliation job) from both calling walletService.creditBalance() for
+    // the same transaction at once. Cleared back to null if a claimed attempt fails,
+    // so a later attempt can reclaim it; a claim older than the staleness threshold
+    // (see CREDIT_CLAIM_STALE_MS in AirtimeToCashService.js) is also reclaimable, to
+    // recover from a process crash mid-credit.
+    creditClaimedAt: { type: Date, default: null },
+
     failureReason: { type: String },
 
     otpRequestedAt: { type: Date },
@@ -70,6 +88,12 @@ const airtimeCashTransactionSchema = new mongoose.Schema({
     quotaCheckedAt: { type: Date },
     transferInitiatedAt: { type: Date },
     completedAt: { type: Date },
+
+    // Last time the reconciliation job attempted a provider status check for this
+    // transaction (distinct from retryCount, which counts attempts) -- gates how
+    // often a single stuck transaction is re-queried, so an overlapping/slow
+    // reconciliation pass can't hammer the same transaction repeatedly.
+    lastReconcileAttemptAt: { type: Date, default: null },
 
     retryCount: { type: Number, default: 0 },
 
