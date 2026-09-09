@@ -34,7 +34,12 @@ export class MockAirtimeToCashProvider extends AirtimeToCashProviderInterface {
         if (String(otp) === '0000') {
             return { success: false, status: AIRTIME_CASH_STATUS.FAILED, message: 'Mock: invalid OTP.' };
         }
-        return { success: true, status: AIRTIME_CASH_STATUS.SUCCESS, message: 'OTP verified.', data: { sessionId } };
+        return {
+            success: true,
+            status: AIRTIME_CASH_STATUS.SUCCESS,
+            message: 'OTP verified.',
+            data: { sessionId, airtimeBalance: '₦5,000.00', tariff: 'Mock', type: 'Prepaid' }
+        };
     }
 
     async checkAvailability({ phone, amount }) {

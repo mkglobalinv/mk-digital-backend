@@ -6,6 +6,15 @@ import './AirtimeToCash.css';
 
 const NETWORK_LABELS = { MTN: 'MTN', AIRTEL: 'Airtel', GLO: 'Glo', '9MOBILE': '9mobile' };
 
+// Parses a provider balance string like "₦5,000.00" into a plain number for the
+// insufficient-balance warning below. Returns null if it can't be parsed --
+// the warning is then simply not shown, never guessed.
+function parseBalance(balanceStr) {
+    if (!balanceStr) return null;
+    const num = Number(String(balanceStr).replace(/[^0-9.]/g, ''));
+    return Number.isFinite(num) ? num : null;
+}
+
 // Steps: form -> otp -> availability -> transfer -> result
 export default function AirtimeToCash() {
     const navigate = useNavigate();
@@ -167,6 +176,18 @@ export default function AirtimeToCash() {
             </div>
 
             {error && <div className="a2c-error">{error}</div>}
+
+            {tx?.providerAirtimeSnapshot?.balance && (step === 'availability' || step === 'transfer') && (() => {
+                const balanceValue = parseBalance(tx.providerAirtimeSnapshot.balance);
+                const insufficient = balanceValue !== null && Number(amount) > balanceValue;
+                return (
+                    <div className={`a2c-sim-balance${insufficient ? ' low' : ''}`}>
+                        <span>Your {NETWORK_LABELS[network] || network} SIM balance</span>
+                        <strong>{tx.providerAirtimeSnapshot.balance}</strong>
+                        {insufficient && <p>This is less than the ₦{amount} you're trying to convert -- the transfer will likely fail. Recharge this SIM first.</p>}
+                    </div>
+                );
+            })()}
 
             <div className="a2c-panel">
                 {step === 'form' && (

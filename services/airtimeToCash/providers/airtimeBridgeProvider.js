@@ -123,9 +123,17 @@ export class AirtimeBridgeProvider extends AirtimeToCashProviderInterface {
                 success: true,
                 status: AIRTIME_CASH_STATUS.SUCCESS,
                 message: data.message,
-                // sessionId is returned HERE, not by generate/otp -- AirtimeToCashService
-                // captures it from this response.
-                data: { sessionId: data.data?.sessionId },
+                data: {
+                    // sessionId is returned HERE, not by generate/otp -- AirtimeToCashService
+                    // captures it from this response.
+                    sessionId: data.data?.sessionId,
+                    // The SIM's real airtime balance/tariff/type -- surfaced to the
+                    // customer so they can see, before a transfer is attempted, whether
+                    // the phone actually has enough airtime to convert.
+                    airtimeBalance: data.data?.airtimeBalance,
+                    tariff: data.data?.tariff,
+                    type: data.data?.type
+                },
                 raw: data
             };
         }

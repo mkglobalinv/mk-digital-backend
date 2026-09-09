@@ -45,6 +45,18 @@ const airtimeCashTransactionSchema = new mongoose.Schema({
     providerSessionId: { type: String }, // OTP sessionId returned by the provider -- never exposed to the frontend
     providerResponseStatus: { type: String }, // last-seen safe status string (never raw PII/secret fields)
 
+    // The SIM's own real airtime balance/tariff/type, as returned by the provider's
+    // verify/otp response. This is the customer's own phone data (not provider
+    // accounting), so unlike providerTransferData it IS safe to show the customer --
+    // and is exactly what lets them see, before submitting a transfer, whether the
+    // phone actually has enough airtime to convert (a low real-network balance is a
+    // legitimate transfer-time rejection, unrelated to the 9jaSub wallet balance).
+    providerAirtimeSnapshot: {
+        balance: { type: String },
+        tariff: { type: String },
+        type: { type: String }
+    },
+
     // Provider's own conversion accounting from a successful /transfer/airtime
     // response, kept purely for audit/reconciliation. NEVER read by pricing.js or
     // used to compute customerPayoutAmount -- the customer's payout is, and stays,

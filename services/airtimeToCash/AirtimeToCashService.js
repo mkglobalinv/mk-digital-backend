@@ -261,6 +261,13 @@ export async function verifyOtp({ reference, customerId, otp, ip }) {
         if (result.data?.sessionId) {
             tx.providerSessionId = result.data.sessionId;
         }
+        if (result.data?.airtimeBalance) {
+            tx.providerAirtimeSnapshot = {
+                balance: result.data.airtimeBalance,
+                tariff: result.data.tariff,
+                type: result.data.type
+            };
+        }
         tx.status = 'OTP_VERIFIED';
         tx.otpVerifiedAt = new Date();
         await tx.save();

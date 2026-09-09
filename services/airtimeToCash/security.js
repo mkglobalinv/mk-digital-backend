@@ -68,6 +68,10 @@ export function toSafeTransactionView(tx, { includeAdminFields = false } = {}) {
         failureReason: plain.failureReason,
         provider: plain.provider,
         providerReference: includeAdminFields ? plain.providerReference : undefined,
+        // The customer's own SIM balance/tariff/type from verify/otp -- unlike
+        // providerTransferData (the provider's accounting), this is the customer's
+        // own phone data and is exactly what they need to see before a transfer.
+        providerAirtimeSnapshot: plain.providerAirtimeSnapshot,
         pricingSnapshot: plain.pricingSnapshot,
         createdAt: plain.createdAt,
         completedAt: plain.completedAt
