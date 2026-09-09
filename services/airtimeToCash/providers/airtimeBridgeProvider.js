@@ -153,28 +153,78 @@ export class AirtimeBridgeProvider extends AirtimeToCashProviderInterface {
                 success: true,
                 status: AIRTIME_CASH_STATUS.SUCCESS,
                 message: data.message,
-                // No distinct provider-side transaction ID is documented in the
-                // transfer response -- `reference` (ours, sent in the request) is
-                // the only correlator AirtimeBridge's docs show.
-                data: { providerReference: reference },
+                data: {
+                    // No distinct provider-side transaction ID is documented in the
+                    // transfer response -- `reference` (ours, sent in the request) is
+                    // the only correlator AirtimeBridge's docs show.
+                    providerReference: reference,
+                    // Provider's own conversion accounting -- AirtimeToCashService
+                    // stores these separately from the 9jaSub-calculated payout for
+                    // audit purposes; it never overwrites tenant pricing with them.
+                    amountConverted: data.data?.amountConverted,
+                    recipient: data.data?.recipient,
+                    balanceBefore: data.data?.balanceBefore,
+                    balanceAfter: data.data?.balanceAfter,
+                    automationCharges: data.data?.automationCharges
+                },
                 raw: data
             };
         }
 
-        // 4000 (pending) is the provider's own definition of "not sure of delivery
-        // -- needs manual intervention": exactly our MANUAL_REVIEW case, not a
-        // guessed failure. 4290 (rate limited) is also treated as ambiguous here,
-        // specifically for this endpoint, because the docs do not state whether a
-        // rate-limited transfer request ever reached the network before being
-        // rejected -- safer to review manually than assume nothing happened.
-        // Every other documented code (3000 failed, 4010 session expired, 4030
-        // forbidden, 5030 recipient unavailable) is a definite pre-money-movement
-        // rejection.
+        // 4000 (pending, "not sure of delivery -- needs manual intervention") is the
+        // provider's own definition of our MANUAL_REVIEW case, not a guessed
+        // failure. 4290 (rate limited) is also ambiguous here, specifically for
+        // this endpoint, because the docs do not state whether a rate-limited
+        // transfer request ever reached the network before being rejected --
+        // safer to review manually than assume nothing happened. 4010 (session
+        // expired) is a definite pre-money-movement rejection -- the session was
+        // no longer valid to use, so nothing was sent; the customer must restart
+        // from a fresh OTP (a new transaction), never a blind retry of this one.
+        const KNOWN_DEFINITE_FAILURES = new Set([CODE.FAILED, CODE.SESSION_EXPIRED, CODE.FORBIDDEN, CODE.UNAVAILABLE]);
+
         if (data.code === CODE.PENDING || data.code === CODE.TOO_MANY_REQUESTS) {
             return { success: false, status: AIRTIME_CASH_STATUS.AMBIGUOUS, message: data.message || 'Transfer outcome could not be confirmed.', data: { providerReference: reference }, raw: data };
         }
 
-        return { success: false, status: AIRTIME_CASH_STATUS.FAILED, message: data.message || 'Transfer failed.', data: { providerReference: reference }, raw: data };
+        if (KNOWN_DEFINITE_FAILURES.has(data.code)) {
+            return { success: false, status: AIRTIME_CASH_STATUS.FAILED, message: data.message || 'Transfer failed.', data: { providerReference: reference }, raw: data };
+        }
+
+        // Any other/missing code is not one of the documented outcomes at all --
+        // a malformed or unrecognized response is exactly as uncertain as a 4000,
+        // never guessed as a clean failure.
+        return { success: false, status: AIRTIME_CASH_STATUS.AMBIGUOUS, message: data.message || 'Unrecognized provider response; outcome could not be confirmed.', data: { providerReference: reference }, raw: data };
+    }
+
+    /**
+     * POST /api/v1/login/with/session/id -- re-validates a previously-issued
+     * sessionId and returns current SIM/session state (airtimeBalance, tariff,
+     * type). NOT wired into the main OTP -> verify -> availability -> transfer
+     * flow, since nothing in that flow needs session restoration (the same
+     * sessionId from verifyOtp is used immediately). Available for a future
+     * admin-assisted manual-review diagnostic (e.g. confirming a session is still
+     * valid before an admin resolves a MANUAL_REVIEW transaction) -- called only
+     * where explicitly needed, never automatically.
+     */
+    async loginWithSessionId({ network, phone, sessionId }) {
+        if (!sessionId) {
+            throw new AirtimeBridgeApiError('No sessionId provided for session login.');
+        }
+        const data = await this._post(
+            '/api/v1/login/with/session/id',
+            { networkName: network, sender: phone, sessionId },
+            this._authHeaders()
+        );
+        if (data.code === CODE.SUCCESS) {
+            return {
+                success: true,
+                status: AIRTIME_CASH_STATUS.SUCCESS,
+                message: data.message,
+                data: { sessionId: data.data?.sessionId, airtimeBalance: data.data?.airtimeBalance, tariff: data.data?.tariff, type: data.data?.type },
+                raw: data
+            };
+        }
+        return { success: false, status: AIRTIME_CASH_STATUS.FAILED, message: data.message || 'Session is no longer valid.', raw: data };
     }
 
     async checkStatus() {

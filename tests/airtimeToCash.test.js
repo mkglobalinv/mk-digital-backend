@@ -765,4 +765,176 @@ describe('AirtimeBridgeProvider (real HTTP client, mocked at the network layer w
         const res = await provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: 'sekret-9999', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-006' });
         expect(JSON.stringify(res)).not.toMatch(/sekret-9999/);
     });
+
+    test('transfer: an unrecognized/malformed response (no known code) is ambiguous, never a guessed failure', async () => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(200, { unexpected: 'shape' });
+        const res = await provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-007' });
+        expect(res.status).toBe('ambiguous');
+        expect(res.success).toBe(false);
+    });
+
+    test('transfer: success captures amountConverted/recipient/balances/automationCharges for audit, alongside the reference', async () => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(200, {
+            code: 2000,
+            message: 'Yello!',
+            data: { amountConverted: '₦1000', recipient: '234****67', balanceBefore: '₦5000', balanceAfter: '₦4000', automationCharges: '₦2', sessionId: 'sess-1' }
+        });
+        const res = await provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-008' });
+        expect(res.data.amountConverted).toBe('₦1000');
+        expect(res.data.automationCharges).toBe('₦2');
+        expect(res.data.providerReference).toBe('AC2C-TEST-REF-008');
+    });
+
+    test('loginWithSessionId: success returns the session snapshot', async () => {
+        nock(BASE_URL, { reqheaders: { authorization: 'Bearer test-token-123' } })
+            .post('/api/v1/login/with/session/id', { networkName: 'MTN', sender: '08031234567', sessionId: 'sess-1' })
+            .reply(200, { code: 2000, message: 'Session record retrieved.', data: { airtimeBalance: '₦0.42', tariff: 'SMEPlus', type: 'Prepaid', sessionId: 'sess-1' } });
+
+        const res = await provider.loginWithSessionId({ network: 'MTN', phone: '08031234567', sessionId: 'sess-1' });
+        expect(res.success).toBe(true);
+        expect(res.data.airtimeBalance).toBe('₦0.42');
+    });
+
+    test('loginWithSessionId: an expired session is a clean failure', async () => {
+        nock(BASE_URL).post('/api/v1/login/with/session/id').reply(200, { code: 4010, message: 'Session expired' });
+        const res = await provider.loginWithSessionId({ network: 'MTN', phone: '08031234567', sessionId: 'sess-1' });
+        expect(res.success).toBe(false);
+    });
+
+    test.each([
+        [401, 'Unauthorized'],
+        [403, 'Forbidden'],
+        [429, 'Too Many Requests']
+    ])('transfer: HTTP %i throws (never interpreted as a confirmed outcome)', async (httpStatus) => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(httpStatus, { error: 'x' });
+        await expect(provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-009' }))
+            .rejects.toThrow();
+    });
+
+    test('transfer: a network-level failure (provider unreachable) throws rather than being interpreted as any outcome', async () => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').replyWithError('connect ECONNREFUSED');
+        await expect(provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-010' }))
+            .rejects.toThrow();
+    });
+
+    test('transfer: a timed-out request throws rather than being interpreted as any outcome', async () => {
+        nock(BASE_URL).post('/api/v1/transfer/airtime').replyWithError('timeout of 30000ms exceeded');
+        await expect(provider.transfer({ network: 'MTN', phone: '08031234567', amount: 1000, transferPin: '1111', sessionId: 'sess-1', reference: 'AC2C-TEST-REF-011' }))
+            .rejects.toThrow();
+    });
+});
+
+describe('AirtimeBridgeProvider integrated through AirtimeToCashService (real provider, nock-mocked HTTP, fake DB)', () => {
+    let Service, nock;
+    const BASE_URL = 'https://automation.airtimetocash.com';
+
+    beforeAll(async () => {
+        nock = (await import('nock')).default;
+        Service = await import('../services/airtimeToCash/AirtimeToCashService.js');
+    });
+
+    beforeEach(async () => {
+        fakeAirtimeCashTransaction._store.length = 0;
+        fakeAirtimeCashAuditLog._store.length = 0;
+        fakeAirtimeCashPricing._store.length = 0;
+        fakeNotification._store.length = 0;
+        creditBalanceMock = jest.fn(async () => ({ balance1: 1000 }));
+        providerOverride = new (await import('../services/airtimeToCash/providers/airtimeBridgeProvider.js')).AirtimeBridgeProvider({
+            apiBaseUrl: BASE_URL,
+            apiToken: 'test-token-123',
+            isTestMode: false
+        });
+        await fakeAirtimeCashPricing.create({ tenantId: null, network: 'MTN', conversionPercentage: 80, fixedFee: 0, minAmount: 500, maxAmount: 50000, isEnabled: true });
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    async function driveToReadyForTransfer(phone = '08031234567') {
+        nock(BASE_URL).post('/api/v1/generate/otp').reply(200, { code: 2000, message: 'sent' });
+        nock(BASE_URL).post('/api/v1/verify/otp').reply(200, { code: 2000, message: 'verified', data: { sessionId: 'sess-real-1' } });
+        nock(BASE_URL).post('/api/v1/check/quota/availability').reply(200, { code: 5030, message: 'Recipient(s) Available' });
+
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone, amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '123456' });
+        tx = await Service.checkAvailability({ reference: tx.reference, customerId: 'cust1' });
+        return tx;
+    }
+
+    test('full real-provider flow: OTP -> verify (captures sessionId) -> availability -> transfer -> SUCCESS, wallet credited exactly once, provider accounting stored separately from 9jaSub payout', async () => {
+        let tx = await driveToReadyForTransfer();
+        expect(tx.status).toBe('READY_FOR_TRANSFER');
+        expect(tx.providerSessionId).toBe('sess-real-1');
+        expect(tx.customerPayoutAmount).toBe(8000); // 9jaSub's own pricing, untouched by the provider
+
+        nock(BASE_URL).post('/api/v1/transfer/airtime', (body) => body.sessionId === 'sess-real-1' && body.reference === tx.reference)
+            .reply(200, { code: 2000, message: 'Yello!', data: { amountConverted: '₦10000', recipient: '234****67', balanceBefore: '₦1', balanceAfter: '₦0', automationCharges: '₦2', sessionId: 'sess-real-1' } });
+
+        tx = await Service.transfer({ reference: tx.reference, customerId: 'cust1', transferPin: '1111' });
+
+        expect(tx.status).toBe('SUCCESS');
+        expect(tx.walletCredited).toBe(true);
+        expect(tx.customerPayoutAmount).toBe(8000); // still 9jaSub's own figure -- provider's amountConverted never overwrote it
+        expect(tx.providerTransferData.amountConverted).toBe('₦10000'); // provider's figure preserved separately for audit
+        expect(creditBalanceMock).toHaveBeenCalledWith('cust1', 8000, tx.walletCreditReference, expect.any(String));
+    });
+
+    test('HTTP 500 from the real provider during transfer results in MANUAL_REVIEW, not FAILED, and never credits the wallet', async () => {
+        let tx = await driveToReadyForTransfer();
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(500, { error: 'boom' });
+
+        tx = await Service.transfer({ reference: tx.reference, customerId: 'cust1', transferPin: '1111' });
+
+        expect(tx.status).toBe('MANUAL_REVIEW');
+        expect(creditBalanceMock).not.toHaveBeenCalled();
+    });
+
+    test('a network timeout from the real provider during transfer results in MANUAL_REVIEW, never an automatic retry of the transfer', async () => {
+        let tx = await driveToReadyForTransfer();
+        // Only ONE interceptor is registered (not .persist()) -- if the service
+        // layer tried to call transfer a second time, that request would find no
+        // matching mock and reject, which would fail this test. Reaching a clean
+        // MANUAL_REVIEW result below is itself proof transfer was attempted
+        // exactly once.
+        nock(BASE_URL).post('/api/v1/transfer/airtime').replyWithError('timeout of 30000ms exceeded');
+
+        tx = await Service.transfer({ reference: tx.reference, customerId: 'cust1', transferPin: '1111' });
+
+        expect(tx.status).toBe('MANUAL_REVIEW');
+        expect(creditBalanceMock).not.toHaveBeenCalled();
+    });
+
+    test('a malformed provider response during transfer results in MANUAL_REVIEW, not a guessed FAILED', async () => {
+        let tx = await driveToReadyForTransfer();
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(200, { totally: 'unexpected' });
+
+        tx = await Service.transfer({ reference: tx.reference, customerId: 'cust1', transferPin: '1111' });
+
+        expect(tx.status).toBe('MANUAL_REVIEW');
+        expect(creditBalanceMock).not.toHaveBeenCalled();
+    });
+
+    test('4010 session expired during transfer fails the transaction outright -- never retried automatically', async () => {
+        let tx = await driveToReadyForTransfer();
+        nock(BASE_URL).post('/api/v1/transfer/airtime').reply(200, { code: 4010, message: 'Session expired' });
+
+        tx = await Service.transfer({ reference: tx.reference, customerId: 'cust1', transferPin: '1111' });
+
+        expect(tx.status).toBe('FAILED');
+        expect(creditBalanceMock).not.toHaveBeenCalled();
+    });
+
+    test('quota unavailable (5030 without an "Available" message) blocks the flow before transfer is ever attempted', async () => {
+        nock(BASE_URL).post('/api/v1/generate/otp').reply(200, { code: 2000, message: 'sent' });
+        nock(BASE_URL).post('/api/v1/verify/otp').reply(200, { code: 2000, message: 'verified', data: { sessionId: 'sess-real-2' } });
+        nock(BASE_URL).post('/api/v1/check/quota/availability').reply(200, { code: 5030, message: 'Service temporarily unavailable' });
+
+        let tx = await Service.requestOtp({ customerId: 'cust1', tenantId: null, network: 'MTN', phone: '08031234567', amount: 10000, bankName: 'GTBank', accountNumber: '0123456789' });
+        tx = await Service.verifyOtp({ reference: tx.reference, customerId: 'cust1', otp: '123456' });
+        tx = await Service.checkAvailability({ reference: tx.reference, customerId: 'cust1' });
+
+        expect(tx.status).toBe('FAILED');
+        expect(creditBalanceMock).not.toHaveBeenCalled();
+    });
 });

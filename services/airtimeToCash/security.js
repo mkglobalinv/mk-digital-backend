@@ -81,6 +81,9 @@ export function toSafeTransactionView(tx, { includeAdminFields = false } = {}) {
         base.walletCreditReference = plain.walletCreditReference;
         base.retryCount = plain.retryCount;
         base.isSandbox = plain.isSandbox;
+        // Provider's own conversion accounting -- admin/audit only, and purely
+        // informational: it never fed into customerPayoutAmount above.
+        base.providerTransferData = plain.providerTransferData;
     }
 
     return base;

@@ -60,6 +60,19 @@ export class AirtimeToCashProviderInterface {
     async checkStatus({ providerReference, sessionId }) {
         throw new Error('checkStatus() not implemented');
     }
+
+    /**
+     * Optional: re-validate a previously-issued session and return its current
+     * state. Not part of the core OTP -> verify -> availability -> transfer flow
+     * (nothing in that flow needs session restoration) -- exists purely as a
+     * diagnostic a caller (e.g. admin manual-review tooling) may use explicitly.
+     * A provider without a session-restoration concept may simply not implement
+     * this; nothing in AirtimeToCashService.js calls it automatically.
+     * @returns {Promise<{success, status, message, data:object}>}
+     */
+    async loginWithSessionId({ network, phone, sessionId }) {
+        throw new Error('loginWithSessionId() not implemented');
+    }
 }
 
 export const AIRTIME_CASH_STATUS = Object.freeze({

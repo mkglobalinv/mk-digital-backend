@@ -441,9 +441,20 @@ export async function transfer({ reference, customerId, transferPin, ip }) {
     tx.providerResponseStatus = result.status;
 
     if (result.status === AIRTIME_CASH_STATUS.SUCCESS) {
+        // Provider's own conversion accounting, stored for audit only -- never
+        // used to compute or override customerPayoutAmount, which stays whatever
+        // 9jaSub's own tenant/global pricing (pricingSnapshot, frozen at creation)
+        // already calculated.
+        tx.providerTransferData = {
+            amountConverted: result.data?.amountConverted,
+            recipient: result.data?.recipient,
+            balanceBefore: result.data?.balanceBefore,
+            balanceAfter: result.data?.balanceAfter,
+            automationCharges: result.data?.automationCharges
+        };
         tx.providerConfirmedAt = new Date();
         await tx.save();
-        await writeAudit({ transactionId: tx._id, actorType: 'provider', action: 'PROVIDER_CONFIRMED', toStatus: 'PROCESSING', metadata: { providerReference: tx.providerReference } });
+        await writeAudit({ transactionId: tx._id, actorType: 'provider', action: 'PROVIDER_CONFIRMED', toStatus: 'PROCESSING', metadata: { providerReference: tx.providerReference, amountConverted: tx.providerTransferData.amountConverted } });
         return creditWalletExactlyOnce(tx);
     }
 

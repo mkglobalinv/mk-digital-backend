@@ -42,8 +42,23 @@ const airtimeCashTransactionSchema = new mongoose.Schema({
 
     provider: { type: String, default: 'airtimebridge' },
     providerReference: { type: String }, // provider's transaction/transfer id, once known
-    providerSessionId: { type: String }, // OTP sessionId returned by the provider
+    providerSessionId: { type: String }, // OTP sessionId returned by the provider -- never exposed to the frontend
     providerResponseStatus: { type: String }, // last-seen safe status string (never raw PII/secret fields)
+
+    // Provider's own conversion accounting from a successful /transfer/airtime
+    // response, kept purely for audit/reconciliation. NEVER read by pricing.js or
+    // used to compute customerPayoutAmount -- the customer's payout is, and stays,
+    // whatever 9jaSub's own tenant/global pricing calculated (pricingSnapshot /
+    // customerPayoutAmount below). If the provider's amountConverted differs from
+    // 9jaSub's payout, both values are visible here for an admin to reconcile;
+    // neither one silently overwrites the other.
+    providerTransferData: {
+        amountConverted: { type: String },
+        recipient: { type: String },
+        balanceBefore: { type: String },
+        balanceAfter: { type: String },
+        automationCharges: { type: String }
+    },
 
     // Pricing snapshot, frozen at creation time -- a later admin pricing change must
     // never alter an already-created transaction's numbers.
