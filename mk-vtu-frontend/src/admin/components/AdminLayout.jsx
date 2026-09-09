@@ -59,6 +59,7 @@ const AdminLayout = ({ children, admin, logout }) => {
         { name: 'Identity Requests', path: '/admin/identity-requests', icon: <ShieldCheck size={18} />, badge: 'NEW' },
         { name: 'Manual Identity Apps', path: '/admin/manual-applications', icon: <FileText size={18} /> },
         { name: 'Global Transactions', path: '/admin/transactions', icon: <History size={18} /> },
+        { name: 'Airtime-to-Cash Transactions', path: '/admin/airtime-to-cash/transactions', icon: <Smartphone size={18} />, badge: 'NEW' },
       ]
     },
     {
@@ -78,6 +79,8 @@ const AdminLayout = ({ children, admin, logout }) => {
         { name: 'Retail Pricing', path: '/admin/pricing/retail', icon: <CreditCard size={18} /> },
         { name: 'Basic Pricing', path: '/admin/pricing/basic', icon: <CreditCard size={18} /> },
         { name: 'VIP Pricing', path: '/admin/pricing/vip', icon: <TrendingUp size={18} /> },
+        { name: 'Airtime-to-Cash Pricing', path: '/admin/airtime-to-cash/pricing', icon: <Smartphone size={18} />, badge: 'NEW' },
+        { name: 'Airtime-to-Cash Settings', path: '/admin/airtime-to-cash/settings', icon: <Settings size={18} /> },
       ]
     },
     {

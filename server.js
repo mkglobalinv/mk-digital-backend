@@ -543,6 +543,18 @@ app.use("/api/tenant", tenantRoutes);
 // --- NEW INSERTION: PAYMENT GATEWAY CONFIG (Strictly Additive) ---
 import gatewayConfigRoutes from "./routes/gatewayConfigRoutes.js";
 app.use("/api/admin/gateways", gatewayConfigRoutes);
+
+// --- NEW INSERTION: AIRTIME-TO-CASH (Strictly Additive) ---
+import airtimeToCashRoutes from "./routes/airtimeToCashRoutes.js";
+import airtimeCashAdminRoutes from "./routes/admin/airtimeCashAdminRoutes.js";
+import resellerAirtimeCashRoutes from "./routes/reseller/resellerAirtimeCashRoutes.js";
+import { startReconciliationJob as startAirtimeCashReconciliationJob } from "./services/airtimeToCash/AirtimeToCashService.js";
+app.use("/api/airtime-to-cash", airtimeToCashRoutes);
+app.use("/api/admin/airtime-to-cash", airtimeCashAdminRoutes);
+app.use("/api/reseller/airtime-to-cash", resellerAirtimeCashRoutes);
+if (process.env.NODE_ENV !== 'test') {
+    startAirtimeCashReconciliationJob();
+}
 // -----------------------------------------------------------------
 
 // --- RESELLER ONBOARDING & ACTIVATION (MUST BE BEFORE /api/reseller ROUTER) ---

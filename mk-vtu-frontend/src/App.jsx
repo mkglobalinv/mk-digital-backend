@@ -19,6 +19,7 @@ import AppDownload from "./pages/AppDownload";
 import Services from "./pages/Services";
 import Support from "./pages/Support";
 import Purchase from "./pages/Purchase";
+import AirtimeToCash from "./pages/AirtimeToCash";
 import Profile from "./pages/Profile";
 import KYC from "./pages/KYC";
 import ContinueSignup from "./pages/ContinueSignup";
@@ -88,6 +89,9 @@ const AdminSettings = lazyWithRetry(() => import("./admin/pages/AdminSettings"))
 const DataPlanPricing = lazyWithRetry(() => import("./admin/pages/DataPlanPricing"));
 const PricingRules = lazyWithRetry(() => import("./admin/pages/PricingRules"));
 const TierMargins = lazyWithRetry(() => import("./admin/pages/TierMargins"));
+const AirtimeToCashSettings = lazyWithRetry(() => import("./admin/pages/AirtimeToCashSettings"));
+const AirtimeToCashPricing = lazyWithRetry(() => import("./admin/pages/AirtimeToCashPricing"));
+const AirtimeToCashTransactions = lazyWithRetry(() => import("./admin/pages/AirtimeToCashTransactions"));
 const ResellerManager = lazyWithRetry(() => import("./admin/pages/ResellerManager"));
 const ResellerWalletManager = lazyWithRetry(() => import("./admin/pages/ResellerWalletManager"));
 const CentralPricingManager = lazyWithRetry(() => import("./admin/pages/CentralPricingManager"));
@@ -987,6 +991,7 @@ function App() {
                 <Route path="/wallet" element={token ? <Wallet token={token} user={user} refreshUser={fetchUserInfo} /> : <Navigate to="/login" />} />
                 <Route path="/services" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Services token={token} user={user} />) : <Navigate to="/login" />} />
                 <Route path="/purchase" element={token ? (isResellerUser ? <Navigate to="/reseller/purchase" replace /> : <Purchase token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
+                <Route path="/airtime-to-cash" element={token ? <AirtimeToCash /> : <Navigate to="/login" />} />
                 <Route path="/offline-data" element={token ? <OfflineData user={user} /> : <Navigate to="/login" />} />
                 <Route path="/profile" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Profile logout={logout} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
                 <Route path="/support" element={token ? (isResellerUser ? <Navigate to="/reseller/support" replace /> : <Support token={token} user={user} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
@@ -1055,6 +1060,9 @@ function App() {
                           <Route path="data-pricing" element={<DataPlanPricing token={adminToken} />} />
                           <Route path="pricing-rules" element={<PricingRules token={adminToken} />} />
                           <Route path="tier-margins" element={<TierMargins />} />
+                          <Route path="airtime-to-cash/settings" element={<AirtimeToCashSettings />} />
+                          <Route path="airtime-to-cash/pricing" element={<AirtimeToCashPricing />} />
+                          <Route path="airtime-to-cash/transactions" element={<AirtimeToCashTransactions />} />
                           <Route path="profit" element={<ProfitAnalytics token={adminToken} />} />
                           <Route path="referrals" element={<AdminReferrals />} />
                           <Route path="future-platforms" element={<AdminFuturePlatforms />} />

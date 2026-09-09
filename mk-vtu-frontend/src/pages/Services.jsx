@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wifi, Smartphone, Zap, GraduationCap, PlaySquare, FileText, SmartphoneIcon, Globe } from 'lucide-react';
+import { Wifi, Smartphone, Zap, GraduationCap, PlaySquare, FileText, SmartphoneIcon, Globe, Banknote } from 'lucide-react';
 import './Services.css';
 
 const Services = () => {
@@ -13,6 +13,7 @@ const Services = () => {
         { id: 'data', name: 'Buy Data', icon: <Wifi />, color: '#3B82F6', desc: 'SME, CG & Gifting' },
         { id: 'airtime', name: 'Airtime', icon: <Smartphone />, color: '#10B981', desc: 'Instant Top-up' },
         { id: 'epin', name: 'Airtime PIN', icon: <SmartphoneIcon />, color: '#F59E0B', desc: 'Recharge Printing' },
+        { id: 'airtime-to-cash', name: 'Airtime to Cash', icon: <Banknote />, color: '#16A34A', desc: 'Convert Airtime to Wallet Cash' },
       ]
     },
     {
@@ -39,6 +40,8 @@ const Services = () => {
     }
     if (['data', 'airtime', 'electricity', 'cable', 'epin', 'education'].includes(id)) {
       navigate('/purchase', { state: { defaultTab: id } });
+    } else if (id === 'airtime-to-cash') {
+      navigate('/airtime-to-cash');
     } else if (id === 'history') {
        navigate('/profile');
     } else {
