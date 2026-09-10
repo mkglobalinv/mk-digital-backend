@@ -10,8 +10,6 @@ const NETWORK_STYLES = {
     GLO: { label: 'glo', bg: '#00A651', color: '#ffffff' },
     '9MOBILE': { label: '9mobile', bg: '#00A99D', color: '#ffffff' }
 };
-const NETWORK_LABELS = Object.fromEntries(Object.entries(NETWORK_STYLES).map(([k, v]) => [k, v.label]));
-
 // Parses a provider balance string like "₦5,000.00" into a plain number for the
 // insufficient-balance warning below. Returns null if it can't be parsed --
 // the warning is then simply not shown, never guessed.
@@ -36,8 +34,6 @@ export default function AirtimeToCash() {
     const [network, setNetwork] = useState('');
     const [phone, setPhone] = useState('');
     const [amount, setAmount] = useState('');
-    const [bankName, setBankName] = useState('');
-    const [accountNumber, setAccountNumber] = useState('');
 
     const [quote, setQuote] = useState(null);
     const [quoteLoading, setQuoteLoading] = useState(false);
@@ -94,13 +90,11 @@ export default function AirtimeToCash() {
         setTransferPin('');
         setShowPin(false);
         setAmount('');
-        setBankName('');
-        setAccountNumber('');
     };
 
     const submitDetails = async (e) => {
         e.preventDefault();
-        if (!network || !phone || !amount || !bankName || !accountNumber) {
+        if (!network || !phone || !amount) {
             setError('Please fill in every field.');
             return;
         }
@@ -111,7 +105,7 @@ export default function AirtimeToCash() {
         try {
             setLoading(true);
             setError('');
-            const res = await API.post('/api/airtime-to-cash/otp', { network, phone, amount: Number(amount), bankName, accountNumber });
+            const res = await API.post('/api/airtime-to-cash/otp', { network, phone, amount: Number(amount) });
             setTx(res.data.data);
             if (res.data.data.status === 'OTP_REQUIRED') {
                 setStep('otp');
@@ -274,15 +268,6 @@ export default function AirtimeToCash() {
                         {quote && !quoteLoading && (
                             <p className="a2c-inline-hint">You will receive <strong>₦{quote.payoutAmount.toLocaleString()}</strong> ({quote.conversionPercentage}% rate{quote.fixedFee > 0 ? ` + ₦${quote.fixedFee} fee` : ''})</p>
                         )}
-
-                        <div className="a2c-field">
-                            <label>Bank Name</label>
-                            <input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. GTBank" />
-                        </div>
-                        <div className="a2c-field">
-                            <label>Account Number</label>
-                            <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="0123456789" />
-                        </div>
 
                         <button className="a2c-btn" type="submit" disabled={loading || !quote}>
                             {loading ? 'Please wait...' : 'Continue'}

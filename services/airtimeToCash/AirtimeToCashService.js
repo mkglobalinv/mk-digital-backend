@@ -162,7 +162,7 @@ export async function getQuote({ tenantId, network, amount }) {
  * the existing transaction instead of creating a second one / calling the provider
  * twice.
  */
-export async function requestOtp({ customerId, tenantId, network, phone, amount, bankName, accountNumber, idempotencyKey, ip }) {
+export async function requestOtp({ customerId, tenantId, network, phone, amount, idempotencyKey, ip }) {
     const { provider, config } = await getProvider();
     assertServiceEnabledForNetwork(config, String(network).toUpperCase());
 
@@ -188,8 +188,6 @@ export async function requestOtp({ customerId, tenantId, network, phone, amount,
         },
         customerPayoutAmount: quote.payoutAmount,
         platformValue: Number(amount) - quote.payoutAmount,
-        bankName,
-        accountNumber,
         status: 'PENDING',
         idempotencyKey: idempotencyKey || undefined,
         isSandbox: config.isTestMode

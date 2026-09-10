@@ -83,8 +83,12 @@ const airtimeCashTransactionSchema = new mongoose.Schema({
     customerPayoutAmount: { type: Number }, // = airtimeAmount * conversionPercentage/100 - fixedFee, frozen
     platformValue: { type: Number }, // airtimeAmount - customerPayoutAmount, frozen (platform's gross margin on this tx)
 
+    // Kept only for older transactions that already have a value -- the customer
+    // flow no longer collects these. Payout is exclusively a wallet credit
+    // (walletService.creditBalance), never a bank transfer, so there was nothing
+    // for these fields to actually be used for.
     bankName: { type: String },
-    accountNumber: { type: String }, // masked on every API/UI response; stored only for the future payout phase
+    accountNumber: { type: String }, // masked on every API/UI response
 
     status: { type: String, enum: STATUSES, default: 'PENDING' },
 
