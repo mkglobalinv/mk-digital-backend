@@ -2103,7 +2103,12 @@ app.get("/api/transactions", auth, async (req, res) => {
         if (tx.isInternal) {
             const isCashback = tx.ledger_type === 'LIFETIME_CASHBACK' || (tx.description && tx.description.toLowerCase().includes('cashback'));
             const isReferral = tx.ledger_type === 'REFERRAL_ACTIVATION' || tx.ledger_type === 'LIFETIME_REFERRAL_SHARE' || (tx.reference && tx.reference.startsWith('REF-REWARD'));
-            if (!isCashback && !isReferral) return false;
+            // walletService.creditBalance() marks every internal ledger write isInternal:true
+            // regardless of source, so an Airtime-to-Cash payout (also a wallet credit) was
+            // getting swept up in this "hide internal accounting noise" filter and never
+            // showing in the customer's own activity feed at all.
+            const isAirtimeToCash = tx.description && tx.description.toLowerCase().startsWith('airtime-to-cash:');
+            if (!isCashback && !isReferral && !isAirtimeToCash) return false;
         }
         if (tx.description) {
             const desc = tx.description.toLowerCase();
