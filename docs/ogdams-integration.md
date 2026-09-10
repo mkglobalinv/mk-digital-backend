@@ -171,3 +171,13 @@ The platform's actual pricing-management workflow is the "V3 Pricing Engine" (Ad
 - The "V3 Pricing Rules" admin page gained a Provider column (blank/"Default" for existing rules) and disables the inline Edit action for provider-scoped rows, pointing admins to that provider's own pricing page instead -- editing a provider-scoped rule from the generic form would otherwise target the wrong (default) rule.
 
 Admin Dashboard → **Ogdams MTN SME Pricing** has its own "V3 Pricing Rule" panel (Retail/Basic/VIP % + Active) fixed to `network: 'MTN', category: 'Gifting', provider: 'ogdams'`; saving it calls the same `POST /admin/pricing-rules` used everywhere else.
+
+### Fast, Ogdams-only sync (and auto-sync on rule save)
+
+The original "Sync Plans" button called the same `POST /admin/data-plans/sync` used by "Legacy Data Pricing" -- which re-fetches Peyflex and ClubKonnect for every network too, and can take a couple of minutes end-to-end. `POST /admin/data-plans/ogdams-sme/sync` (new) does one HTTP call to Ogdams' `/get/data/plans`, upserts just the 9 confirmed MTN Gifting `DataPlan` documents, and runs the same combine-catalog step -- typically well under a second. The create/update-one-plan logic (`upsertDataPlanFromProviderPlan`) and the combine-catalog step (`combineOgdamsCatalog`) were extracted out of the full sync route so both routes share the exact same logic rather than duplicating it.
+
+Both the Ogdams SME Pricing page's "Sync Ogdams Plans" button and its "V3 Pricing Rule" Save & Apply button now call this fast endpoint -- saving the rule syncs first (so it applies against each plan's latest cost, and any not-yet-created plan gets created before it's priced), then saves/applies the rule, all in one click.
+
+### Prerequisite: Ogdams must actually be configured
+
+None of this fetches or creates anything unless `OGDAMS_ENABLED=true` and `OGDAMS_API_KEY` are set as real environment variables on the deployed service -- every function in `ogdams.js` checks these first and returns a clean "unavailable" result (logging nothing) rather than making a request if they're missing. If "Synced" stays at 0 after a sync, check the service's environment variables before assuming a code issue.
