@@ -20,18 +20,22 @@ describe('mergeOgdamsSmePlans', () => {
         expect(rows.every((r) => r.status === false)).toBe(true);
     });
 
-    test('a plan ID with a matching synced DataPlan document reports synced: true with its real cost/price/profit/status', () => {
+    test('a plan ID with a matching synced DataPlan document reports synced: true with its real cost/price/profit/status, plus all reseller pricing tiers', () => {
         const existingPlans = [
-            { _id: 'abc123', api_plan_id: '20002', plan_name: 'MTN 1GB Daily', plan_size: '1GB', validity: '1 Day', api_price: 450, selling_price: 500, profit: 50, status: true }
+            { _id: 'abc123', api_plan_id: '20002', plan_name: 'MTN 1GB Daily', plan_size: '1GB', validity: '1 Day', api_price: 450, selling_price: 500, reseller_price: 480, vip_price: 470, premium_price: 460, profit: 50, status: true }
         ];
         const rows = mergeOgdamsSmePlans(existingPlans, WHITELIST);
         const row = rows.find((r) => r.plan_id === '20002');
-        expect(row).toMatchObject({ _id: 'abc123', synced: true, plan_name: 'MTN 1GB Daily', api_price: 450, selling_price: 500, profit: 50, status: true });
+        expect(row).toMatchObject({
+            _id: 'abc123', synced: true, plan_name: 'MTN 1GB Daily', api_price: 450, selling_price: 500,
+            reseller_price: 480, vip_price: 470, premium_price: 460, profit: 50, status: true
+        });
 
         // Unmatched IDs stay unsynced -- a document existing for one plan ID
         // must never bleed into another plan ID's row.
         const unsynced = rows.filter((r) => r.plan_id !== '20002');
         expect(unsynced.every((r) => r.synced === false)).toBe(true);
+        expect(unsynced.every((r) => r.reseller_price === null && r.vip_price === null && r.premium_price === null)).toBe(true);
     });
 
     test('a DataPlan document whose api_plan_id is not in the whitelist is silently ignored (never injected as an extra row)', () => {

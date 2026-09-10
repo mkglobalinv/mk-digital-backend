@@ -596,6 +596,9 @@ function mergeOgdamsSmePlans(existingPlans, whitelist) {
                 validity: existing.validity,
                 api_price: existing.api_price,
                 selling_price: existing.selling_price,
+                reseller_price: existing.reseller_price,
+                vip_price: existing.vip_price,
+                premium_price: existing.premium_price,
                 profit: existing.profit,
                 status: existing.status,
                 synced: true
@@ -610,6 +613,9 @@ function mergeOgdamsSmePlans(existingPlans, whitelist) {
             validity: null,
             api_price: null,
             selling_price: null,
+            reseller_price: null,
+            vip_price: null,
+            premium_price: null,
             profit: null,
             status: false,
             synced: false

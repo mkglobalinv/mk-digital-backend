@@ -20,7 +20,7 @@ const OgdamsSmePricing = ({ token }) => {
     const [syncing, setSyncing] = useState(false);
 
     const [editingId, setEditingId] = useState(null);
-    const [editData, setEditData] = useState({ api_price: '', selling_price: '' });
+    const [editData, setEditData] = useState({ api_price: '', selling_price: '', reseller_price: '', vip_price: '', premium_price: '' });
 
     const fetchPlans = async () => {
         setLoading(true);
@@ -54,7 +54,13 @@ const OgdamsSmePricing = ({ token }) => {
 
     const startEdit = (plan) => {
         setEditingId(plan._id);
-        setEditData({ api_price: plan.api_price ?? 0, selling_price: plan.selling_price ?? 0 });
+        setEditData({
+            api_price: plan.api_price ?? 0,
+            selling_price: plan.selling_price ?? 0,
+            reseller_price: plan.reseller_price || plan.selling_price || 0,
+            vip_price: plan.vip_price || plan.selling_price || 0,
+            premium_price: plan.premium_price || plan.selling_price || 0
+        });
     };
 
     const saveEdit = async (id) => {
@@ -101,7 +107,9 @@ const OgdamsSmePricing = ({ token }) => {
                 <span>
                     These plans are fulfilled by <b>Ogdams</b> (MTN Data Gifting) and shown to customers under the <b>SME</b> category.
                     Pricing here is completely independent from the Peyflex plans on "Legacy Data Pricing" -- editing a price below never
-                    changes a Peyflex plan, and vice versa. Use <b>Provider Manager</b> (Manage Categories) to control whether MTN Data
+                    changes a Peyflex plan, and vice versa. <b>Retail</b> is what a direct customer pays; <b>Basic</b> and <b>VIP</b> are what a
+                    reseller (including white-label reseller websites) pays at each tier, unless that reseller has a specific price override;
+                    <b> Premium</b> is the top reseller tier. Use <b>Provider Manager</b> (Manage Categories) to control whether MTN Data
                     transactions actually route to Ogdams or Peyflex.
                 </span>
             </div>
@@ -116,7 +124,10 @@ const OgdamsSmePricing = ({ token }) => {
                                 <th>Plan</th>
                                 <th>Ogdams Plan ID</th>
                                 <th>Cost</th>
-                                <th>Customer Price</th>
+                                <th>Retail Price</th>
+                                <th>Basic Price</th>
+                                <th>VIP Price</th>
+                                <th>Premium Price</th>
                                 <th>Profit</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -153,6 +164,48 @@ const OgdamsSmePricing = ({ token }) => {
                                             />
                                         ) : (
                                             <span style={{ color: '#10b981', fontWeight: 'bold' }}>₦{plan.selling_price}</span>
+                                        )}
+                                    </td>
+                                    <td>
+                                        {!plan.synced ? (
+                                            <span title="Not synced yet">&mdash;</span>
+                                        ) : editingId === plan._id ? (
+                                            <input
+                                                type="number"
+                                                style={{ width: '70px', padding: '2px' }}
+                                                value={editData.reseller_price}
+                                                onChange={(e) => setEditData({ ...editData, reseller_price: e.target.value })}
+                                            />
+                                        ) : (
+                                            <span>₦{plan.reseller_price || plan.selling_price}</span>
+                                        )}
+                                    </td>
+                                    <td>
+                                        {!plan.synced ? (
+                                            <span title="Not synced yet">&mdash;</span>
+                                        ) : editingId === plan._id ? (
+                                            <input
+                                                type="number"
+                                                style={{ width: '70px', padding: '2px' }}
+                                                value={editData.vip_price}
+                                                onChange={(e) => setEditData({ ...editData, vip_price: e.target.value })}
+                                            />
+                                        ) : (
+                                            <span>₦{plan.vip_price || plan.selling_price}</span>
+                                        )}
+                                    </td>
+                                    <td>
+                                        {!plan.synced ? (
+                                            <span title="Not synced yet">&mdash;</span>
+                                        ) : editingId === plan._id ? (
+                                            <input
+                                                type="number"
+                                                style={{ width: '70px', padding: '2px' }}
+                                                value={editData.premium_price}
+                                                onChange={(e) => setEditData({ ...editData, premium_price: e.target.value })}
+                                            />
+                                        ) : (
+                                            <span>₦{plan.premium_price || plan.selling_price}</span>
                                         )}
                                     </td>
                                     <td>
