@@ -397,7 +397,11 @@ body.dark-theme .explore-more-icon-wrap { color: #F4B400; }
   transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
   opacity: 0;
 }
-.more-services-panel.open { max-height: 200px; opacity: 1; }
+/* Tall enough for two rows -- MORE_SERVICES can wrap to a 2nd row (e.g. once
+   Airtime-to-Cash is appended as a 5th tile), and a too-short max-height here
+   clips that row's label text under overflow:hidden without clipping the icon,
+   which looks like a missing name rather than a layout cutoff. */
+.more-services-panel.open { max-height: 320px; opacity: 1; }
 .more-services-panel .services-grid { padding-top: 10px; }
 
 /* -----------------------------------------------------------

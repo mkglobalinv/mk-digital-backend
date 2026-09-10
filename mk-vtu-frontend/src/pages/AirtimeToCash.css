@@ -328,7 +328,11 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  z-index: 100;
+  /* The app's bottom nav bar is z-index: 1000 (see BottomNav.css) and the
+     bottom-sheet pattern elsewhere in this app uses 2000 -- this modal must
+     sit above both, or the nav bar renders on top of it and its buttons
+     become unclickable/hidden behind the nav. */
+  z-index: 2100;
 }
 
 .a2c-modal {
