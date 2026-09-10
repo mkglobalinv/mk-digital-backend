@@ -170,6 +170,13 @@ async function ogdamsGet(path, maxRetries = 2) {
             }
             const errorCode = categorizeError({ httpStatus, bodyCode: err.response?.data?.code, timedOut: isTimeout, networkError: isNetworkError });
             console.error(`[Ogdams] GET ${path} failed:`, errorCode, err.message);
+            if (err.response?.data) {
+                // Ogdams' actual error message/body -- logged server-side only
+                // (never returned to the customer) so a real failure like "SIM
+                // not connected" or "account not activated" is diagnosable
+                // instead of only ever seeing the generic HTTP status/code.
+                console.error(`[Ogdams] GET ${path} error body:`, JSON.stringify(err.response.data));
+            }
             return { success: false, errorCode, message: CUSTOMER_MESSAGE[errorCode], httpStatus };
         }
     }
