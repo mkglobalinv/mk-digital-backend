@@ -270,16 +270,21 @@ export async function getOgdamsDataPlans() {
     const result = await ogdamsGet("/get/data/plans");
     if (!result.success) return result;
     const plans = result.data?.data?.msg || [];
-    return {
-        success: true,
-        plans: plans.map((p) => ({
-            network: NETWORK_ID_TO_NAME[p.networkId] || String(p.networkId),
-            planId: String(p.planId),
-            name: p.name,
-            price: Number(p.price),
-            validity: p.validity
-        }))
-    };
+    const normalized = plans.map((p) => ({
+        network: NETWORK_ID_TO_NAME[p.networkId] || String(p.networkId),
+        planId: String(p.planId),
+        name: p.name,
+        price: Number(p.price),
+        validity: p.validity
+    }));
+    // Diagnostic: getOgdamsMtnGiftingPlans() silently filters this down to
+    // only the whitelisted plan IDs, so a sync reporting "Added: 0, Updated:
+    // 0" gives no clue whether Ogdams returned zero plans at all or just
+    // none matching the whitelist. Logging the raw MTN plan IDs makes that
+    // visible without exposing anything sensitive (no pricing/customer data).
+    const mtnPlanIds = normalized.filter((p) => p.network === "MTN").map((p) => p.planId);
+    console.log(`[Ogdams] /get/data/plans returned ${normalized.length} plan(s) total, ${mtnPlanIds.length} for MTN: [${mtnPlanIds.join(", ")}]`);
+    return { success: true, plans: normalized };
 }
 
 // Confirmed directly by Ogdams support (not inferred, not guessed): these are
