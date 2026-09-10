@@ -34,6 +34,15 @@ export const getConfig = async (req, res) => {
     }
 };
 
+export const getRecentNumbers = async (req, res) => {
+    try {
+        const numbers = await AirtimeToCashService.listOwnRecentNumbers(req.user._id);
+        res.json({ status: 'success', data: { myNumber: req.user.phone || null, recent: numbers } });
+    } catch (err) {
+        handleServiceError(res, err);
+    }
+};
+
 export const getQuote = async (req, res) => {
     try {
         const { network, amount } = req.body;

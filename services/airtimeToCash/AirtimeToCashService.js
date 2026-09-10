@@ -669,6 +669,28 @@ export async function listOwnTransactions(customerId, { page = 1, limit = 20 } =
 }
 
 /**
+ * Distinct recent sender phone numbers from this customer's OWN past transactions,
+ * for a "recently used" quick-select. Deliberately returns the real (unmasked)
+ * number -- toSafeTransactionView's maskPhone exists for viewing someone else's
+ * data (e.g. an admin/reseller list), not for a customer seeing back a number they
+ * themselves typed in; there's no security value in masking a customer's own data
+ * to themselves, and doing so here would make the quick-select useless.
+ */
+export async function listOwnRecentNumbers(customerId, { limit = 3 } = {}) {
+    const recentTx = await AirtimeCashTransaction.find({ customerId }).sort({ createdAt: -1 }).limit(20).select('senderPhone').lean();
+    const seen = new Set();
+    const numbers = [];
+    for (const tx of recentTx) {
+        if (tx.senderPhone && !seen.has(tx.senderPhone)) {
+            seen.add(tx.senderPhone);
+            numbers.push(tx.senderPhone);
+            if (numbers.length >= limit) break;
+        }
+    }
+    return numbers;
+}
+
+/**
  * Tenant-isolated lookup for the reseller-facing routes: a reseller may only ever
  * see transactions that happened on their own storefront (tx.tenantId === their own
  * User._id). Never trust a tenantId supplied by the browser -- this always uses the
