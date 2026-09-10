@@ -78,6 +78,8 @@ import {
   getProviders,
   updateProviderStatus,
   getOgdamsProviderStatus,
+  getProviderRouting,
+  setProviderRouting,
   queryAIAssistant,
   regenerateResellerUrl,
   getResellerPricingDashboard,
@@ -325,6 +327,8 @@ router.get("/audit/withdrawal-verification/:withdrawalId", getWithdrawalVerifica
 router.get("/providers", requireOwner, getProviders);
 router.get("/providers/ogdams/status", requireOwner, getOgdamsProviderStatus);
 router.put("/providers/:id", requireOwner, updateProviderStatus);
+router.get("/provider-routing", requireOwner, getProviderRouting);
+router.post("/provider-routing", requireOwner, setProviderRouting);
 
 // --- RESELLER MANAGEMENT ROUTES ---
 router.get("/resellers", getResellers);
