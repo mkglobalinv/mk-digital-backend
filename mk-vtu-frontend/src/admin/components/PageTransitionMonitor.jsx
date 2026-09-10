@@ -17,6 +17,7 @@ const PATH_NAMES = {
     '/admin/services': 'Service Control',
     '/admin/data-categories': 'Data Categories',
     '/admin/data-pricing': 'Data Cost Setup',
+    '/admin/ogdams-sme-pricing': 'Ogdams MTN SME Pricing',
     '/admin/tier-margins': 'Reseller Margins',
     '/admin/profit': 'Profit Analytics',
     '/admin/kyc': 'KYC Verification',

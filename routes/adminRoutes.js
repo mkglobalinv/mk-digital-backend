@@ -124,6 +124,7 @@ import PriceOverride from "../models/PriceOverride.js";
 import AdminPricingOverride from "../models/AdminPricingOverride.js";
 import SystemSetting from "../models/SystemSetting.js";
 import { smartFetchDataPlans } from "../services/switcher.js";
+import { MTN_DATA_GIFTING_PLAN_IDS } from "../services/providers/ogdams.js";
 import fs from "fs";
 import ApiLog from "../models/ApiLog.js";
 import PricingSettings from "../models/PricingSettings.js";
@@ -518,10 +519,11 @@ router.delete("/resellers/:id/pricing", async (req, res) => {
 // --- DATA PLAN PRICING ROUTES ---
 router.get("/data-plans", async (req, res) => {
     try {
-        const { network, category, status, search, page = 1, limit = 50 } = req.query;
+        const { network, category, provider, status, search, page = 1, limit = 50 } = req.query;
         let query = {};
         if (network) query.network = network;
         if (category) query.category = category;
+        if (provider) query.provider = provider;
         if (status !== undefined && status !== '') query.status = status === 'true';
         if (search) {
             query.$or = [
@@ -572,6 +574,64 @@ router.get("/data-plans", async (req, res) => {
     } catch (err) {
         console.error("[Admin API] Error fetching data plans:", err);
         res.status(500).json({ message: "Error fetching data plans: " + err.message });
+    }
+});
+
+// Pure merge used by GET /data-plans/ogdams-sme below -- exported for direct
+// unit testing without a DB. Always returns exactly one row per confirmed
+// whitelist entry, in whitelist order, so a plan ID that hasn't been synced
+// yet still shows up (synced: false, no editable pricing) instead of
+// silently disappearing from the admin's view.
+function mergeOgdamsSmePlans(existingPlans, whitelist) {
+    const byPlanId = new Map(existingPlans.map((p) => [p.api_plan_id, p]));
+    return Object.entries(whitelist).map(([planId, description]) => {
+        const existing = byPlanId.get(planId);
+        if (existing) {
+            return {
+                _id: existing._id,
+                plan_id: planId,
+                description,
+                plan_name: existing.plan_name,
+                plan_size: existing.plan_size,
+                validity: existing.validity,
+                api_price: existing.api_price,
+                selling_price: existing.selling_price,
+                profit: existing.profit,
+                status: existing.status,
+                synced: true
+            };
+        }
+        return {
+            _id: null,
+            plan_id: planId,
+            description,
+            plan_name: null,
+            plan_size: null,
+            validity: null,
+            api_price: null,
+            selling_price: null,
+            profit: null,
+            status: false,
+            synced: false
+        };
+    });
+}
+
+// Independent Ogdams MTN SME (Gifting) pricing view -- separate from the
+// generic /data-plans list/pagination used by "Legacy Data Pricing" (Peyflex
+// and every other provider). Always returns exactly the 9 confirmed
+// MTN_DATA_GIFTING_PLAN_IDS whitelisted in services/providers/ogdams.js (the
+// same whitelist the sync route enforces), merged with whatever DataPlan
+// document already exists for each. Editing still goes through the existing
+// PUT /data-plans/:id -- this route is read-only.
+router.get("/data-plans/ogdams-sme", async (req, res) => {
+    try {
+        const existingPlans = await DataPlan.find({ provider: 'ogdams', network: 'MTN', category: 'Gifting' }).lean();
+        const plans = mergeOgdamsSmePlans(existingPlans, MTN_DATA_GIFTING_PLAN_IDS);
+        res.json({ plans });
+    } catch (err) {
+        console.error("[Admin API] Error fetching Ogdams SME plans:", err);
+        res.status(500).json({ message: "Error fetching Ogdams SME plans: " + err.message });
     }
 });
 
@@ -781,11 +841,20 @@ router.post("/data-plans/sync", async (req, res) => {
 
 router.put("/data-plans/:id", async (req, res) => {
     try {
-        const { selling_price, status, reseller_price, vip_price, premium_price } = req.body;
+        const { api_price, selling_price, status, reseller_price, vip_price, premium_price } = req.body;
         const plan = await DataPlan.findById(req.params.id);
         if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-        if (selling_price !== undefined) plan.selling_price = Number(selling_price);
+        if (api_price !== undefined) {
+            const n = Number(api_price);
+            if (isNaN(n) || n < 0) return res.status(400).json({ message: "api_price must be a non-negative number" });
+            plan.api_price = n;
+        }
+        if (selling_price !== undefined) {
+            const n = Number(selling_price);
+            if (isNaN(n) || n < 0) return res.status(400).json({ message: "selling_price must be a non-negative number" });
+            plan.selling_price = n;
+        }
         if (status !== undefined) plan.status = Boolean(status);
         if (reseller_price !== undefined) plan.reseller_price = Number(reseller_price);
         if (vip_price !== undefined) plan.vip_price = Number(vip_price);
@@ -1291,6 +1360,6 @@ router.post("/pricing-rules/clone", async (req, res) => {
 
 // Exported for direct unit testing of the "combine catalog" matching logic
 // used by POST /data-plans/sync, without needing an HTTP/DB test harness.
-export { dataPlanMatchKey, parseDataSizeToMB, parseValidityToDays };
+export { dataPlanMatchKey, parseDataSizeToMB, parseValidityToDays, mergeOgdamsSmePlans };
 
 export default router;

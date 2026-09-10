@@ -90,6 +90,7 @@ const KYCManager = lazyWithRetry(() => import("./admin/pages/KYCManager"));
 const InternationalAnalytics = lazyWithRetry(() => import("./admin/pages/InternationalAnalytics"));
 const AdminSettings = lazyWithRetry(() => import("./admin/pages/AdminSettings"));
 const DataPlanPricing = lazyWithRetry(() => import("./admin/pages/DataPlanPricing"));
+const OgdamsSmePricing = lazyWithRetry(() => import("./admin/pages/OgdamsSmePricing"));
 const PricingRules = lazyWithRetry(() => import("./admin/pages/PricingRules"));
 const TierMargins = lazyWithRetry(() => import("./admin/pages/TierMargins"));
 const AirtimeToCashSettings = lazyWithRetry(() => import("./admin/pages/AirtimeToCashSettings"));
@@ -1123,6 +1124,7 @@ function App() {
                           <Route path="services" element={<ServiceManager token={adminToken} />} />
                           <Route path="data-categories" element={<DataCategoryRouteWrapper token={adminToken} />} />
                           <Route path="data-pricing" element={<DataPlanPricing token={adminToken} />} />
+                          <Route path="ogdams-sme-pricing" element={<OgdamsSmePricing token={adminToken} />} />
                           <Route path="pricing-rules" element={<PricingRules token={adminToken} />} />
                           <Route path="tier-margins" element={<TierMargins />} />
                           <Route path="airtime-to-cash/settings" element={<AirtimeToCashSettings />} />
