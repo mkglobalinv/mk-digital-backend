@@ -396,6 +396,24 @@ const connectDB = async () => {
             } catch (e) {
                 console.warn("Could not clear transaction locks on startup:", e.message);
             }
+
+            // PricingRule's unique index moved from {network, category} to
+            // {network, category, provider} (to support provider-scoped
+            // rules, e.g. Ogdams). Mongoose does not drop a stale index just
+            // because the schema changed -- an existing deployment still has
+            // the old {network, category} unique index enforced alongside
+            // the new one, which incorrectly blocks a provider-scoped rule
+            // from being created for a network+category that already has a
+            // default rule. syncIndexes() reconciles the live collection's
+            // indexes with the current schema (drops the stale index,
+            // creates the new one); safe to run on every startup since it's
+            // a no-op once they already match.
+            try {
+                await PricingRule.syncIndexes();
+                console.log("PricingRule indexes synced ✅");
+            } catch (e) {
+                console.warn("Could not sync PricingRule indexes on startup:", e.message);
+            }
             break;
         } catch (err) {
             console.error("MongoDB Connection Error ❌:", err.message);
