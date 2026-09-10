@@ -1171,31 +1171,58 @@ router.post("/resellers/migrate-subdomains", requireOwner, async (req, res) => {
 router.post("/ai-assistant/query", queryAIAssistant);
 
 // --- V3 PRICING ENGINE RULES ---
+
+// Pure -- decides which DataPlan.provider value(s) a rule's percentages
+// apply to. A provider-scoped rule (e.g. an Ogdams-only rule) only ever
+// touches its own provider. A default (no-provider) rule touches every
+// provider's plans EXCEPT providers that have their own active
+// provider-scoped rule for the same network+category, so a provider-specific
+// rule stays independent and isn't immediately overwritten the next time the
+// shared default rule is saved. Returns undefined when no provider filter
+// should be applied at all (default rule, no provider-scoped rules exist).
+function pricingRuleProviderFilter(rule, scopedProviders) {
+    if (rule.provider) return rule.provider;
+    if (scopedProviders && scopedProviders.length > 0) return { $nin: scopedProviders };
+    return undefined;
+}
+
+// Pure -- the V3 percentage-markup math, unchanged from the original engine.
+function computeV3Prices(apiPrice, rule) {
+    const cost = apiPrice || 0;
+    const retailMarkup = cost * (rule.retailPercentage / 100);
+    const retailPrice = cost + retailMarkup;
+    const basicExtraProfit = retailMarkup * (rule.basicPercentage / 100);
+    const vipMarkup = cost * (rule.vipPercentage / 100);
+    const vipPrice = cost + vipMarkup;
+    return {
+        selling_price: retailPrice,
+        reseller_price: retailPrice, // Wholesale cost to basic reseller
+        basic_selling_price: retailPrice + basicExtraProfit,
+        vip_price: vipPrice, // Wholesale cost to VIP/Premium reseller
+        vip_selling_price: vipPrice, // Default selling price is their wholesale cost unless overridden
+        premium_price: vipPrice,
+        premium_selling_price: vipPrice
+    };
+}
+
 const applyPricingRuleToPlans = async (rule) => {
     if (!rule.isActive) return 0;
     try {
-        const plans = await DataPlan.find({ network: rule.network.toUpperCase(), category: rule.category });
+        const scopedProviders = rule.provider ? [] : await PricingRule.find({
+            network: rule.network.toUpperCase(),
+            category: rule.category,
+            provider: { $exists: true, $ne: null },
+            isActive: true
+        }).distinct('provider');
+
+        const query = { network: rule.network.toUpperCase(), category: rule.category };
+        const providerFilter = pricingRuleProviderFilter(rule, scopedProviders);
+        if (providerFilter !== undefined) query.provider = providerFilter;
+
+        const plans = await DataPlan.find(query);
         let updatedCount = 0;
         for (const plan of plans) {
-            const apiPrice = plan.api_price || 0;
-            const retailMarkup = apiPrice * (rule.retailPercentage / 100);
-            const retailPrice = apiPrice + retailMarkup;
-            
-            plan.selling_price = retailPrice;
-            
-            // Basic Reseller
-            plan.reseller_price = retailPrice; // Wholesale cost to basic reseller
-            const basicExtraProfit = retailMarkup * (rule.basicPercentage / 100);
-            plan.basic_selling_price = retailPrice + basicExtraProfit;
-            
-            // VIP / Premium Reseller
-            const vipMarkup = apiPrice * (rule.vipPercentage / 100);
-            plan.vip_price = apiPrice + vipMarkup; // Wholesale cost to VIP/Premium reseller
-            plan.vip_selling_price = plan.vip_price; // Default selling price is their wholesale cost unless overridden
-            
-            plan.premium_price = plan.vip_price; 
-            plan.premium_selling_price = plan.vip_selling_price;
-            
+            Object.assign(plan, computeV3Prices(plan.api_price, rule));
             await plan.save(); // Save triggers the Supabase sync hook in DataPlan schema
             updatedCount++;
         }
@@ -1208,7 +1235,15 @@ const applyPricingRuleToPlans = async (rule) => {
 
 router.get("/pricing-rules", async (req, res) => {
     try {
-        const rules = await PricingRule.find({}).sort({ network: 1, category: 1 });
+        const { network, category, provider } = req.query;
+        const query = {};
+        if (network) query.network = network.toUpperCase();
+        if (category) query.category = category;
+        // provider='' asks for only the default (no-provider) rule; a real
+        // provider name asks for only that provider's rule(s); omitted
+        // (undefined) keeps the original "return everything" behavior.
+        if (provider !== undefined) query.provider = provider === '' ? { $exists: false } : provider.toLowerCase();
+        const rules = await PricingRule.find(query).sort({ network: 1, category: 1 });
         res.json(rules);
     } catch (err) {
         res.status(500).json({ message: "Failed to fetch pricing rules", error: err.message });
@@ -1217,8 +1252,8 @@ router.get("/pricing-rules", async (req, res) => {
 
 router.post("/pricing-rules", async (req, res) => {
     try {
-        const { network, category, retailPercentage, basicPercentage, vipPercentage, isActive } = req.body;
-        
+        const { network, category, provider, retailPercentage, basicPercentage, vipPercentage, isActive } = req.body;
+
         if (!network || !category) {
             return res.status(400).json({ message: "Network and Category are required" });
         }
@@ -1226,23 +1261,28 @@ router.post("/pricing-rules", async (req, res) => {
             return res.status(400).json({ message: "Percentages cannot be negative" });
         }
 
-        const rule = await PricingRule.findOneAndUpdate(
-            { network: network.toUpperCase(), category },
-            { 
-                retailPercentage: Number(retailPercentage),
-                basicPercentage: Number(basicPercentage),
-                vipPercentage: Number(vipPercentage),
-                isActive: isActive !== undefined ? isActive : true
-            },
-            { new: true, upsert: true }
-        );
+        // Target either the default (no-provider) rule for this network+
+        // category, or one specific provider's own rule -- never match the
+        // wrong one when both exist for the same network+category.
+        const filter = { network: network.toUpperCase(), category };
+        filter.provider = provider ? String(provider).toLowerCase() : { $exists: false };
+
+        const update = {
+            retailPercentage: Number(retailPercentage),
+            basicPercentage: Number(basicPercentage),
+            vipPercentage: Number(vipPercentage),
+            isActive: isActive !== undefined ? isActive : true
+        };
+        if (provider) update.provider = String(provider).toLowerCase();
+
+        const rule = await PricingRule.findOneAndUpdate(filter, update, { new: true, upsert: true });
 
         await applyPricingRuleToPlans(rule);
 
         res.json({ message: "Pricing rule saved successfully", rule });
     } catch (err) {
         if (err.code === 11000) {
-            return res.status(400).json({ message: "A rule for this network and category already exists." });
+            return res.status(400).json({ message: "A rule for this network, category and provider already exists." });
         }
         res.status(500).json({ message: "Failed to save pricing rule", error: err.message });
     }
@@ -1291,11 +1331,16 @@ router.post("/pricing-rules/bulk", async (req, res) => {
 
         for (const category of categories) {
             try {
-                const existing = await PricingRule.findOne({ network: network.toUpperCase(), category });
+                // Bulk generation only ever targets the default (no-provider)
+                // rule for each category -- a provider-scoped rule (e.g.
+                // Ogdams') is managed on its own dedicated page and must never
+                // be silently matched/overwritten here.
+                const filter = { network: network.toUpperCase(), category, provider: { $exists: false } };
+                const existing = await PricingRule.findOne(filter);
                 if (existing) updated++; else created++;
 
                 const rule = await PricingRule.findOneAndUpdate(
-                    { network: network.toUpperCase(), category },
+                    filter,
                     {
                         retailPercentage: Number(retailPercentage),
                         basicPercentage: Number(basicPercentage),
@@ -1328,7 +1373,11 @@ router.post("/pricing-rules/clone", async (req, res) => {
             return res.status(400).json({ message: "Source and destination cannot be the same." });
         }
 
-        const sourceRules = await PricingRule.find({ network: sourceNetwork.toUpperCase(), isActive: true });
+        // Clone only ever operates on default (no-provider) rules -- a
+        // provider-scoped rule (e.g. Ogdams') is managed on its own
+        // dedicated page and must never be cloned or silently overwritten
+        // here.
+        const sourceRules = await PricingRule.find({ network: sourceNetwork.toUpperCase(), isActive: true, provider: { $exists: false } });
         if (sourceRules.length === 0) {
             return res.status(400).json({ message: `No active rules found for source network: ${sourceNetwork}` });
         }
@@ -1339,11 +1388,12 @@ router.post("/pricing-rules/clone", async (req, res) => {
 
         for (const rule of sourceRules) {
             try {
-                const existing = await PricingRule.findOne({ network: destinationNetwork.toUpperCase(), category: rule.category });
+                const filter = { network: destinationNetwork.toUpperCase(), category: rule.category, provider: { $exists: false } };
+                const existing = await PricingRule.findOne(filter);
                 if (existing) updated++; else created++;
 
                 const newRule = await PricingRule.findOneAndUpdate(
-                    { network: destinationNetwork.toUpperCase(), category: rule.category },
+                    filter,
                     {
                         retailPercentage: rule.retailPercentage,
                         basicPercentage: rule.basicPercentage,
@@ -1366,6 +1416,6 @@ router.post("/pricing-rules/clone", async (req, res) => {
 
 // Exported for direct unit testing of the "combine catalog" matching logic
 // used by POST /data-plans/sync, without needing an HTTP/DB test harness.
-export { dataPlanMatchKey, parseDataSizeToMB, parseValidityToDays, mergeOgdamsSmePlans };
+export { dataPlanMatchKey, parseDataSizeToMB, parseValidityToDays, mergeOgdamsSmePlans, pricingRuleProviderFilter, computeV3Prices };
 
 export default router;

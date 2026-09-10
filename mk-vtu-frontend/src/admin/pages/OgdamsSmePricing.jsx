@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCcw, Edit2, Check, X, Info } from 'lucide-react';
+import { RefreshCcw, Edit2, Check, X, Info, Percent } from 'lucide-react';
 import API from '../../api';
 import './DataPlanPricing.css';
 import './OgdamsSmePricing.css';
+
+const OGDAMS_RULE_NETWORK = 'MTN';
+const OGDAMS_RULE_CATEGORY = 'Gifting';
 
 // Independent pricing page for the 9 confirmed Ogdams MTN Data Gifting plans
 // (services/providers/ogdams.js's MTN_DATA_GIFTING_PLAN_IDS). Each row is its
@@ -14,6 +17,14 @@ import './OgdamsSmePricing.css';
 // Internally the category stays "Gifting" (Provider Manager routing, the
 // admin data-plan sync, and the combine-catalog dedup all key off that
 // value); only the customer-facing storefront renders it as "SME".
+//
+// Pricing here is managed the same way as the rest of the platform's "V3
+// Pricing Engine" (Admin -> V3 Pricing Rules): a percentage rule (Retail/
+// Basic/VIP % over cost) that gets applied to every matching plan in one
+// action, rather than typing raw prices in one at a time. This page's rule
+// is scoped to provider: 'ogdams' so saving it only ever recomputes Ogdams'
+// own MTN Gifting plans -- it never touches Peyflex's MTN Gifting rule or
+// plans, and Peyflex's rule (on "V3 Pricing Rules") never touches Ogdams'.
 const OgdamsSmePricing = ({ token }) => {
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,6 +32,11 @@ const OgdamsSmePricing = ({ token }) => {
 
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({ api_price: '', selling_price: '', reseller_price: '', vip_price: '', premium_price: '' });
+
+    const [rule, setRule] = useState(null);
+    const [ruleForm, setRuleForm] = useState({ retailPercentage: 10, basicPercentage: 8, vipPercentage: 5, isActive: true });
+    const [ruleLoading, setRuleLoading] = useState(true);
+    const [ruleSaving, setRuleSaving] = useState(false);
 
     const fetchPlans = async () => {
         setLoading(true);
@@ -35,7 +51,53 @@ const OgdamsSmePricing = ({ token }) => {
         }
     };
 
-    useEffect(() => { fetchPlans(); }, []);
+    const fetchRule = async () => {
+        setRuleLoading(true);
+        try {
+            const res = await API.get('/api/admin/pricing-rules', {
+                params: { network: OGDAMS_RULE_NETWORK, category: OGDAMS_RULE_CATEGORY, provider: 'ogdams' }
+            });
+            const existing = (res.data || [])[0] || null;
+            setRule(existing);
+            if (existing) {
+                setRuleForm({
+                    retailPercentage: existing.retailPercentage,
+                    basicPercentage: existing.basicPercentage,
+                    vipPercentage: existing.vipPercentage,
+                    isActive: existing.isActive
+                });
+            }
+        } catch (err) {
+            console.error('Failed to fetch Ogdams pricing rule', err);
+        } finally {
+            setRuleLoading(false);
+        }
+    };
+
+    useEffect(() => { fetchPlans(); fetchRule(); }, []);
+
+    const saveRule = async (e) => {
+        e.preventDefault();
+        setRuleSaving(true);
+        try {
+            const res = await API.post('/api/admin/pricing-rules', {
+                network: OGDAMS_RULE_NETWORK,
+                category: OGDAMS_RULE_CATEGORY,
+                provider: 'ogdams',
+                retailPercentage: Number(ruleForm.retailPercentage),
+                basicPercentage: Number(ruleForm.basicPercentage),
+                vipPercentage: Number(ruleForm.vipPercentage),
+                isActive: ruleForm.isActive
+            });
+            setRule(res.data.rule);
+            alert('Ogdams MTN SME pricing rule saved and applied to all synced Ogdams plans.');
+            fetchPlans();
+        } catch (err) {
+            alert('Failed to save pricing rule: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setRuleSaving(false);
+        }
+    };
 
     const handleSync = async () => {
         if (!window.confirm('This will fetch the latest Ogdams MTN Data Gifting plans (and every other provider\'s plans) from their APIs. Proceed?')) return;
@@ -106,12 +168,62 @@ const OgdamsSmePricing = ({ token }) => {
                 <Info size={16} />
                 <span>
                     These plans are fulfilled by <b>Ogdams</b> (MTN Data Gifting) and shown to customers under the <b>SME</b> category.
-                    Pricing here is completely independent from the Peyflex plans on "Legacy Data Pricing" -- editing a price below never
-                    changes a Peyflex plan, and vice versa. <b>Retail</b> is what a direct customer pays; <b>Basic</b> and <b>VIP</b> are what a
-                    reseller (including white-label reseller websites) pays at each tier, unless that reseller has a specific price override;
-                    <b> Premium</b> is the top reseller tier. Use <b>Provider Manager</b> (Manage Categories) to control whether MTN Data
-                    transactions actually route to Ogdams or Peyflex.
+                    Pricing here is completely independent from the Peyflex plans on "Legacy Data Pricing" / "V3 Pricing Rules" --
+                    saving the rule below, or editing a price in the table, never changes a Peyflex plan, and vice versa. <b>Retail</b> is
+                    what a direct customer pays; <b>Basic</b> and <b>VIP</b> are what a reseller (including white-label reseller websites)
+                    pays at each tier, unless that reseller has a specific price override; <b>Premium</b> is the top reseller tier. Use
+                    <b> Provider Manager</b> (Manage Categories) to control whether MTN Data transactions actually route to Ogdams or Peyflex.
                 </span>
+            </div>
+
+            <div className="ogdams-sme-rule-card">
+                <h3><Percent size={16} /> V3 Pricing Rule (Ogdams MTN SME)</h3>
+                <p className="ogdams-sme-rule-desc">
+                    Same engine as "V3 Pricing Rules" for Peyflex, scoped only to Ogdams' MTN SME (Gifting) plans. Set a
+                    percentage markup once here and <b>Save &amp; Apply</b> recalculates Retail/Basic/VIP/Premium for every
+                    synced Ogdams plan below from its cost -- it never touches Peyflex's MTN Gifting rule or plans.
+                </p>
+                {ruleLoading ? (
+                    <div className="loading-state">Loading rule...</div>
+                ) : (
+                    <form onSubmit={saveRule} className="ogdams-sme-rule-form">
+                        <div className="ogdams-sme-rule-field">
+                            <label>Retail %</label>
+                            <input
+                                type="number" step="0.01" required
+                                value={ruleForm.retailPercentage}
+                                onChange={(e) => setRuleForm({ ...ruleForm, retailPercentage: e.target.value })}
+                            />
+                        </div>
+                        <div className="ogdams-sme-rule-field">
+                            <label>Basic %</label>
+                            <input
+                                type="number" step="0.01" required
+                                value={ruleForm.basicPercentage}
+                                onChange={(e) => setRuleForm({ ...ruleForm, basicPercentage: e.target.value })}
+                            />
+                        </div>
+                        <div className="ogdams-sme-rule-field">
+                            <label>VIP %</label>
+                            <input
+                                type="number" step="0.01" required
+                                value={ruleForm.vipPercentage}
+                                onChange={(e) => setRuleForm({ ...ruleForm, vipPercentage: e.target.value })}
+                            />
+                        </div>
+                        <label className="ogdams-sme-rule-active">
+                            <input
+                                type="checkbox"
+                                checked={ruleForm.isActive}
+                                onChange={(e) => setRuleForm({ ...ruleForm, isActive: e.target.checked })}
+                            />
+                            Rule Active
+                        </label>
+                        <button type="submit" className="sync-btn" disabled={ruleSaving}>
+                            {ruleSaving ? 'Applying...' : rule ? 'Save & Apply' : 'Create & Apply'}
+                        </button>
+                    </form>
+                )}
             </div>
 
             <div className="table-responsive">

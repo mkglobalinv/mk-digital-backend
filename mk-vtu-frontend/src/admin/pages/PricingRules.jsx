@@ -354,6 +354,7 @@ const PricingRules = ({ token }) => {
                                 <tr>
                                     <th>Network</th>
                                     <th>Category</th>
+                                    <th>Provider</th>
                                     <th>Retail %</th>
                                     <th>Basic %</th>
                                     <th>VIP %</th>
@@ -362,10 +363,15 @@ const PricingRules = ({ token }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rules.length === 0 ? <tr><td colSpan="7">No rules configured.</td></tr> : rules.map(rule => (
+                                {rules.length === 0 ? <tr><td colSpan="8">No rules configured.</td></tr> : rules.map(rule => (
                                     <tr key={rule._id}>
                                         <td><strong>{rule.network}</strong></td>
                                         <td>{rule.category}</td>
+                                        <td>
+                                            {rule.provider
+                                                ? <span className="status-badge active" style={{ textTransform: 'capitalize' }}>{rule.provider}</span>
+                                                : <span style={{ color: '#9ca3af' }}>Default (all other providers)</span>}
+                                        </td>
                                         <td>{rule.retailPercentage}%</td>
                                         <td>{rule.basicPercentage}%</td>
                                         <td>{rule.vipPercentage}%</td>
@@ -375,7 +381,11 @@ const PricingRules = ({ token }) => {
                                             </span>
                                         </td>
                                         <td>
-                                            <button className="admin-btn-secondary btn-small" onClick={() => handleEditRule(rule)}>Edit</button>
+                                            {rule.provider ? (
+                                                <span style={{ fontSize: '12px', color: '#9ca3af' }}>Manage on the {rule.provider} pricing page</span>
+                                            ) : (
+                                                <button className="admin-btn-secondary btn-small" onClick={() => handleEditRule(rule)}>Edit</button>
+                                            )}
                                             <button className="admin-btn-danger btn-small" style={{marginLeft:'5px'}} onClick={() => handleDeleteRule(rule._id)}>Delete</button>
                                         </td>
                                     </tr>

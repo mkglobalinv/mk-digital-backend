@@ -16,3 +16,62 @@
     flex-shrink: 0;
     margin-top: 2px;
 }
+
+.ogdams-sme-rule-card {
+    background: var(--bg-card);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+.ogdams-sme-rule-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    color: #1f2937;
+}
+
+.ogdams-sme-rule-desc {
+    margin: 0 0 15px 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ogdams-sme-rule-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.ogdams-sme-rule-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ogdams-sme-rule-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.ogdams-sme-rule-field input {
+    width: 90px;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.ogdams-sme-rule-active {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #374151;
+    padding-bottom: 8px;
+}
