@@ -5,6 +5,7 @@ import { sendTransactionNotification } from "./emailService.js";
 import { requeryClubkonnect } from "./providers/clubkonnect.js";
 // import { requeryVTPass } from "./providers/vtpass.js";
 import { requeryPeyflex } from "./providers/peyflex.js";
+import { requeryOgdams } from "./providers/ogdams.js";
 // billsplash provider decommissioned — stubs preserve requery logic without crashing
 const requeryBillsplash = async () => ({ status: 'pending', message: 'Billsplash decommissioned' });
 const pollIPEStatus    = async () => ({ done: false,       message: 'Billsplash decommissioned' });
@@ -60,6 +61,12 @@ export const resolvePendingTransaction = async (transaction, overrideResult = nu
             result = { status: 'failed', message: 'VTPass module missing' };
         } else if (provider.includes('smart') || provider === 'peyflex') {
             result = await requeryPeyflex(transaction.reference);
+        } else if (provider === 'ogdams') {
+            // No transaction-status endpoint is documented for Ogdams (see
+            // requeryOgdams()'s own comment) -- this always returns 'pending';
+            // the webhook route (routes/webhookRoutes.js POST /ogdams) is the
+            // only real resolution path, same as PeyFlex above.
+            result = await requeryOgdams(transaction.reference);
         } else if (provider === 'billsplash') {
             // For IPE clearance transactions, use trackingID polling (done=true → success)
             if (transaction.api_response && transaction.api_response.trackingID) {

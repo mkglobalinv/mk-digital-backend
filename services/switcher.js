@@ -10,7 +10,8 @@ import {
 import ProviderStatus from "../models/ProviderStatus.js";
 import DataPlan from "../models/DataPlan.js";
 import { handleProviderTransactionSuccess, handleProviderTransactionFailure } from "./providerMonitoringService.js";
-import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js"; 
+import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js";
+import { buyDataWithOgdams } from "./providers/ogdams.js";
 
 const dataPlanCache = { smart: {}, value: {} };
 const CACHE_TTL = 5 * 60 * 1000;
@@ -121,6 +122,11 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
         console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
         if (pName === 'clubkonnect') {
             result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
+        } else if (pName === 'ogdams') {
+            // Ogdams is never reached unless an admin explicitly sets a DataPlan's
+            // provider to 'ogdams' -- there is no automatic primary/priority
+            // promotion here, matching "do not automatically make Ogdams primary."
+            result = await buyDataWithOgdams(networkId || network, dataPlan, phone, transactionId);
         } else {
             result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
         }

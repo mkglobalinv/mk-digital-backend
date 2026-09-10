@@ -77,6 +77,7 @@ import {
   executeEmailDiagnosticTest,
   getProviders,
   updateProviderStatus,
+  getOgdamsProviderStatus,
   queryAIAssistant,
   regenerateResellerUrl,
   getResellerPricingDashboard,
@@ -322,6 +323,7 @@ router.get("/audit/withdrawal-verification/:withdrawalId", getWithdrawalVerifica
 
 // --- PROVIDER MANAGEMENT ROUTES ---
 router.get("/providers", requireOwner, getProviders);
+router.get("/providers/ogdams/status", requireOwner, getOgdamsProviderStatus);
 router.put("/providers/:id", requireOwner, updateProviderStatus);
 
 // --- RESELLER MANAGEMENT ROUTES ---
@@ -958,7 +960,7 @@ router.post("/diagnostics/email", requireOwner, executeEmailDiagnosticTest);
 router.post("/providers/:name/reset-failures", async (req, res) => {
     try {
         const { name } = req.params;
-        const validProviders = ['peyflex', 'clubkonnect', 'reloadly'];
+        const validProviders = ['peyflex', 'clubkonnect', 'reloadly', 'ogdams'];
         if (!validProviders.includes(name)) {
             return res.status(400).json({ message: `Unknown provider: ${name}. Valid: ${validProviders.join(', ')}` });
         }

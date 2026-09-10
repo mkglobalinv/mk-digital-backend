@@ -5,6 +5,7 @@ import './ProviderManager.css';
 const ProviderManager = ({ onManageCategories }) => {
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ogdamsDetail, setOgdamsDetail] = useState(null);
 
   const fetchProviders = async () => {
     try {
@@ -18,8 +19,21 @@ const ProviderManager = ({ onManageCategories }) => {
     }
   };
 
+  // Ogdams-specific detail (configured state, live balances, transaction
+  // counts) -- the generic ProviderStatus card above doesn't carry this, so
+  // it's fetched separately and rendered only inside the 'ogdams' card.
+  const fetchOgdamsDetail = async () => {
+    try {
+      const res = await API.get('/api/admin/providers/ogdams/status');
+      setOgdamsDetail(res.data.data);
+    } catch (error) {
+      setOgdamsDetail(null);
+    }
+  };
+
   useEffect(() => {
     fetchProviders();
+    fetchOgdamsDetail();
   }, []);
 
   const handleToggleMaintenance = async (id, isUnderMaintenance) => {
@@ -89,6 +103,34 @@ const ProviderManager = ({ onManageCategories }) => {
                   <strong>{provider.failureCount || 0}</strong>
                 </div>
               </div>
+
+              {provider.providerName === 'ogdams' && (
+                <div className="pm-card-body" style={{ borderTop: '1px solid #eee', marginTop: 8, paddingTop: 8 }}>
+                  <div className="pm-stat">
+                    <span>Credentials:</span>
+                    <strong>{ogdamsDetail ? (ogdamsDetail.configured ? 'Configured' : 'Not configured') : '—'}</strong>
+                  </div>
+                  {ogdamsDetail?.balances && (
+                    <div className="pm-stat">
+                      <span>Wallet Balance:</span>
+                      <strong>₦{ogdamsDetail.balances.mainBalance ?? '0.00'}</strong>
+                    </div>
+                  )}
+                  {ogdamsDetail?.stats && (
+                    <>
+                      <div className="pm-stat"><span>Successful:</span><strong>{ogdamsDetail.stats.success}</strong></div>
+                      <div className="pm-stat"><span>Failed:</span><strong>{ogdamsDetail.stats.failed}</strong></div>
+                      <div className="pm-stat"><span>Pending/Unknown:</span><strong>{ogdamsDetail.stats.pending + ogdamsDetail.stats.unknown}</strong></div>
+                    </>
+                  )}
+                  {ogdamsDetail?.lastSuccessfulTransaction && (
+                    <div className="pm-stat">
+                      <span>Last Success:</span>
+                      <strong>{new Date(ogdamsDetail.lastSuccessfulTransaction.at).toLocaleString()}</strong>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="pm-card-actions">
                 <button 
