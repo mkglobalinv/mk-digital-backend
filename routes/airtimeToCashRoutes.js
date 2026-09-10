@@ -3,6 +3,7 @@ import { auth as protect } from '../middlewares/auth.js';
 import { transactionIdempotency } from '../middlewares/idempotency.js';
 import {
     getConfig,
+    getRecentNumbers,
     getQuote,
     requestOtp,
     verifyOtp,
@@ -20,6 +21,7 @@ const router = express.Router();
 router.use(protect);
 
 router.get('/config', getConfig);
+router.get('/recent-numbers', getRecentNumbers);
 router.post('/quote', getQuote);
 
 // Idempotency-guarded: a duplicate OTP request or transfer submit must never result

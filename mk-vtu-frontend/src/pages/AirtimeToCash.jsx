@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle, XCircle, Clock3, Loader2 } from 'lucide-react';
+import { ChevronLeft, CheckCircle, XCircle, Clock3, Loader2, Eye, EyeOff, Check } from 'lucide-react';
 import API from '../api';
 import './AirtimeToCash.css';
 
-const NETWORK_LABELS = { MTN: 'MTN', AIRTEL: 'Airtel', GLO: 'Glo', '9MOBILE': '9mobile' };
+const NETWORK_STYLES = {
+    MTN: { label: 'MTN', bg: '#FFCB05', color: '#1a1a1a' },
+    AIRTEL: { label: 'airtel', bg: '#ED1C24', color: '#ffffff' },
+    GLO: { label: 'glo', bg: '#00A651', color: '#ffffff' },
+    '9MOBILE': { label: '9mobile', bg: '#00A99D', color: '#ffffff' }
+};
+const NETWORK_LABELS = Object.fromEntries(Object.entries(NETWORK_STYLES).map(([k, v]) => [k, v.label]));
 
 // Parses a provider balance string like "₦5,000.00" into a plain number for the
 // insufficient-balance warning below. Returns null if it can't be parsed --
@@ -15,7 +21,10 @@ function parseBalance(balanceStr) {
     return Number.isFinite(num) ? num : null;
 }
 
-// Steps: form -> otp -> availability -> transfer -> result
+// Steps: form -> otp -> checking -> confirm. A separate `result` (not a step) drives
+// the outcome as a modal overlaid on top of `confirm`, rather than replacing the
+// screen -- once a transfer settles, the underlying network/phone/PIN screen stays
+// visible behind the modal.
 export default function AirtimeToCash() {
     const navigate = useNavigate();
     const [step, setStep] = useState('form');
@@ -23,6 +32,7 @@ export default function AirtimeToCash() {
     const [loading, setLoading] = useState(false);
 
     const [config, setConfig] = useState(null);
+    const [recentNumbers, setRecentNumbers] = useState({ myNumber: null, recent: [] });
     const [network, setNetwork] = useState('');
     const [phone, setPhone] = useState('');
     const [amount, setAmount] = useState('');
@@ -35,11 +45,17 @@ export default function AirtimeToCash() {
     const [tx, setTx] = useState(null);
     const [otp, setOtp] = useState('');
     const [transferPin, setTransferPin] = useState('');
+    const [showPin, setShowPin] = useState(false);
+    const [showPinHelp, setShowPinHelp] = useState(false);
+    const [result, setResult] = useState(null); // set only once a transfer settles -- drives the modal
 
     useEffect(() => {
         API.get('/api/airtime-to-cash/config')
             .then((res) => setConfig(res.data.data))
             .catch(() => setError('Unable to load Airtime-to-Cash right now.'));
+        API.get('/api/airtime-to-cash/recent-numbers')
+            .then((res) => setRecentNumbers(res.data.data))
+            .catch(() => {});
     }, []);
 
     // The backend is the ONLY source of truth for the payout figure -- this effect
@@ -68,6 +84,19 @@ export default function AirtimeToCash() {
     }, [network, amount, fetchQuote]);
 
     const enabledNetworks = config?.networks || {};
+
+    const resetToStart = () => {
+        setStep('form');
+        setTx(null);
+        setResult(null);
+        setError('');
+        setOtp('');
+        setTransferPin('');
+        setShowPin(false);
+        setAmount('');
+        setBankName('');
+        setAccountNumber('');
+    };
 
     const submitDetails = async (e) => {
         e.preventDefault();
@@ -106,7 +135,7 @@ export default function AirtimeToCash() {
             setOtp('');
             if (res.data.data.status === 'OTP_VERIFIED') {
                 setTx(res.data.data);
-                setStep('availability');
+                setStep('checking');
                 checkAvailability(res.data.data.reference);
             } else {
                 setError(res.data.data.failureReason || 'Invalid OTP. Please try again.');
@@ -125,7 +154,7 @@ export default function AirtimeToCash() {
             const res = await API.post('/api/airtime-to-cash/check-availability', { reference });
             setTx(res.data.data);
             if (res.data.data.status === 'READY_FOR_TRANSFER') {
-                setStep('transfer');
+                setStep('confirm');
             } else {
                 setError(res.data.data.failureReason || 'This recipient is not available right now.');
                 setStep('form');
@@ -146,7 +175,7 @@ export default function AirtimeToCash() {
             setError('');
             const res = await API.post('/api/airtime-to-cash/transfer', { reference: tx.reference, transferPin });
             setTx(res.data.data);
-            setStep('result');
+            setResult(res.data.data);
         } catch (err) {
             setError(err.response?.data?.message || 'Transfer failed. Please try again.');
         } finally {
@@ -155,15 +184,18 @@ export default function AirtimeToCash() {
             // remain sitting in component state after the request settles, whatever
             // the outcome.
             setTransferPin('');
+            setShowPin(false);
         }
     };
 
     // Clears the PIN whenever the transfer step is left/reset, on top of the
     // unconditional clear in submitTransfer's finally block above (defense in
     // depth -- covers navigating away or resetting before a submit ever happens).
-    const clearTransferPin = () => setTransferPin('');
+    const clearTransferPin = () => { setTransferPin(''); setShowPin(false); };
 
-    const stepIndex = { form: 0, otp: 1, availability: 2, transfer: 2, result: 3 }[step];
+    const stepIndex = { form: 0, otp: 1, checking: 2, confirm: 2 }[step];
+    const balanceValue = parseBalance(tx?.providerAirtimeSnapshot?.balance);
+    const insufficientBalance = balanceValue !== null && Number(amount) > balanceValue;
 
     return (
         <div className="a2c-page">
@@ -177,41 +209,56 @@ export default function AirtimeToCash() {
 
             {error && <div className="a2c-error">{error}</div>}
 
-            {tx?.providerAirtimeSnapshot?.balance && (step === 'availability' || step === 'transfer') && (() => {
-                const balanceValue = parseBalance(tx.providerAirtimeSnapshot.balance);
-                const insufficient = balanceValue !== null && Number(amount) > balanceValue;
-                return (
-                    <div className={`a2c-sim-balance${insufficient ? ' low' : ''}`}>
-                        <span>Your {NETWORK_LABELS[network] || network} SIM balance</span>
-                        <strong>{tx.providerAirtimeSnapshot.balance}</strong>
-                        {insufficient && <p>This is less than the ₦{amount} you're trying to convert -- the transfer will likely fail. Recharge this SIM first.</p>}
-                    </div>
-                );
-            })()}
-
-            <div className="a2c-panel">
+            <div className={`a2c-panel${result ? ' dimmed' : ''}`}>
                 {step === 'form' && (
                     <form onSubmit={submitDetails}>
                         {!config && !error && (
                             <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>Loading available networks...</p>
                         )}
+                        <label className="a2c-section-label">Select Network Provider</label>
                         <div className="a2c-network-picker">
-                            {Object.keys(NETWORK_LABELS).map((net) => (
-                                <button
-                                    type="button"
-                                    key={net}
-                                    className={network === net ? 'selected' : ''}
-                                    // Stay disabled until config has actually loaded -- a network must
-                                    // never be briefly selectable before we know it's really enabled.
-                                    // The backend re-validates regardless, but the UI shouldn't offer a
-                                    // choice it doesn't yet know is valid.
-                                    disabled={!config || !enabledNetworks[net]}
-                                    onClick={() => setNetwork(net)}
-                                >
-                                    {NETWORK_LABELS[net]}
-                                </button>
-                            ))}
+                            {Object.keys(NETWORK_STYLES).map((net) => {
+                                const style = NETWORK_STYLES[net];
+                                const selected = network === net;
+                                return (
+                                    <button
+                                        type="button"
+                                        key={net}
+                                        className={`a2c-network-tile${selected ? ' selected' : ''}`}
+                                        style={{ background: style.bg, color: style.color }}
+                                        // Stay disabled until config has actually loaded -- a network must
+                                        // never be briefly selectable before we know it's really enabled.
+                                        // The backend re-validates regardless, but the UI shouldn't offer a
+                                        // choice it doesn't yet know is valid.
+                                        disabled={!config || !enabledNetworks[net]}
+                                        onClick={() => setNetwork(net)}
+                                    >
+                                        {selected && <span className="a2c-network-check"><Check size={12} /></span>}
+                                        {style.label}
+                                    </button>
+                                );
+                            })}
                         </div>
+
+                        {(recentNumbers.myNumber || recentNumbers.recent.length > 0) && (
+                            <>
+                                <label className="a2c-section-label">Recently Used</label>
+                                <div className="a2c-recent-numbers">
+                                    {recentNumbers.myNumber && (
+                                        <button type="button" className="a2c-recent-chip" onClick={() => setPhone(recentNumbers.myNumber)}>
+                                            <span className="avatar">☺</span>
+                                            My Number
+                                        </button>
+                                    )}
+                                    {recentNumbers.recent.map((num) => (
+                                        <button type="button" key={num} className="a2c-recent-chip" onClick={() => setPhone(num)}>
+                                            <span className="avatar">☺</span>
+                                            {num}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
 
                         <div className="a2c-field">
                             <label>Phone Number (sending the airtime)</label>
@@ -225,12 +272,7 @@ export default function AirtimeToCash() {
 
                         {quoteLoading && <p style={{ fontSize: 13, color: '#6b7280' }}>Calculating...</p>}
                         {quote && !quoteLoading && (
-                            <div className="a2c-quote-box">
-                                <div>Cash You'll Receive</div>
-                                <div className="payout">₦{quote.payoutAmount.toLocaleString()}</div>
-                                <div className="row"><span>Conversion Rate</span><span>{quote.conversionPercentage}%</span></div>
-                                {quote.fixedFee > 0 && <div className="row"><span>Fee</span><span>₦{quote.fixedFee}</span></div>}
-                            </div>
+                            <p className="a2c-inline-hint">You will receive <strong>₦{quote.payoutAmount.toLocaleString()}</strong> ({quote.conversionPercentage}% rate{quote.fixedFee > 0 ? ` + ₦${quote.fixedFee} fee` : ''})</p>
                         )}
 
                         <div className="a2c-field">
@@ -249,10 +291,10 @@ export default function AirtimeToCash() {
                 )}
 
                 {step === 'otp' && (
-                    <form onSubmit={submitOtp}>
-                        <p style={{ fontSize: 14, marginBottom: 16 }}>Enter the OTP sent to <strong>{phone}</strong>.</p>
+                    <form onSubmit={submitOtp} className="a2c-otp-step">
+                        <p className="a2c-otp-sub">Enter the OTP sent to <strong>{phone}</strong>.</p>
                         <div className="a2c-field">
-                            <input className="a2c-otp-input" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} placeholder="------" />
+                            <input className="a2c-otp-input" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} placeholder="------" autoFocus />
                         </div>
                         <button className="a2c-btn" type="submit" disabled={loading || !otp}>
                             {loading ? 'Verifying...' : 'Verify OTP'}
@@ -260,40 +302,79 @@ export default function AirtimeToCash() {
                     </form>
                 )}
 
-                {step === 'availability' && (
+                {step === 'checking' && (
                     <div style={{ textAlign: 'center', padding: '24px 0' }}>
                         <Loader2 className="spin" size={32} />
                         <p style={{ marginTop: 12, color: '#6b7280' }}>Checking availability...</p>
                     </div>
                 )}
 
-                {step === 'transfer' && quote && (
+                {step === 'confirm' && (
                     <form onSubmit={submitTransfer}>
-                        <div className="a2c-quote-box">
-                            <div>You will receive</div>
-                            <div className="payout">₦{tx.customerPayoutAmount?.toLocaleString?.() ?? quote.payoutAmount.toLocaleString()}</div>
+                        <div className="a2c-balance-card">
+                            <div className="a2c-balance-network" style={{ background: NETWORK_STYLES[network]?.bg, color: NETWORK_STYLES[network]?.color }}>
+                                {NETWORK_STYLES[network]?.label}
+                            </div>
+                            <div className="a2c-balance-info">
+                                <div className="phone">{phone}</div>
+                                {tx?.providerAirtimeSnapshot?.balance && (
+                                    <div className={`balance${insufficientBalance ? ' low' : ''}`}>Balance: <strong>{tx.providerAirtimeSnapshot.balance}</strong></div>
+                                )}
+                            </div>
+                            <button type="button" className="a2c-change-btn" onClick={resetToStart}>Change</button>
                         </div>
+                        {insufficientBalance && (
+                            <p className="a2c-error" style={{ marginTop: -4 }}>This SIM's balance is less than the ₦{amount} you're converting -- the transfer will likely fail. Recharge this SIM first.</p>
+                        )}
+
+                        <p className="a2c-inline-hint">
+                            Converting ₦{Number(amount).toLocaleString()} → You will receive <strong>₦{(tx?.customerPayoutAmount ?? quote?.payoutAmount ?? 0).toLocaleString()}</strong>
+                        </p>
+
                         <div className="a2c-field">
                             <label>Airtime Transfer PIN</label>
-                            <input type="password" inputMode="numeric" maxLength={6} value={transferPin} onChange={(e) => setTransferPin(e.target.value.replace(/\D/g, ''))} placeholder="Your network's transfer PIN" />
+                            <div className="a2c-pin-wrap">
+                                <input
+                                    type={showPin ? 'text' : 'password'}
+                                    inputMode="numeric"
+                                    maxLength={6}
+                                    value={transferPin}
+                                    onChange={(e) => setTransferPin(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="Your network's transfer PIN"
+                                />
+                                <button type="button" className="a2c-pin-toggle" onClick={() => setShowPin((s) => !s)} aria-label={showPin ? 'Hide PIN' : 'Show PIN'}>
+                                    {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                            <button type="button" className="a2c-pin-help-link" onClick={() => setShowPinHelp((s) => !s)}>What is Transfer PIN?</button>
+                            {showPinHelp && (
+                                <p className="a2c-pin-help-text">This is the airtime transfer/share PIN set with your network for sending airtime to another number -- it's separate from your 9jaSub PIN.</p>
+                            )}
                         </div>
+
                         <button className="a2c-btn" type="submit" disabled={loading || !transferPin}>
                             {loading ? 'Processing...' : 'Confirm Transfer'}
                         </button>
                     </form>
                 )}
+            </div>
 
-                {step === 'result' && tx && (
-                    <div className="a2c-result">
-                        {tx.status === 'SUCCESS' && (
+            {result && (
+                <div className="a2c-modal-backdrop">
+                    <div className="a2c-modal">
+                        {result.status === 'SUCCESS' && (
                             <>
                                 <div className="icon success"><CheckCircle size={32} /></div>
-                                <h2>₦{tx.customerPayoutAmount} Credited!</h2>
-                                <p style={{ color: '#6b7280' }}>Your wallet has been credited. You can withdraw it to your bank anytime from your wallet page.</p>
-                                <button className="a2c-btn" onClick={() => navigate('/wallet')}>Go to Wallet</button>
+                                <h2>Transaction Successful</h2>
+                                <p style={{ color: '#6b7280' }}>Wallet successfully funded with ₦{result.customerPayoutAmount}</p>
+                                <p className="a2c-modal-question">Do you want to perform another transaction?</p>
+                                <div className="a2c-modal-actions">
+                                    <button className="a2c-btn secondary" onClick={() => navigate('/wallet')}>No, I'm done</button>
+                                    <button className="a2c-btn" onClick={resetToStart}>Yes, Continue</button>
+                                </div>
                             </>
                         )}
-                        {tx.status === 'MANUAL_REVIEW' && (
+                        {result.status === 'MANUAL_REVIEW' && (
                             <>
                                 <div className="icon review"><Clock3 size={32} /></div>
                                 <h2>Processing</h2>
@@ -301,17 +382,17 @@ export default function AirtimeToCash() {
                                 <button className="a2c-btn secondary" onClick={() => navigate('/transactions')}>View Transactions</button>
                             </>
                         )}
-                        {tx.status === 'FAILED' && (
+                        {result.status === 'FAILED' && (
                             <>
                                 <div className="icon failed"><XCircle size={32} /></div>
                                 <h2>Transfer Failed</h2>
-                                <p style={{ color: '#6b7280' }}>{tx.failureReason || 'Please try again.'}</p>
-                                <button className="a2c-btn" onClick={() => { clearTransferPin(); setStep('form'); setTx(null); setError(''); }}>Try Again</button>
+                                <p style={{ color: '#6b7280' }}>{result.failureReason || 'Please try again.'}</p>
+                                <button className="a2c-btn" onClick={resetToStart}>Try Again</button>
                             </>
                         )}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }
