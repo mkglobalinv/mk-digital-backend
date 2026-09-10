@@ -8,6 +8,12 @@ import { useTransactionBanner } from '../context/TransactionBannerContext';
 import './Purchase.css';
 import logo from '../assets/9jasub.jpg';
 
+// Display-only rename: the "Gifting" category (Ogdams MTN Data Gifting plans,
+// plus any existing Peyflex Gifting plans) is shown to customers as "SME".
+// The underlying category value stays "Gifting" everywhere else (filtering,
+// ProviderCategory matching, React keys) -- this only changes rendered text.
+const displayCategoryLabel = (cat) => (String(cat || '').toLowerCase() === 'gifting' ? 'SME' : cat);
+
 const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -551,7 +557,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                       })
                       .map(catId => {
                         const isAll = catId === 'all';
-                        const label = isAll ? 'All Plans' : catId;
+                        const label = isAll ? 'All Plans' : displayCategoryLabel(catId);
                         const cls = isAll ? 'chip-all' : 'chip-direct';
                         
                         // Check if maintenance
@@ -721,7 +727,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                              <div className="plan-price">₦{Number(plan.price).toLocaleString()}</div>
                              {/* BOTTOM: Category label */}
                              <div className="plan-category-label">
-                               {plan.category || plan.provider || network}
+                               {displayCategoryLabel(plan.category) || plan.provider || network}
                                {isMaintenance && <span style={{display: 'block', fontSize: '10px', color: 'var(--warning)', marginTop: 4}}><ShieldAlert size={10} style={{display:'inline'}}/> Maintenance</span>}
                              </div>
                            </div>

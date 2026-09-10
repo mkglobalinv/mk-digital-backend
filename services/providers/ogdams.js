@@ -289,9 +289,15 @@ export async function getOgdamsDataPlans() {
 // integration strictly to Data Gifting, per current scope (no DataShare, no
 // SME, no other Ogdams service).
 export const MTN_DATA_GIFTING_PLAN_IDS = Object.freeze({
-    "541": "500MB Daily",
-    "497": "1GB Daily",
-    "498": "2.5GB Daily"
+    "20000": "75MB - 1 Day",
+    "20002": "1GB - 1 Day",
+    "20006": "2GB - 2 Days",
+    "20007": "2.5GB - 2 Days",
+    "20008": "3.2GB - 2 Days",
+    "20013": "1GB - 7 Days",
+    "20014": "1.2GB - 7 Days",
+    "20015": "1.5GB - 7 Days",
+    "20017": "11GB - 7 Days"
 });
 
 /**

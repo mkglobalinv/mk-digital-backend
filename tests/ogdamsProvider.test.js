@@ -63,16 +63,23 @@ describe('Ogdams provider adapter (real HTTP client, mocked at the network layer
         expect(result.plans[0]).toEqual({ network: 'MTN', planId: '101', name: 'MTN SME 1GB', price: 500, validity: '30 Days' });
     });
 
-    test('getOgdamsMtnGiftingPlans: only returns the confirmed MTN Data Gifting plan IDs (541, 497, 498), even when other MTN plans are mixed in the response', async () => {
+    test('getOgdamsMtnGiftingPlans: only returns the nine confirmed MTN Data Gifting plan IDs, even when other MTN plans are mixed in the response', async () => {
         nock(BASE_URL).get('/get/data/plans').reply(200, {
             status: true, code: 200,
             data: {
                 msg: [
-                    { networkId: 1, planId: 541, name: 'MTN 500MB Daily', price: '250.00', validity: '1 Day' },
-                    { networkId: 1, planId: 497, name: 'MTN 1GB Daily', price: '450.00', validity: '1 Day' },
-                    { networkId: 1, planId: 498, name: 'MTN 2.5GB Daily', price: '900.00', validity: '1 Day' },
+                    { networkId: 1, planId: 20000, name: 'MTN 75MB - 1 Day', price: '90.00', validity: '1 Day' },
+                    { networkId: 1, planId: 20002, name: 'MTN 1GB - 1 Day', price: '450.00', validity: '1 Day' },
+                    { networkId: 1, planId: 20006, name: 'MTN 2GB - 2 Days', price: '850.00', validity: '2 Days' },
+                    { networkId: 1, planId: 20007, name: 'MTN 2.5GB - 2 Days', price: '1000.00', validity: '2 Days' },
+                    { networkId: 1, planId: 20008, name: 'MTN 3.2GB - 2 Days', price: '1200.00', validity: '2 Days' },
+                    { networkId: 1, planId: 20013, name: 'MTN 1GB - 7 Days', price: '1300.00', validity: '7 Days' },
+                    { networkId: 1, planId: 20014, name: 'MTN 1.2GB - 7 Days', price: '1400.00', validity: '7 Days' },
+                    { networkId: 1, planId: 20015, name: 'MTN 1.5GB - 7 Days', price: '1500.00', validity: '7 Days' },
+                    { networkId: 1, planId: 20017, name: 'MTN 11GB - 7 Days', price: '4500.00', validity: '7 Days' },
                     { networkId: 1, planId: 9999, name: 'MTN SME 5GB', price: '2000.00', validity: '30 Days' }, // not in the whitelist
-                    { networkId: 2, planId: 541, name: 'Airtel 500MB', price: '250.00', validity: '1 Day' } // same planId, wrong network
+                    { networkId: 1, planId: 541, name: 'MTN 500MB Daily (old placeholder example)', price: '250.00', validity: '1 Day' }, // superseded, no longer whitelisted
+                    { networkId: 2, planId: 20000, name: 'Airtel 75MB', price: '90.00', validity: '1 Day' } // same planId, wrong network
                 ],
                 ref: null
             }
@@ -80,12 +87,16 @@ describe('Ogdams provider adapter (real HTTP client, mocked at the network layer
 
         const result = await ogdams.getOgdamsMtnGiftingPlans();
         expect(result.success).toBe(true);
-        expect(result.plans.map((p) => p.planId).sort()).toEqual(['497', '498', '541']);
+        expect(result.plans.map((p) => p.planId).sort()).toEqual(
+            ['20000', '20002', '20006', '20007', '20008', '20013', '20014', '20015', '20017']
+        );
         expect(result.plans.every((p) => p.network === 'MTN')).toBe(true);
     });
 
-    test('MTN_DATA_GIFTING_PLAN_IDS matches exactly the three plan IDs confirmed by Ogdams support', () => {
-        expect(Object.keys(ogdams.MTN_DATA_GIFTING_PLAN_IDS).sort()).toEqual(['497', '498', '541']);
+    test('MTN_DATA_GIFTING_PLAN_IDS matches exactly the nine plan IDs confirmed by Ogdams support', () => {
+        expect(Object.keys(ogdams.MTN_DATA_GIFTING_PLAN_IDS).sort()).toEqual(
+            ['20000', '20002', '20006', '20007', '20008', '20013', '20014', '20015', '20017']
+        );
     });
 
     test('buyDataWithOgdams: success (code 200) sends networkId/planId/phoneNumber/reference and returns status success', async () => {

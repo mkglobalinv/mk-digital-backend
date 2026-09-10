@@ -61,7 +61,8 @@ const DataPlanPricing = ({ token }) => {
         setSyncing(true);
         try {
             const res = await API.post('/api/admin/data-plans/sync', {});
-            alert(`Sync complete! Added: ${res.data.added}, Updated: ${res.data.updated}`);
+            const combinedMsg = res.data.combined ? `, Combined (duplicates deactivated): ${res.data.combined}` : '';
+            alert(`Sync complete! Added: ${res.data.added}, Updated: ${res.data.updated}${combinedMsg}`);
             fetchPlans();
         } catch (err) {
             alert("Sync failed: " + (err.response?.data?.message || err.message));

@@ -120,7 +120,7 @@ Ogdams support confirmed directly: **MTN Data Gifting (`/vend/data` against one 
 
 This confirms `/vend/data` is, and was always, the correct endpoint -- no separate "gifting" endpoint exists, and the API request itself (`networkId`, `planId`, `phoneNumber`, `reference`) never needs a source/sender identifier, since the connected-SIM association is configured entirely on Ogdams' own dashboard (SIM & Cloud / Sim Connection / GIFTING / APP screens), outside anything this integration's API calls send. No code needed to change for the vend call itself as a result of this confirmation.
 
-`sourceType` is still not populated as a distinct tracked field on the transaction (no SIM/device ID is returned in the API response to store), but the *method* is now known and enforced structurally: only the three whitelisted plan IDs below can ever be synced as Ogdams MTN plans, so any successful Ogdams data transaction in this system is, by construction, an MTN Data Gifting transaction.
+`sourceType` is still not populated as a distinct tracked field on the transaction (no SIM/device ID is returned in the API response to store), but the *method* is now known and enforced structurally: only the nine whitelisted plan IDs below can ever be synced as Ogdams MTN plans, so any successful Ogdams data transaction in this system is, by construction, an MTN Data Gifting transaction.
 
 ## MTN Data Gifting plan IDs (confirmed by Ogdams support)
 
@@ -128,8 +128,24 @@ This confirms `/vend/data` is, and was always, the correct endpoint -- no separa
 
 | Plan ID | Description |
 |---|---|
-| 541 | 500MB Daily |
-| 497 | 1GB Daily |
-| 498 | 2.5GB Daily |
+| 20000 | 75MB - 1 Day |
+| 20002 | 1GB - 1 Day |
+| 20006 | 2GB - 2 Days |
+| 20007 | 2.5GB - 2 Days |
+| 20008 | 3.2GB - 2 Days |
+| 20013 | 1GB - 7 Days |
+| 20014 | 1.2GB - 7 Days |
+| 20015 | 1.5GB - 7 Days |
+| 20017 | 11GB - 7 Days |
+
+These nine IDs replace the earlier example set (541/497/498) supplied in an initial support conversation; only the IDs above are currently confirmed and whitelisted.
 
 Real price/name/validity for these still come from the live `/get/data/plans` response at sync time -- only the plan ID whitelist is hardcoded, never a price or name.
+
+## Customer-facing category display: "Gifting" shown as "SME"
+
+Internally, these plans remain category `Gifting` on `DataPlan`/`ProviderCategory` (admin views, the Provider Manager routing toggle, and the sync/combine logic all still use `Gifting` -- nothing about the internal Ogdams vending type or category value changed). Only the customer-facing storefront (`mk-vtu-frontend/src/pages/Purchase.jsx`) renders this category's label as "SME" instead of "Gifting", via a small `displayCategoryLabel()` helper applied at the two places the category text is shown (the category chip and the plan card's category badge). The value used for filtering, React keys, and `ProviderCategory` visibility/maintenance matching is untouched.
+
+## Combine catalog: one customer-facing plan per bundle, even across two providers
+
+`POST /admin/data-plans/sync` now runs an additional step after normal provider sync: for each active Ogdams MTN `Gifting` plan, it looks for an active non-Ogdams MTN `Gifting` plan with the exact same data volume and validity (parsed and compared via `dataPlanMatchKey()` in `routes/adminRoutes.js`, unit-tested in `tests/dataPlanCombineCatalog.test.js`). A match is deactivated (`DataPlan.status = false`) rather than deleted, so the Ogdams version becomes the single customer-facing plan for that bundle. A non-Ogdams `Gifting` plan with no matching Ogdams plan -- or where either side's size/validity text can't be confidently parsed -- is left completely unchanged. The sync response now also reports a `combined` count alongside `added`/`updated`.

@@ -575,6 +575,42 @@ router.get("/data-plans", async (req, res) => {
     }
 });
 
+// Used only by the "combine catalog" step in POST /data-plans/sync below, to
+// decide whether an Ogdams MTN Gifting plan and an existing MTN Gifting plan
+// from another provider represent the exact same customer-facing bundle
+// (same data volume + same validity). Returns null when either the size or
+// the validity text can't be confidently parsed -- callers must treat null
+// as "no match", never as "match everything", so an ambiguous plan is safely
+// left alone (kept unchanged) rather than risking an incorrect merge.
+function parseDataSizeToMB(sizeStr) {
+    const m = String(sizeStr || '').match(/(\d+(?:\.\d+)?)\s*(MB|GB|TB)/i);
+    if (!m) return null;
+    const num = parseFloat(m[1]);
+    const unit = m[2].toUpperCase();
+    if (unit === 'TB') return num * 1000 * 1000;
+    if (unit === 'GB') return num * 1000;
+    return num;
+}
+
+function parseValidityToDays(validityStr) {
+    const s = String(validityStr || '').toLowerCase();
+    const dayMatch = s.match(/(\d+(?:\.\d+)?)\s*day/);
+    if (dayMatch) return parseFloat(dayMatch[1]);
+    const hourMatch = s.match(/(\d+(?:\.\d+)?)\s*(?:hr|hour)/);
+    if (hourMatch) return parseFloat(hourMatch[1]) / 24;
+    if (/\bdaily\b/.test(s)) return 1;
+    if (/\bweekly\b/.test(s)) return 7;
+    if (/\bmonthly\b/.test(s)) return 30;
+    return null;
+}
+
+function dataPlanMatchKey(planSize, validity) {
+    const sizeMB = parseDataSizeToMB(planSize);
+    const days = parseValidityToDays(validity);
+    if (sizeMB === null || days === null) return null;
+    return `${sizeMB}|${days}`;
+}
+
 router.post("/data-plans/sync", async (req, res) => {
     try {
         console.log("[Admin] Starting Data Plan Sync...");
@@ -652,6 +688,39 @@ router.post("/data-plans/sync", async (req, res) => {
             }
         }
         
+        // Combine catalog: an Ogdams MTN Data Gifting plan that matches an
+        // existing MTN Gifting-category plan from another provider (same
+        // provider it might have) -- by exact data volume + validity -- is the
+        // customer-facing "same plan" as that other provider's version. Rather
+        // than showing two duplicate plans for the same bundle, deactivate the
+        // non-Ogdams duplicate (via the existing, already admin-editable
+        // DataPlan.status flag) and let the Ogdams plan (added/updated above)
+        // represent it going forward. Any non-Ogdams Gifting plan with no
+        // matching Ogdams plan is left completely untouched.
+        let combined = 0;
+        try {
+            const ogdamsGiftingPlans = await DataPlan.find({ provider: 'ogdams', network: 'MTN', category: 'Gifting', status: true });
+            if (ogdamsGiftingPlans.length > 0) {
+                const otherGiftingPlans = await DataPlan.find({ provider: { $ne: 'ogdams' }, network: 'MTN', category: 'Gifting', status: true });
+                for (const ogPlan of ogdamsGiftingPlans) {
+                    const ogKey = dataPlanMatchKey(ogPlan.plan_size, ogPlan.validity);
+                    if (!ogKey) continue;
+                    for (const other of otherGiftingPlans) {
+                        if (other.status === false) continue; // already deactivated by an earlier match this run
+                        const otherKey = dataPlanMatchKey(other.plan_size, other.validity);
+                        if (otherKey && otherKey === ogKey) {
+                            other.status = false;
+                            await other.save();
+                            combined++;
+                            console.log(`[Sync] Combined catalog: deactivated duplicate ${other.provider} MTN Gifting plan "${other.plan_name}" (matches Ogdams plan "${ogPlan.plan_name}")`);
+                        }
+                    }
+                }
+            }
+        } catch (combineErr) {
+            console.error("[Sync] Combine catalog step failed (non-fatal):", combineErr.message);
+        }
+
         for (const p of JARAPOINT_PLANS) {
             const apiPrice = Number(p.price) || 0;
             const planId = String(p.plan_id);
@@ -703,7 +772,7 @@ router.post("/data-plans/sync", async (req, res) => {
             console.error("[Supabase Master Sync Error]", syncErr);
         }
 
-        res.json({ message: "Sync complete", added, updated });
+        res.json({ message: "Sync complete", added, updated, combined });
     } catch (err) {
         console.error("Sync Error:", err);
         res.status(500).json({ message: "Error syncing plans: " + err.message });
@@ -1219,5 +1288,9 @@ router.post("/pricing-rules/clone", async (req, res) => {
         res.status(500).json({ message: "Clone generation failed", error: err.message });
     }
 });
+
+// Exported for direct unit testing of the "combine catalog" matching logic
+// used by POST /data-plans/sync, without needing an HTTP/DB test harness.
+export { dataPlanMatchKey, parseDataSizeToMB, parseValidityToDays };
 
 export default router;
