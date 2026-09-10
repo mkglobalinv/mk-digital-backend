@@ -58,9 +58,9 @@ export const getQuote = async (req, res) => {
 
 export const requestOtp = async (req, res) => {
     try {
-        const { network, phone, amount, bankName, accountNumber } = req.body;
-        if (!network || !phone || !amount || !bankName || !accountNumber) {
-            return res.status(400).json({ status: 'error', message: 'network, phone, amount, bankName and accountNumber are required.' });
+        const { network, phone, amount } = req.body;
+        if (!network || !phone || !amount) {
+            return res.status(400).json({ status: 'error', message: 'network, phone and amount are required.' });
         }
         const idempotencyKey = req.body.reference || req.body.idempotencyKey || req.headers['idempotency-key'];
 
@@ -70,8 +70,6 @@ export const requestOtp = async (req, res) => {
             network,
             phone,
             amount,
-            bankName,
-            accountNumber,
             idempotencyKey,
             ip: req.ip
         });
