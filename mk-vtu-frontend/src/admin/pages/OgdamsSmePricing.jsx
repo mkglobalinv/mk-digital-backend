@@ -76,10 +76,26 @@ const OgdamsSmePricing = ({ token }) => {
 
     useEffect(() => { fetchPlans(); fetchRule(); }, []);
 
+    // Fast, Ogdams-only sync (a single call to Ogdams' plan list -- not the
+    // slow, multi-provider /data-plans/sync used by "Legacy Data Pricing",
+    // which also re-fetches Peyflex and ClubKonnect for every network and
+    // can take minutes). Returns the sync result so callers can decide
+    // whether/how to report it.
+    const syncOgdams = async () => {
+        const res = await API.post('/api/admin/data-plans/ogdams-sme/sync', {});
+        return res.data;
+    };
+
     const saveRule = async (e) => {
         e.preventDefault();
         setRuleSaving(true);
+        setSyncing(true);
         try {
+            // Sync first so the rule is applied against each plan's latest
+            // cost from Ogdams, and any not-yet-synced plan gets created
+            // before pricing is computed for it -- one click does both.
+            const syncResult = await syncOgdams();
+
             const res = await API.post('/api/admin/pricing-rules', {
                 network: OGDAMS_RULE_NETWORK,
                 category: OGDAMS_RULE_CATEGORY,
@@ -90,22 +106,23 @@ const OgdamsSmePricing = ({ token }) => {
                 isActive: ruleForm.isActive
             });
             setRule(res.data.rule);
-            alert('Ogdams MTN SME pricing rule saved and applied to all synced Ogdams plans.');
+            const combinedMsg = syncResult.combined ? `, Combined: ${syncResult.combined}` : '';
+            alert(`Synced (Added: ${syncResult.added}, Updated: ${syncResult.updated}${combinedMsg}) and pricing rule applied to all Ogdams plans.`);
             fetchPlans();
         } catch (err) {
-            alert('Failed to save pricing rule: ' + (err.response?.data?.message || err.message));
+            alert('Failed to sync/save pricing rule: ' + (err.response?.data?.message || err.message));
         } finally {
             setRuleSaving(false);
+            setSyncing(false);
         }
     };
 
     const handleSync = async () => {
-        if (!window.confirm('This will fetch the latest Ogdams MTN Data Gifting plans (and every other provider\'s plans) from their APIs. Proceed?')) return;
         setSyncing(true);
         try {
-            const res = await API.post('/api/admin/data-plans/sync', {});
-            const combinedMsg = res.data.combined ? `, Combined (duplicates deactivated): ${res.data.combined}` : '';
-            alert(`Sync complete! Added: ${res.data.added}, Updated: ${res.data.updated}${combinedMsg}`);
+            const res = await syncOgdams();
+            const combinedMsg = res.combined ? `, Combined (duplicates deactivated): ${res.combined}` : '';
+            alert(`Sync complete! Added: ${res.added}, Updated: ${res.updated}${combinedMsg}`);
             fetchPlans();
         } catch (err) {
             alert('Sync failed: ' + (err.response?.data?.message || err.message));
@@ -160,7 +177,7 @@ const OgdamsSmePricing = ({ token }) => {
                 </div>
                 <button className="sync-btn" onClick={handleSync} disabled={syncing}>
                     <RefreshCcw size={18} className={syncing ? 'spin' : ''} />
-                    {syncing ? 'Syncing...' : 'Sync Plans'}
+                    {syncing ? 'Syncing...' : 'Sync Ogdams Plans'}
                 </button>
             </div>
 
@@ -180,8 +197,9 @@ const OgdamsSmePricing = ({ token }) => {
                 <h3><Percent size={16} /> V3 Pricing Rule (Ogdams MTN SME)</h3>
                 <p className="ogdams-sme-rule-desc">
                     Same engine as "V3 Pricing Rules" for Peyflex, scoped only to Ogdams' MTN SME (Gifting) plans. Set a
-                    percentage markup once here and <b>Save &amp; Apply</b> recalculates Retail/Basic/VIP/Premium for every
-                    synced Ogdams plan below from its cost -- it never touches Peyflex's MTN Gifting rule or plans.
+                    percentage markup here -- this button syncs Ogdams' plans first (fast, Ogdams-only, unlike the slower
+                    button above) and then recalculates Retail/Basic/VIP/Premium for all of them from cost, in one click.
+                    Never touches Peyflex's MTN Gifting rule or plans.
                 </p>
                 {ruleLoading ? (
                     <div className="loading-state">Loading rule...</div>
@@ -220,7 +238,7 @@ const OgdamsSmePricing = ({ token }) => {
                             Rule Active
                         </label>
                         <button type="submit" className="sync-btn" disabled={ruleSaving}>
-                            {ruleSaving ? 'Applying...' : rule ? 'Save & Apply' : 'Create & Apply'}
+                            {ruleSaving ? 'Syncing & Applying...' : rule ? 'Sync & Save' : 'Sync & Create'}
                         </button>
                     </form>
                 )}

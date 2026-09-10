@@ -677,6 +677,134 @@ function dataPlanMatchKey(planSize, validity) {
     return `${sizeMB}|${days}`;
 }
 
+// Creates or updates the single DataPlan document for one normalized
+// provider plan (provider/plan_code|plan_id/name/price/validity). Shared by
+// the full multi-provider sync loop and the fast, Ogdams-only sync below --
+// extracted so both stay in sync instead of drifting apart.
+async function upsertDataPlanFromProviderPlan(p, network) {
+    let category = 'Direct';
+    if (p.provider === 'ogdams') {
+        // Every plan getOgdamsMtnGiftingPlans() returns is, by construction,
+        // one of the confirmed MTN Data Gifting plan IDs -- never derived
+        // from name-substring matching for this provider, since Ogdams' own
+        // plan name text isn't guaranteed to say "gifting" and guessing it
+        // from the name would be exactly the kind of assumption this
+        // integration was told not to make.
+        category = 'Gifting';
+    } else {
+        const nLower = String(p.name || '').toLowerCase();
+        if (nLower.includes('smart sme')) category = 'Smart SME';
+        else if (nLower.includes('sme')) category = 'SME';
+        else if (nLower.includes('corporate') || nLower.includes('cg')) category = 'Corporate';
+        else if (nLower.includes('data share')) category = 'Data Share';
+        else if (nLower.includes('gifting') || nLower.includes('gift')) category = 'Gifting';
+    }
+
+    const sizeMatch = (p.name || '').match(/(\d+(?:\.\d+)?\s*(?:MB|GB|TB))/i);
+    const planSize = sizeMatch ? sizeMatch[1].toUpperCase() : '';
+    const apiPrice = Number(p.price) || 0;
+    const planId = String(p.plan_code || p.plan_id);
+
+    const existingPlan = await DataPlan.findOne({ api_plan_id: planId, provider: p.provider, network: network.toUpperCase() });
+
+    if (existingPlan) {
+        try {
+            existingPlan.api_price = apiPrice;
+            existingPlan.plan_name = p.name || p.plan_name;
+            existingPlan.plan_size = planSize;
+            await existingPlan.save();
+            return { created: false };
+        } catch (updateErr) {
+            console.error(`[Sync] Failed to update plan ${planId} on ${network}:`, updateErr.message);
+            return null;
+        }
+    }
+    try {
+        const sellingPrice = apiPrice + 20;
+        await DataPlan.create({
+            network: network.toUpperCase(),
+            category,
+            plan_name: p.name || p.plan_name,
+            plan_size: planSize,
+            api_plan_id: planId,
+            api_price: apiPrice,
+            selling_price: sellingPrice,
+            provider: p.provider,
+            validity: p.validity || '30 Days',
+            status: true
+        });
+        return { created: true };
+    } catch (createErr) {
+        console.error(`[Sync] Failed to create plan ${planId} on ${network}:`, createErr.message);
+        return null;
+    }
+}
+
+// Combine catalog: an Ogdams MTN Data Gifting plan that matches an existing
+// MTN Gifting-category plan from another provider -- by exact data volume +
+// validity -- is the customer-facing "same plan" as that other provider's
+// version. Rather than showing two duplicate plans for the same bundle,
+// deactivate the non-Ogdams duplicate (via the existing, already
+// admin-editable DataPlan.status flag) and let the Ogdams plan represent it
+// going forward. Any non-Ogdams Gifting plan with no matching Ogdams plan is
+// left completely untouched. Shared by the full sync route and the fast,
+// Ogdams-only sync below.
+async function combineOgdamsCatalog() {
+    let combined = 0;
+    try {
+        const ogdamsGiftingPlans = await DataPlan.find({ provider: 'ogdams', network: 'MTN', category: 'Gifting', status: true });
+        if (ogdamsGiftingPlans.length > 0) {
+            const otherGiftingPlans = await DataPlan.find({ provider: { $ne: 'ogdams' }, network: 'MTN', category: 'Gifting', status: true });
+            for (const ogPlan of ogdamsGiftingPlans) {
+                const ogKey = dataPlanMatchKey(ogPlan.plan_size, ogPlan.validity);
+                if (!ogKey) continue;
+                for (const other of otherGiftingPlans) {
+                    if (other.status === false) continue; // already deactivated by an earlier match this run
+                    const otherKey = dataPlanMatchKey(other.plan_size, other.validity);
+                    if (otherKey && otherKey === ogKey) {
+                        other.status = false;
+                        await other.save();
+                        combined++;
+                        console.log(`[Sync] Combined catalog: deactivated duplicate ${other.provider} MTN Gifting plan "${other.plan_name}" (matches Ogdams plan "${ogPlan.plan_name}")`);
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error("[Sync] Combine catalog step failed (non-fatal):", err.message);
+    }
+    return combined;
+}
+
+// Fast, Ogdams-only sync: fetches just the 9 confirmed MTN Data Gifting
+// plans from Ogdams (one HTTP call), upserts their DataPlan documents, then
+// runs the combine-catalog step. Unlike the full multi-provider sync below
+// (which also re-fetches Peyflex and ClubKonnect for every network and can
+// take minutes), this touches only Ogdams' own MTN plans, so it's safe to
+// run automatically every time the Ogdams SME pricing rule is saved.
+async function syncOgdamsMtnPlans() {
+    const plans = await smartFetchDataPlans('MTN', 'ogdams');
+    let added = 0;
+    let updated = 0;
+    for (const p of plans || []) {
+        const result = await upsertDataPlanFromProviderPlan(p, 'MTN');
+        if (result) result.created ? added++ : updated++;
+    }
+    const combined = await combineOgdamsCatalog();
+    return { added, updated, combined };
+}
+
+router.post("/data-plans/ogdams-sme/sync", async (req, res) => {
+    try {
+        console.log("[Admin] Starting Ogdams-only MTN SME sync...");
+        const { added, updated, combined } = await syncOgdamsMtnPlans();
+        res.json({ message: "Ogdams sync complete", added, updated, combined });
+    } catch (err) {
+        console.error("Ogdams Sync Error:", err);
+        res.status(500).json({ message: "Error syncing Ogdams plans: " + err.message });
+    }
+});
+
 router.post("/data-plans/sync", async (req, res) => {
     try {
         console.log("[Admin] Starting Data Plan Sync...");
@@ -693,99 +821,14 @@ router.post("/data-plans/sync", async (req, res) => {
                 const plans = await smartFetchDataPlans(network, option);
                 if (plans && plans.length > 0) {
                     for (const p of plans) {
-                        let category = 'Direct';
-                        if (p.provider === 'ogdams') {
-                            // Every plan getOgdamsMtnGiftingPlans() returns is, by
-                            // construction, one of the confirmed MTN Data Gifting
-                            // plan IDs -- never derived from name-substring
-                            // matching for this provider, since Ogdams' own plan
-                            // name text isn't guaranteed to say "gifting" and
-                            // guessing it from the name would be exactly the kind
-                            // of assumption this integration was told not to make.
-                            category = 'Gifting';
-                        } else {
-                            const nLower = String(p.name || '').toLowerCase();
-                            if (nLower.includes('smart sme')) category = 'Smart SME';
-                            else if (nLower.includes('sme')) category = 'SME';
-                            else if (nLower.includes('corporate') || nLower.includes('cg')) category = 'Corporate';
-                            else if (nLower.includes('data share')) category = 'Data Share';
-                            else if (nLower.includes('gifting') || nLower.includes('gift')) category = 'Gifting';
-                        }
-
-                        const sizeMatch = (p.name || '').match(/(\d+(?:\.\d+)?\s*(?:MB|GB|TB))/i);
-                        const planSize = sizeMatch ? sizeMatch[1].toUpperCase() : '';
-                        const apiPrice = Number(p.price) || 0;
-                        const planId = String(p.plan_code || p.plan_id);
-
-                        const existingPlan = await DataPlan.findOne({ api_plan_id: planId, provider: p.provider, network: network.toUpperCase() });
-
-                        if (existingPlan) {
-                            try {
-                                existingPlan.api_price = apiPrice;
-                                existingPlan.plan_name = p.name || p.plan_name;
-                                existingPlan.plan_size = planSize;
-                                await existingPlan.save();
-                                updated++;
-                            } catch (updateErr) {
-                                console.error(`[Sync] Failed to update plan ${planId} on ${network}:`, updateErr.message);
-                            }
-                        } else {
-                            try {
-                                const sellingPrice = apiPrice + 20; 
-                                await DataPlan.create({
-                                    network: network.toUpperCase(),
-                                    category,
-                                    plan_name: p.name || p.plan_name,
-                                    plan_size: planSize,
-                                    api_plan_id: planId,
-                                    api_price: apiPrice,
-                                    selling_price: sellingPrice,
-                                    provider: p.provider,
-                                    validity: p.validity || '30 Days',
-                                    status: true
-                                });
-                                added++;
-                            } catch (createErr) {
-                                console.error(`[Sync] Failed to create plan ${planId} on ${network}:`, createErr.message);
-                            }
-                        }
+                        const result = await upsertDataPlanFromProviderPlan(p, network);
+                        if (result) result.created ? added++ : updated++;
                     }
                 }
             }
         }
-        
-        // Combine catalog: an Ogdams MTN Data Gifting plan that matches an
-        // existing MTN Gifting-category plan from another provider (same
-        // provider it might have) -- by exact data volume + validity -- is the
-        // customer-facing "same plan" as that other provider's version. Rather
-        // than showing two duplicate plans for the same bundle, deactivate the
-        // non-Ogdams duplicate (via the existing, already admin-editable
-        // DataPlan.status flag) and let the Ogdams plan (added/updated above)
-        // represent it going forward. Any non-Ogdams Gifting plan with no
-        // matching Ogdams plan is left completely untouched.
-        let combined = 0;
-        try {
-            const ogdamsGiftingPlans = await DataPlan.find({ provider: 'ogdams', network: 'MTN', category: 'Gifting', status: true });
-            if (ogdamsGiftingPlans.length > 0) {
-                const otherGiftingPlans = await DataPlan.find({ provider: { $ne: 'ogdams' }, network: 'MTN', category: 'Gifting', status: true });
-                for (const ogPlan of ogdamsGiftingPlans) {
-                    const ogKey = dataPlanMatchKey(ogPlan.plan_size, ogPlan.validity);
-                    if (!ogKey) continue;
-                    for (const other of otherGiftingPlans) {
-                        if (other.status === false) continue; // already deactivated by an earlier match this run
-                        const otherKey = dataPlanMatchKey(other.plan_size, other.validity);
-                        if (otherKey && otherKey === ogKey) {
-                            other.status = false;
-                            await other.save();
-                            combined++;
-                            console.log(`[Sync] Combined catalog: deactivated duplicate ${other.provider} MTN Gifting plan "${other.plan_name}" (matches Ogdams plan "${ogPlan.plan_name}")`);
-                        }
-                    }
-                }
-            }
-        } catch (combineErr) {
-            console.error("[Sync] Combine catalog step failed (non-fatal):", combineErr.message);
-        }
+
+        const combined = await combineOgdamsCatalog();
 
         for (const p of JARAPOINT_PLANS) {
             const apiPrice = Number(p.price) || 0;
