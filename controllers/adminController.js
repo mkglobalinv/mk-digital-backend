@@ -3944,6 +3944,83 @@ export const getProviders = async (req, res) => {
     }
 };
 
+/**
+ * Ogdams-specific admin status: configuration state, live wallet/stock
+ * balances, and transaction counts. Deliberately never returns the API key
+ * itself -- only whether one is configured (per "Show Configured or Not
+ * configured, not the secret itself").
+ */
+export const getOgdamsProviderStatus = async (req, res) => {
+    try {
+        const { validateOgdamsConfig, getOgdamsBalances } = await import('../services/providers/ogdams.js');
+        const configState = validateOgdamsConfig();
+
+        let balances = null;
+        let balanceError = null;
+        if (configState.enabled && configState.configured) {
+            const balanceResult = await getOgdamsBalances();
+            if (balanceResult.success) balances = balanceResult.balances;
+            else balanceError = balanceResult.message;
+        }
+
+        const [success, failed, pending, unknown, lastSuccess, lastFailed] = await Promise.all([
+            Transaction.countDocuments({ provider_used: 'ogdams', status: 'success' }),
+            Transaction.countDocuments({ provider_used: 'ogdams', status: 'failed' }),
+            Transaction.countDocuments({ provider_used: 'ogdams', status: 'pending' }),
+            Transaction.countDocuments({ provider_used: 'ogdams', status: 'unknown' }),
+            Transaction.findOne({ provider_used: 'ogdams', status: 'success' }).sort({ createdAt: -1 }).select('createdAt reference'),
+            Transaction.findOne({ provider_used: 'ogdams', status: 'failed' }).sort({ createdAt: -1 }).select('createdAt reference')
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                enabled: configState.enabled,
+                configured: !!configState.configured,
+                balances,
+                balanceError,
+                stats: { success, failed, pending, unknown },
+                lastSuccessfulTransaction: lastSuccess ? { at: lastSuccess.createdAt, reference: lastSuccess.reference } : null,
+                lastFailedTransaction: lastFailed ? { at: lastFailed.createdAt, reference: lastFailed.reference } : null
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Failed to fetch Ogdams status' });
+    }
+};
+
+/**
+ * Service+network provider routing (currently DATA only -- see
+ * services/providerRouting.js). Built entirely on the existing
+ * ProviderCategory visibility mechanism, not a new config store.
+ */
+export const getProviderRouting = async (req, res) => {
+    try {
+        const { getProviderRoutingSummary } = await import('../services/providerRouting.js');
+        const summary = await getProviderRoutingSummary();
+        res.status(200).json({ success: true, data: summary });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message || 'Failed to fetch provider routing' });
+    }
+};
+
+export const setProviderRouting = async (req, res) => {
+    try {
+        const { service, network, provider } = req.body;
+        if (service !== 'data') {
+            return res.status(400).json({ success: false, message: 'Only the "data" service routing is currently configurable.' });
+        }
+        if (!network || !provider) {
+            return res.status(400).json({ success: false, message: 'network and provider are required.' });
+        }
+        const { setDataProviderForNetwork } = await import('../services/providerRouting.js');
+        const result = await setDataProviderForNetwork(network, provider, req.user?._id || req.user?.id);
+        res.status(200).json({ success: true, data: result, message: `${network} DATA is now routed to ${provider}.` });
+    } catch (err) {
+        res.status(400).json({ success: false, message: err.message || 'Failed to update provider routing' });
+    }
+};
+
 export const updateProviderStatus = async (req, res) => {
     try {
         const { id } = req.params;

@@ -228,7 +228,12 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json({ limit: '50mb' }));
+// verify callback captures the exact raw bytes alongside the parsed body --
+// needed so routes/webhookRoutes.js can HMAC-verify the Ogdams webhook against
+// the identical bytes Ogdams signed (re-serializing req.body could differ in
+// key order/whitespace and break the signature). Purely additive: every other
+// route's req.body parsing is unaffected.
+app.use(express.json({ limit: '50mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Root Health Check (must be before SPA wildcard and whiteLabel)
 const healthHandler = (req, res) => {
@@ -574,6 +579,17 @@ app.use("/api/admin/airtime-to-cash", airtimeCashAdminRoutes);
 app.use("/api/reseller/airtime-to-cash", resellerAirtimeCashRoutes);
 if (process.env.NODE_ENV !== 'test') {
     startAirtimeCashReconciliationJob();
+}
+// -----------------------------------------------------------------
+
+// --- NEW INSERTION: OGDAMS SIMHOSTING PROVIDER (Strictly Additive) ---
+import { validateOgdamsConfig, ensureOgdamsProviderStatus } from "./services/providers/ogdams.js";
+if (process.env.NODE_ENV !== 'test') {
+    const ogdamsStatus = validateOgdamsConfig();
+    if (ogdamsStatus.enabled) {
+        console.log(`[Ogdams] Provider enabled. Configured: ${ogdamsStatus.configured}`);
+    }
+    ensureOgdamsProviderStatus();
 }
 // -----------------------------------------------------------------
 

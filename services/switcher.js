@@ -10,7 +10,8 @@ import {
 import ProviderStatus from "../models/ProviderStatus.js";
 import DataPlan from "../models/DataPlan.js";
 import { handleProviderTransactionSuccess, handleProviderTransactionFailure } from "./providerMonitoringService.js";
-import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js"; 
+import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js";
+import { buyDataWithOgdams, getOgdamsMtnGiftingPlans } from "./providers/ogdams.js";
 
 const dataPlanCache = { smart: {}, value: {} };
 const CACHE_TTL = 5 * 60 * 1000;
@@ -121,6 +122,11 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
         console.log(`[Switcher] [${transactionId}] Primary provider attempt: ${pName}`);
         if (pName === 'clubkonnect') {
             result = await buyDataWithClubkonnect(networkId || network, dataPlan, phone);
+        } else if (pName === 'ogdams') {
+            // Ogdams is never reached unless an admin explicitly sets a DataPlan's
+            // provider to 'ogdams' -- there is no automatic primary/priority
+            // promotion here, matching "do not automatically make Ogdams primary."
+            result = await buyDataWithOgdams(networkId || network, dataPlan, phone, transactionId);
         } else {
             result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
         }
@@ -220,6 +226,31 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
             const result = await fetchDataPlansFromClubkonnect(network);
             if (result && result.success && result.plans) allPlans = result.plans;
         } catch (e) { }
+    } else if (option === 'ogdams') {
+        // Current phase: Ogdams is MTN data only -- deliberately not fetched for
+        // any other network. Returns [] (not a throw) for a non-MTN network so
+        // the sync loop in routes/adminRoutes.js's /data-plans/sync, which calls
+        // this for every network/option pair without its own try/catch around
+        // this call, can never abort mid-sync because of Ogdams.
+        if (network.toUpperCase() === 'MTN') {
+            try {
+                // getOgdamsMtnGiftingPlans() (not the unfiltered getOgdamsDataPlans)
+                // -- restricts sync to only the confirmed MTN Data Gifting plan
+                // IDs, per current scope (Gifting only, no SME/other methods).
+                const result = await getOgdamsMtnGiftingPlans();
+                if (result && result.success && result.plans) {
+                    allPlans = result.plans.map((p) => ({
+                        provider: 'ogdams',
+                        plan_id: p.planId,
+                        plan_code: p.planId,
+                        name: p.name,
+                        price: p.price,
+                        validity: p.validity,
+                        label: `${p.name} - ₦${p.price}`
+                    }));
+                }
+            } catch (e) { }
+        }
     } else {
         for (const id of identifiers) {
             try {
@@ -246,6 +277,11 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
         dataPlanCache[option][cacheKey] = { timestamp: now, data: allPlans };
         return allPlans;
     }
+    // Ogdams never throws here -- a non-MTN network (or a real fetch failure) is
+    // expected to just mean "no plans from Ogdams right now", not an error that
+    // should abort routes/adminRoutes.js's /data-plans/sync loop for every other
+    // provider/network pair it still needs to process.
+    if (option === 'ogdams') return [];
     throw new Error(`No data plans available for this network on the ${option} option.`);
 };
 
