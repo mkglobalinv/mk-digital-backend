@@ -149,3 +149,11 @@ Internally, these plans remain category `Gifting` on `DataPlan`/`ProviderCategor
 ## Combine catalog: one customer-facing plan per bundle, even across two providers
 
 `POST /admin/data-plans/sync` now runs an additional step after normal provider sync: for each active Ogdams MTN `Gifting` plan, it looks for an active non-Ogdams MTN `Gifting` plan with the exact same data volume and validity (parsed and compared via `dataPlanMatchKey()` in `routes/adminRoutes.js`, unit-tested in `tests/dataPlanCombineCatalog.test.js`). A match is deactivated (`DataPlan.status = false`) rather than deleted, so the Ogdams version becomes the single customer-facing plan for that bundle. A non-Ogdams `Gifting` plan with no matching Ogdams plan -- or where either side's size/validity text can't be confidently parsed -- is left completely unchanged. The sync response now also reports a `combined` count alongside `added`/`updated`.
+
+## Independent Ogdams MTN SME pricing admin page
+
+Admin Dashboard → **Ogdams MTN SME Pricing** (`/admin/ogdams-sme-pricing`, `mk-vtu-frontend/src/admin/pages/OgdamsSmePricing.jsx`) manages only the 9 confirmed Ogdams MTN Gifting plans, independently from the Peyflex pricing on "Legacy Data Pricing". It is backed by `GET /admin/data-plans/ogdams-sme`, which always returns exactly one row per whitelisted plan ID (via the pure, unit-tested `mergeOgdamsSmePlans()` in `routes/adminRoutes.js`) -- a plan ID not yet synced still shows up as a row (`synced: false`) instead of disappearing.
+
+Each row is its own `DataPlan` document (`provider: 'ogdams'`), so cost (`api_price`), customer price (`selling_price`), profit (auto-computed), and active status are stored per-document exactly as they already are for every other provider -- editing an Ogdams row can never change a Peyflex `DataPlan` document, and vice versa; no new schema or pricing computation was introduced. Edits go through the existing `PUT /admin/data-plans/:id` (now additionally accepting `api_price`, with basic non-negative validation matching `selling_price`'s existing validation).
+
+Provider Manager continues to be the only control for which provider actually fulfills MTN Data transactions (Peyflex vs. Ogdams) -- this pricing page only controls what a synced Ogdams plan costs/sells for and whether it's enabled, not routing.
