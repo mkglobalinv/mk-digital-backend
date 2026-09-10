@@ -11,7 +11,7 @@ import ProviderStatus from "../models/ProviderStatus.js";
 import DataPlan from "../models/DataPlan.js";
 import { handleProviderTransactionSuccess, handleProviderTransactionFailure } from "./providerMonitoringService.js";
 import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js";
-import { buyDataWithOgdams, getOgdamsDataPlans } from "./providers/ogdams.js";
+import { buyDataWithOgdams, getOgdamsMtnGiftingPlans } from "./providers/ogdams.js";
 
 const dataPlanCache = { smart: {}, value: {} };
 const CACHE_TTL = 5 * 60 * 1000;
@@ -234,19 +234,20 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
         // this call, can never abort mid-sync because of Ogdams.
         if (network.toUpperCase() === 'MTN') {
             try {
-                const result = await getOgdamsDataPlans();
+                // getOgdamsMtnGiftingPlans() (not the unfiltered getOgdamsDataPlans)
+                // -- restricts sync to only the confirmed MTN Data Gifting plan
+                // IDs, per current scope (Gifting only, no SME/other methods).
+                const result = await getOgdamsMtnGiftingPlans();
                 if (result && result.success && result.plans) {
-                    allPlans = result.plans
-                        .filter((p) => p.network === 'MTN')
-                        .map((p) => ({
-                            provider: 'ogdams',
-                            plan_id: p.planId,
-                            plan_code: p.planId,
-                            name: p.name,
-                            price: p.price,
-                            validity: p.validity,
-                            label: `${p.name} - ₦${p.price}`
-                        }));
+                    allPlans = result.plans.map((p) => ({
+                        provider: 'ogdams',
+                        plan_id: p.planId,
+                        plan_code: p.planId,
+                        name: p.name,
+                        price: p.price,
+                        validity: p.validity,
+                        label: `${p.name} - ₦${p.price}`
+                    }));
                 }
             } catch (e) { }
         }

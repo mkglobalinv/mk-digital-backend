@@ -63,6 +63,31 @@ describe('Ogdams provider adapter (real HTTP client, mocked at the network layer
         expect(result.plans[0]).toEqual({ network: 'MTN', planId: '101', name: 'MTN SME 1GB', price: 500, validity: '30 Days' });
     });
 
+    test('getOgdamsMtnGiftingPlans: only returns the confirmed MTN Data Gifting plan IDs (541, 497, 498), even when other MTN plans are mixed in the response', async () => {
+        nock(BASE_URL).get('/get/data/plans').reply(200, {
+            status: true, code: 200,
+            data: {
+                msg: [
+                    { networkId: 1, planId: 541, name: 'MTN 500MB Daily', price: '250.00', validity: '1 Day' },
+                    { networkId: 1, planId: 497, name: 'MTN 1GB Daily', price: '450.00', validity: '1 Day' },
+                    { networkId: 1, planId: 498, name: 'MTN 2.5GB Daily', price: '900.00', validity: '1 Day' },
+                    { networkId: 1, planId: 9999, name: 'MTN SME 5GB', price: '2000.00', validity: '30 Days' }, // not in the whitelist
+                    { networkId: 2, planId: 541, name: 'Airtel 500MB', price: '250.00', validity: '1 Day' } // same planId, wrong network
+                ],
+                ref: null
+            }
+        });
+
+        const result = await ogdams.getOgdamsMtnGiftingPlans();
+        expect(result.success).toBe(true);
+        expect(result.plans.map((p) => p.planId).sort()).toEqual(['497', '498', '541']);
+        expect(result.plans.every((p) => p.network === 'MTN')).toBe(true);
+    });
+
+    test('MTN_DATA_GIFTING_PLAN_IDS matches exactly the three plan IDs confirmed by Ogdams support', () => {
+        expect(Object.keys(ogdams.MTN_DATA_GIFTING_PLAN_IDS).sort()).toEqual(['497', '498', '541']);
+    });
+
     test('buyDataWithOgdams: success (code 200) sends networkId/planId/phoneNumber/reference and returns status success', async () => {
         const scope = nock(BASE_URL, { reqheaders: { authorization: 'Bearer sk_test_ogdams123' } })
             .post('/vend/data', { networkId: 1, planId: 101, phoneNumber: '08012345678', reference: 'internal-ref-1' })

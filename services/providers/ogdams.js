@@ -275,6 +275,38 @@ export async function getOgdamsDataPlans() {
     };
 }
 
+// Confirmed directly by Ogdams support (not inferred, not guessed): these are
+// the account's official MTN Data Gifting plan IDs. Gifting is fulfilled from
+// the connected MTN SIM's own airtime/MoMo balance -- the Ogdams wallet is
+// only charged a small automation fee -- confirming /vend/data (used below
+// and in buyDataWithOgdams) is the correct, and only, endpoint for this.
+//
+// /get/data/plans documents no category/type field, so there is no way to
+// distinguish a Gifting plan from an SME/other-method plan in that response
+// by inspection alone. This whitelist is the enforcement point: only these
+// three plan IDs can ever be synced as Ogdams MTN plans, regardless of what
+// else /get/data/plans happens to return mixed in -- keeping this
+// integration strictly to Data Gifting, per current scope (no DataShare, no
+// SME, no other Ogdams service).
+export const MTN_DATA_GIFTING_PLAN_IDS = Object.freeze({
+    "541": "500MB Daily",
+    "497": "1GB Daily",
+    "498": "2.5GB Daily"
+});
+
+/**
+ * Live MTN plan catalog from Ogdams, filtered to ONLY the confirmed Data
+ * Gifting plan IDs above. Real price/name/validity still come from the live
+ * API response (never fabricated) -- this only restricts WHICH plan IDs are
+ * allowed through, it doesn't invent data for them.
+ */
+export async function getOgdamsMtnGiftingPlans() {
+    const result = await getOgdamsDataPlans();
+    if (!result.success) return result;
+    const plans = result.plans.filter((p) => p.network === "MTN" && Object.prototype.hasOwnProperty.call(MTN_DATA_GIFTING_PLAN_IDS, p.planId));
+    return { success: true, plans };
+}
+
 /**
  * POST /vend/data -- vend a data bundle. `reference` is our own internal
  * transaction reference, used as Ogdams' idempotency-relevant reference field

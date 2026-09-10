@@ -46,14 +46,45 @@ describe('smartFetchDataPlans(..., "ogdams") -- MTN-only scope for the admin pla
         }
     });
 
-    test('MTN: fetches Ogdams plans and normalizes to {provider, plan_id, plan_code, name, price, label}', async () => {
+    // The next two tests both need a fresh, uncached smartFetchDataPlans('MTN',
+    // 'ogdams') call -- the module-scope cache (keyed by option+network, TTL
+    // 5 min) would otherwise make the second test see the first test's cached
+    // result instead of actually exercising its own mocked response. Each
+    // test below does its own jest.resetModules() + fresh dynamic import to
+    // get an independent cache instance, same pattern used in
+    // tests/ogdamsProvider.test.js's disabled/enabled describe block.
+    test('MTN: fetches Ogdams plans and normalizes to {provider, plan_id, plan_code, name, price, label} -- using a confirmed Data Gifting plan ID', async () => {
+        jest.resetModules();
+        const freshSwitcher = await import('../services/switcher.js?gifting-fetch-test');
         nock(BASE_URL).get('/get/data/plans').reply(200, {
             status: true, code: 200,
-            data: { msg: [{ networkId: 1, planId: 101, name: 'MTN SME 1GB', price: '500.00', validity: '30 Days' }], ref: null }
+            // 497 = "1GB Daily", one of the three plan IDs Ogdams support
+            // confirmed are MTN Data Gifting.
+            data: { msg: [{ networkId: 1, planId: 497, name: 'MTN 1GB Daily', price: '450.00', validity: '1 Day' }], ref: null }
         });
 
-        const plans = await switcher.smartFetchDataPlans('MTN', 'ogdams');
+        const plans = await freshSwitcher.smartFetchDataPlans('MTN', 'ogdams');
         expect(plans).toHaveLength(1);
-        expect(plans[0]).toMatchObject({ provider: 'ogdams', plan_id: '101', plan_code: '101', name: 'MTN SME 1GB', price: 500 });
+        expect(plans[0]).toMatchObject({ provider: 'ogdams', plan_id: '497', plan_code: '497', name: 'MTN 1GB Daily', price: 450 });
+    });
+
+    test('a non-Gifting MTN plan mixed into the same response is filtered out -- only the confirmed Gifting plan IDs ever sync', async () => {
+        jest.resetModules();
+        const freshSwitcher = await import('../services/switcher.js?gifting-filter-test');
+        nock(BASE_URL).get('/get/data/plans').reply(200, {
+            status: true, code: 200,
+            data: {
+                msg: [
+                    { networkId: 1, planId: 497, name: 'MTN 1GB Daily', price: '450.00', validity: '1 Day' }, // confirmed Gifting
+                    { networkId: 1, planId: 202, name: 'MTN SME 2GB', price: '900.00', validity: '30 Days' }  // NOT in the whitelist -- e.g. an SME plan
+                ],
+                ref: null
+            }
+        });
+
+        const plans = await freshSwitcher.smartFetchDataPlans('MTN', 'ogdams');
+        expect(plans).toHaveLength(1);
+        expect(plans[0].plan_id).toBe('497');
+        expect(plans.some((p) => p.plan_id === '202')).toBe(false);
     });
 });

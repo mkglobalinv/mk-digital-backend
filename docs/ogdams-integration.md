@@ -114,6 +114,22 @@ NODE_OPTIONS=--experimental-vm-modules npx jest tests/ogdamsProvider.test.js --f
 
 For a real, controlled test against Ogdams' live API (no sandbox is documented), start with the read-only calls (`getOgdamsBalances`, `getOgdamsDataPlans`) before ever calling `buyDataWithOgdams`/`buyAirtimeWithOgdams`, since a real vend call spends real money with no safe way to cancel it.
 
-## SIM-source vs wallet-source
+## SIM-source vs wallet-source -- CONFIRMED
 
-See the SIM SOURCE INVESTIGATION section of the implementation report delivered alongside this integration. Summary: **the documented `/vend/data`/`/vend/airtime`/`/get/balances` endpoints expose no SIM ID, device ID, or dispense-method field anywhere in their request or response shapes** -- so `providerAirtimeSnapshot`-equivalent tracking is not possible for data/airtime vends today, and every Ogdams transaction is stored with `sourceType: 'unknown'`, per the explicit instruction not to fabricate this. The `/custom/ussd/code` and `/sns/airtime` endpoints are the only two that could plausibly expose real SIM-level control (a raw USSD command, and a "share & sell" mechanism that by its nature usually runs against one specific registered SIM), but neither was documented with request parameters in the supplied material -- this remains an open question pending their full documentation.
+Ogdams support confirmed directly: **MTN Data Gifting (`/vend/data` against one of the plan IDs below) is fulfilled from the merchant's own connected MTN SIM's airtime/MoMo balance. The Ogdams wallet (`mainBalance`) is only charged a small automation fee per transaction, not the cost of the data itself.**
+
+This confirms `/vend/data` is, and was always, the correct endpoint -- no separate "gifting" endpoint exists, and the API request itself (`networkId`, `planId`, `phoneNumber`, `reference`) never needs a source/sender identifier, since the connected-SIM association is configured entirely on Ogdams' own dashboard (SIM & Cloud / Sim Connection / GIFTING / APP screens), outside anything this integration's API calls send. No code needed to change for the vend call itself as a result of this confirmation.
+
+`sourceType` is still not populated as a distinct tracked field on the transaction (no SIM/device ID is returned in the API response to store), but the *method* is now known and enforced structurally: only the three whitelisted plan IDs below can ever be synced as Ogdams MTN plans, so any successful Ogdams data transaction in this system is, by construction, an MTN Data Gifting transaction.
+
+## MTN Data Gifting plan IDs (confirmed by Ogdams support)
+
+`/get/data/plans` documents no category/type field, so Gifting plans cannot be distinguished from any other MTN plan Ogdams might return by inspecting the response alone. `services/providers/ogdams.js`'s `MTN_DATA_GIFTING_PLAN_IDS` is a hard whitelist -- `getOgdamsMtnGiftingPlans()` (used by the admin sync, not the general-purpose `getOgdamsDataPlans()`) only ever returns plans matching these IDs, discarding anything else even if Ogdams' API returns other MTN plans mixed into the same response:
+
+| Plan ID | Description |
+|---|---|
+| 541 | 500MB Daily |
+| 497 | 1GB Daily |
+| 498 | 2.5GB Daily |
+
+Real price/name/validity for these still come from the live `/get/data/plans` response at sync time -- only the plan ID whitelist is hardcoded, never a price or name.

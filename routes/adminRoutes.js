@@ -592,12 +592,23 @@ router.post("/data-plans/sync", async (req, res) => {
                 if (plans && plans.length > 0) {
                     for (const p of plans) {
                         let category = 'Direct';
-                        const nLower = String(p.name || '').toLowerCase();
-                        if (nLower.includes('smart sme')) category = 'Smart SME';
-                        else if (nLower.includes('sme')) category = 'SME';
-                        else if (nLower.includes('corporate') || nLower.includes('cg')) category = 'Corporate';
-                        else if (nLower.includes('data share')) category = 'Data Share';
-                        else if (nLower.includes('gifting') || nLower.includes('gift')) category = 'Gifting';
+                        if (p.provider === 'ogdams') {
+                            // Every plan getOgdamsMtnGiftingPlans() returns is, by
+                            // construction, one of the confirmed MTN Data Gifting
+                            // plan IDs -- never derived from name-substring
+                            // matching for this provider, since Ogdams' own plan
+                            // name text isn't guaranteed to say "gifting" and
+                            // guessing it from the name would be exactly the kind
+                            // of assumption this integration was told not to make.
+                            category = 'Gifting';
+                        } else {
+                            const nLower = String(p.name || '').toLowerCase();
+                            if (nLower.includes('smart sme')) category = 'Smart SME';
+                            else if (nLower.includes('sme')) category = 'SME';
+                            else if (nLower.includes('corporate') || nLower.includes('cg')) category = 'Corporate';
+                            else if (nLower.includes('data share')) category = 'Data Share';
+                            else if (nLower.includes('gifting') || nLower.includes('gift')) category = 'Gifting';
+                        }
 
                         const sizeMatch = (p.name || '').match(/(\d+(?:\.\d+)?\s*(?:MB|GB|TB))/i);
                         const planSize = sizeMatch ? sizeMatch[1].toUpperCase() : '';
