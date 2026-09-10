@@ -575,7 +575,10 @@ router.post("/data-plans/sync", async (req, res) => {
     try {
         console.log("[Admin] Starting Data Plan Sync...");
         const networks = ['MTN', 'GLO', 'AIRTEL', '9MOBILE'];
-        const options = ['smart', 'value'];
+        // 'ogdams' is scoped to MTN only for now (see smartFetchDataPlans) --
+        // it safely no-ops (returns []) for GLO/AIRTEL/9MOBILE rather than
+        // fetching anything for them.
+        const options = ['smart', 'value', 'ogdams'];
         let added = 0;
         let updated = 0;
 

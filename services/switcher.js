@@ -11,7 +11,7 @@ import ProviderStatus from "../models/ProviderStatus.js";
 import DataPlan from "../models/DataPlan.js";
 import { handleProviderTransactionSuccess, handleProviderTransactionFailure } from "./providerMonitoringService.js";
 import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js";
-import { buyDataWithOgdams } from "./providers/ogdams.js";
+import { buyDataWithOgdams, getOgdamsDataPlans } from "./providers/ogdams.js";
 
 const dataPlanCache = { smart: {}, value: {} };
 const CACHE_TTL = 5 * 60 * 1000;
@@ -226,6 +226,30 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
             const result = await fetchDataPlansFromClubkonnect(network);
             if (result && result.success && result.plans) allPlans = result.plans;
         } catch (e) { }
+    } else if (option === 'ogdams') {
+        // Current phase: Ogdams is MTN data only -- deliberately not fetched for
+        // any other network. Returns [] (not a throw) for a non-MTN network so
+        // the sync loop in routes/adminRoutes.js's /data-plans/sync, which calls
+        // this for every network/option pair without its own try/catch around
+        // this call, can never abort mid-sync because of Ogdams.
+        if (network.toUpperCase() === 'MTN') {
+            try {
+                const result = await getOgdamsDataPlans();
+                if (result && result.success && result.plans) {
+                    allPlans = result.plans
+                        .filter((p) => p.network === 'MTN')
+                        .map((p) => ({
+                            provider: 'ogdams',
+                            plan_id: p.planId,
+                            plan_code: p.planId,
+                            name: p.name,
+                            price: p.price,
+                            validity: p.validity,
+                            label: `${p.name} - ₦${p.price}`
+                        }));
+                }
+            } catch (e) { }
+        }
     } else {
         for (const id of identifiers) {
             try {
@@ -252,6 +276,11 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
         dataPlanCache[option][cacheKey] = { timestamp: now, data: allPlans };
         return allPlans;
     }
+    // Ogdams never throws here -- a non-MTN network (or a real fetch failure) is
+    // expected to just mean "no plans from Ogdams right now", not an error that
+    // should abort routes/adminRoutes.js's /data-plans/sync loop for every other
+    // provider/network pair it still needs to process.
+    if (option === 'ogdams') return [];
     throw new Error(`No data plans available for this network on the ${option} option.`);
 };
 
