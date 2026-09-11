@@ -414,6 +414,39 @@ const connectDB = async () => {
             } catch (e) {
                 console.warn("Could not sync PricingRule indexes on startup:", e.message);
             }
+
+            // One-time self-heal: the first SmePlug sync briefly shared the
+            // 'Gifting' category with Peyflex/ClubKonnect, and its combine-
+            // catalog step deactivated 7 of their plans as "duplicates" before
+            // SmePlug was moved to its own separate 'GiftingXtra' category.
+            // They're no longer duplicates of anything -- reactivate them.
+            // Idempotent (a no-op once they're already active), safe to run
+            // on every startup.
+            try {
+                const reactivated = await DataPlan.updateMany(
+                    {
+                        network: 'MTN', category: 'Gifting', status: false,
+                        provider: { $in: ['peyflex', 'clubkonnect'] },
+                        plan_name: {
+                            $in: [
+                                '2.5GB = N650 (2 Days)12hrs YouTube Buffer',
+                                '2.5GB = N893 (2 Days)',
+                                '1.5GB Weekly Plan - 7 days (Direct Data)',
+                                '6GB Weekly Plan - 7 days (Direct Data)',
+                                '6GB = N2480 (Weekly)',
+                                '2.7GB+2mins Monthly Plan - 30 days (Direct Data)',
+                                '3.5GB+5mins Monthly Plan - 30 days (Direct Data)'
+                            ]
+                        }
+                    },
+                    { $set: { status: true } }
+                );
+                if (reactivated.modifiedCount > 0) {
+                    console.log(`[Startup] Reactivated ${reactivated.modifiedCount} Peyflex/ClubKonnect MTN Gifting plan(s) incorrectly deactivated by the earlier SmePlug combine-catalog step.`);
+                }
+            } catch (e) {
+                console.warn("Could not run SmePlug combine-catalog reactivation fix on startup:", e.message);
+            }
             break;
         } catch (err) {
             console.error("MongoDB Connection Error ❌:", err.message);
