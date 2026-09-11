@@ -91,7 +91,7 @@ const AdminLayout = ({ children, admin, logout }) => {
         { name: 'Manage Categories', path: '/admin/data-categories', icon: <Database size={18} /> },
         { name: 'V3 Pricing Rules', path: '/admin/pricing-rules', icon: <CreditCard size={18} /> },
         { name: 'Legacy Data Pricing', path: '/admin/data-pricing', icon: <CreditCard size={18} /> },
-        { name: 'Ogdams MTN SME Pricing', path: '/admin/ogdams-sme-pricing', icon: <CreditCard size={18} />, badge: 'NEW' },
+        { name: 'Ogdams MTN Data Gifting Pricing', path: '/admin/ogdams-sme-pricing', icon: <CreditCard size={18} />, badge: 'NEW' },
         { name: 'Tier Margins', path: '/admin/tier-margins', icon: <CreditCard size={18} /> },
       ]
     },

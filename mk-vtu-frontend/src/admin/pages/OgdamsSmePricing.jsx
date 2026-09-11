@@ -45,8 +45,8 @@ const OgdamsSmePricing = ({ token }) => {
             const res = await API.get('/api/admin/data-plans/ogdams-sme');
             setPlans(res.data.plans || []);
         } catch (err) {
-            console.error('Failed to fetch Ogdams SME plans', err);
-            alert('Error loading Ogdams SME plans');
+            console.error('Failed to fetch Ogdams Gifting plans', err);
+            alert('Error loading Ogdams Gifting plans');
         } finally {
             setLoading(false);
         }
@@ -142,7 +142,10 @@ const OgdamsSmePricing = ({ token }) => {
         try {
             const res = await API.get('/api/admin/data-plans/ogdams-sme/diagnose');
             const summary = (res.data.results || [])
-                .map((r) => r.success ? `${r.version}: ${r.itemCount ?? 0} item(s)` : `${r.version}: failed (${r.errorCode || r.httpStatus || 'error'})`)
+                .map((r) => {
+                    if (r.version === 'outbound_ip') return `Server outbound IP: ${r.outboundIp || 'unknown'} (whitelist this in Ogdams -> Security -> Whitelist IP if plans stay empty)`;
+                    return r.success ? `${r.version}: ${r.itemCount ?? 0} item(s)` : `${r.version}: failed (${r.errorCode || r.httpStatus || 'error'})`;
+                })
                 .join('\n');
             alert(`Diagnosis complete -- check server logs for full raw responses.\n\n${summary}`);
         } catch (err) {
@@ -189,7 +192,7 @@ const OgdamsSmePricing = ({ token }) => {
         <div className="data-pricing-container">
             <div className="page-header">
                 <div>
-                    <h2>Ogdams MTN SME Pricing</h2>
+                    <h2>Ogdams MTN Data Gifting Pricing</h2>
                     <div className="header-stats">
                         <span>Confirmed plans: <b>{plans.length}</b></span>
                         <span>Synced: <b>{syncedCount}</b></span>
@@ -226,9 +229,9 @@ const OgdamsSmePricing = ({ token }) => {
             </div>
 
             <div className="ogdams-sme-rule-card">
-                <h3><Percent size={16} /> V3 Pricing Rule (Ogdams MTN SME)</h3>
+                <h3><Percent size={16} /> V3 Pricing Rule (Ogdams MTN Data Gifting)</h3>
                 <p className="ogdams-sme-rule-desc">
-                    Same engine as "V3 Pricing Rules" for Peyflex, scoped only to Ogdams' MTN SME (Gifting) plans. Set a
+                    Same engine as "V3 Pricing Rules" for Peyflex, scoped only to Ogdams' MTN Data Gifting plans. Set a
                     percentage markup here -- this button syncs Ogdams' plans first (fast, Ogdams-only, unlike the slower
                     button above) and then recalculates Retail/Basic/VIP/Premium for all of them from cost, in one click.
                     Never touches Peyflex's MTN Gifting rule or plans.

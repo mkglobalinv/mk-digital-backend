@@ -298,13 +298,22 @@ export async function getOgdamsDataPlans() {
  * admin route has something to show without duplicating the raw log output.
  */
 export async function diagnoseOgdamsDataPlanVersions() {
+    let outboundIp = null;
+    try {
+        const ipResult = await axios.get("https://api.ipify.org?format=json", { timeout: 10000 });
+        outboundIp = ipResult.data?.ip || null;
+        console.log(`[Ogdams] Diagnose: this server's outbound IP is ${outboundIp} -- add this to Ogdams dashboard Security -> Whitelist IP if plans keep coming back empty.`);
+    } catch (err) {
+        console.warn("[Ogdams] Diagnose: could not determine outbound IP:", err.message);
+    }
+
     const versions = [
         { label: "v1", path: "/get/data/plans" },
         { label: "v2", path: "/get/data/plans/v2" },
         { label: "v3", path: "/get/data/plans/v3" },
         { label: "v4", path: "/get/data/plans/v4" }
     ];
-    const results = [];
+    const results = [{ version: "outbound_ip", outboundIp }];
     for (const { label, path } of versions) {
         const result = await ogdamsGet(path);
         if (!result.success) {
