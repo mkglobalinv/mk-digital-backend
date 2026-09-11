@@ -29,6 +29,7 @@ const OgdamsSmePricing = ({ token }) => {
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
+    const [diagnosing, setDiagnosing] = useState(false);
 
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({ api_price: '', selling_price: '', reseller_price: '', vip_price: '', premium_price: '' });
@@ -131,6 +132,26 @@ const OgdamsSmePricing = ({ token }) => {
         }
     };
 
+    // Diagnostic only -- probes /get/data/plans v1-v4 (Ogdams support's own
+    // suggestion after v1 kept returning zero plans) and writes nothing to
+    // the catalog. The real investigation happens in the server logs; this
+    // just surfaces a quick item-count summary so we don't have to dig
+    // through logs to know whether any version returned something.
+    const handleDiagnose = async () => {
+        setDiagnosing(true);
+        try {
+            const res = await API.get('/api/admin/data-plans/ogdams-sme/diagnose');
+            const summary = (res.data.results || [])
+                .map((r) => r.success ? `${r.version}: ${r.itemCount ?? 0} item(s)` : `${r.version}: failed (${r.errorCode || r.httpStatus || 'error'})`)
+                .join('\n');
+            alert(`Diagnosis complete -- check server logs for full raw responses.\n\n${summary}`);
+        } catch (err) {
+            alert('Diagnosis failed: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setDiagnosing(false);
+        }
+    };
+
     const startEdit = (plan) => {
         setEditingId(plan._id);
         setEditData({
@@ -175,10 +196,21 @@ const OgdamsSmePricing = ({ token }) => {
                         <span>Active: <b style={{ color: '#10b981' }}>{activeCount}</b></span>
                     </div>
                 </div>
-                <button className="sync-btn" onClick={handleSync} disabled={syncing}>
-                    <RefreshCcw size={18} className={syncing ? 'spin' : ''} />
-                    {syncing ? 'Syncing...' : 'Sync Ogdams Plans'}
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="sync-btn" onClick={handleSync} disabled={syncing}>
+                        <RefreshCcw size={18} className={syncing ? 'spin' : ''} />
+                        {syncing ? 'Syncing...' : 'Sync Ogdams Plans'}
+                    </button>
+                    <button
+                        className="sync-btn"
+                        style={{ background: '#6b7280' }}
+                        onClick={handleDiagnose}
+                        disabled={diagnosing}
+                        title="Diagnostic only -- probes /get/data/plans v1-v4 and logs raw responses server-side. Writes nothing to the catalog."
+                    >
+                        {diagnosing ? 'Diagnosing...' : 'Diagnose v1-v4'}
+                    </button>
+                </div>
             </div>
 
             <div className="ogdams-sme-note">

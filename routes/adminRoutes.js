@@ -124,7 +124,7 @@ import PriceOverride from "../models/PriceOverride.js";
 import AdminPricingOverride from "../models/AdminPricingOverride.js";
 import SystemSetting from "../models/SystemSetting.js";
 import { smartFetchDataPlans } from "../services/switcher.js";
-import { MTN_DATA_GIFTING_PLAN_IDS } from "../services/providers/ogdams.js";
+import { MTN_DATA_GIFTING_PLAN_IDS, diagnoseOgdamsDataPlanVersions } from "../services/providers/ogdams.js";
 import fs from "fs";
 import ApiLog from "../models/ApiLog.js";
 import PricingSettings from "../models/PricingSettings.js";
@@ -802,6 +802,23 @@ router.post("/data-plans/ogdams-sme/sync", async (req, res) => {
     } catch (err) {
         console.error("Ogdams Sync Error:", err);
         res.status(500).json({ message: "Error syncing Ogdams plans: " + err.message });
+    }
+});
+
+// Diagnostic only -- does not write anything to the catalog. Probes
+// /get/data/plans v1-v4 (Ogdams support suggested trying the other versions
+// after v1 kept returning zero plans) and logs each raw response body
+// server-side, since the docs don't supply a shape for v2-v4 to parse
+// against. Returns a small summary so the admin can see item counts without
+// digging through logs, but the actual investigation happens in the logs.
+router.get("/data-plans/ogdams-sme/diagnose", async (req, res) => {
+    try {
+        console.log("[Admin] Starting Ogdams /get/data/plans version diagnosis...");
+        const results = await diagnoseOgdamsDataPlanVersions();
+        res.json({ message: "Diagnosis complete -- see server logs for raw response bodies", results });
+    } catch (err) {
+        console.error("Ogdams Diagnose Error:", err);
+        res.status(500).json({ message: "Error diagnosing Ogdams plan versions: " + err.message });
     }
 });
 
