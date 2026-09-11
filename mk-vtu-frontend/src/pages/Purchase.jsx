@@ -545,10 +545,19 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                   <div className="purchase-input-group">
                     <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data Category</label>
                     <div className="data-category-chips">
-                      {['all', ...new Set(dataPlans
+                      {['all', ...[...new Set(dataPlans
                         .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge' || p.provider === 'smeplug') : p.provider === 'clubkonnect')
                         .map(p => p.category || 'Direct')
-                      )]
+                      )].sort((a, b) => {
+                        // SME Xtra (SmePlug) always leads the tab list, right
+                        // after "All Plans" -- everything else keeps its
+                        // original (price-derived) relative order.
+                        const aFirst = a.toLowerCase() === 'giftingxtra';
+                        const bFirst = b.toLowerCase() === 'giftingxtra';
+                        if (aFirst && !bFirst) return -1;
+                        if (bFirst && !aFirst) return 1;
+                        return 0;
+                      })]
                       .filter(catId => {
                         // Hide DISABLED/HIDDEN categories
                         if (catId === 'all') return true;
