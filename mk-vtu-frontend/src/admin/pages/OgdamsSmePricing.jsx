@@ -142,7 +142,10 @@ const OgdamsSmePricing = ({ token }) => {
         try {
             const res = await API.get('/api/admin/data-plans/ogdams-sme/diagnose');
             const summary = (res.data.results || [])
-                .map((r) => r.success ? `${r.version}: ${r.itemCount ?? 0} item(s)` : `${r.version}: failed (${r.errorCode || r.httpStatus || 'error'})`)
+                .map((r) => {
+                    if (r.version === 'outbound_ip') return `Server outbound IP: ${r.outboundIp || 'unknown'} (whitelist this in Ogdams -> Security -> Whitelist IP if plans stay empty)`;
+                    return r.success ? `${r.version}: ${r.itemCount ?? 0} item(s)` : `${r.version}: failed (${r.errorCode || r.httpStatus || 'error'})`;
+                })
                 .join('\n');
             alert(`Diagnosis complete -- check server logs for full raw responses.\n\n${summary}`);
         } catch (err) {
