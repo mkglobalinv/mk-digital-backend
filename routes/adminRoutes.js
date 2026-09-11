@@ -842,6 +842,22 @@ router.post("/data-plans/ogdams-sme/sync", async (req, res) => {
 // Fast, SmePlug-only sync -- same pattern as syncOgdamsMtnPlans above, fetches
 // just the 8 user-selected MTN Data Gifting plans from SmePlug.
 async function syncSmeplugMtnPlans() {
+    // SmePlug pricing is manual-only (no admin UI to save a V3 rule for it --
+    // see mk-vtu-frontend/.../SmeplugGiftingPricing.jsx), but the storefront's
+    // GET /api/vtu/data-plans/:network still gates on "does ANY active
+    // PricingRule exist for this network+category" before showing ANYTHING in
+    // it (see calculateBulkDataPrices in services/pricing/vtuPricing.js) --
+    // it never actually applies this rule's percentages, since a plan's own
+    // selling_price/reseller_price/vip_price/premium_price (set via the Edit
+    // button) are used directly. $setOnInsert so a real rule saved through
+    // some other path is never overwritten; this only fills the gap when none
+    // exists yet.
+    await PricingRule.findOneAndUpdate(
+        { network: 'MTN', category: 'GiftingXtra', provider: 'smeplug' },
+        { $setOnInsert: { network: 'MTN', category: 'GiftingXtra', provider: 'smeplug', retailPercentage: 0, basicPercentage: 0, vipPercentage: 0, isActive: true } },
+        { upsert: true, setDefaultsOnInsert: true }
+    );
+
     const plans = await smartFetchDataPlans('MTN', 'smeplug');
     let added = 0;
     let updated = 0;
