@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCcw, Edit2, Check, X, Info, Percent } from 'lucide-react';
+import { RefreshCcw, Edit2, Check, X, Info } from 'lucide-react';
 import API from '../../api';
 import './DataPlanPricing.css';
 import './OgdamsSmePricing.css';
-
-const SMEPLUG_RULE_NETWORK = 'MTN';
-const SMEPLUG_RULE_CATEGORY = 'GiftingXtra';
 
 // Independent pricing page for the 8 user-selected SmePlug MTN Data Gifting
 // plans (services/providers/smeplug.js's MTN_DATA_GIFTING_PLAN_IDS). Each row
@@ -13,9 +10,14 @@ const SMEPLUG_RULE_CATEGORY = 'GiftingXtra';
 // from the matching Peyflex/Ogdams plan's DataPlan document -- editing a row
 // here can never change a Peyflex or Ogdams price, and vice versa.
 //
-// Mirrors OgdamsSmePricing.jsx exactly -- same CSS classes, same "sync then
-// apply V3 rule" flow -- SmePlug is Ogdams' replacement in this catalog, not
-// a second independent thing to relearn.
+// Deliberately manual pricing only -- no V3 percentage rule on this page.
+// "Sync SmePlug Plans" pulls in new plans and refreshes each plan's cost
+// (api_price) from SmePlug, but never touches a plan's saved selling/
+// reseller/vip/premium price; the only way those change is the per-row Edit
+// button below. An underlying PricingRule row for MTN/GiftingXtra was
+// created earlier (when this page briefly had the same V3 rule as Ogdams)
+// and stays active purely so the storefront's "is a pricing rule configured
+// for this category" gate passes -- its percentages are never applied here.
 const SmeplugGiftingPricing = ({ token }) => {
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,11 +25,6 @@ const SmeplugGiftingPricing = ({ token }) => {
 
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({ api_price: '', selling_price: '', reseller_price: '', vip_price: '', premium_price: '' });
-
-    const [rule, setRule] = useState(null);
-    const [ruleForm, setRuleForm] = useState({ retailPercentage: 10, basicPercentage: 8, vipPercentage: 5, isActive: true });
-    const [ruleLoading, setRuleLoading] = useState(true);
-    const [ruleSaving, setRuleSaving] = useState(false);
 
     const fetchPlans = async () => {
         setLoading(true);
@@ -42,75 +39,18 @@ const SmeplugGiftingPricing = ({ token }) => {
         }
     };
 
-    const fetchRule = async () => {
-        setRuleLoading(true);
-        try {
-            const res = await API.get('/api/admin/pricing-rules', {
-                params: { network: SMEPLUG_RULE_NETWORK, category: SMEPLUG_RULE_CATEGORY, provider: 'smeplug' }
-            });
-            const existing = (res.data || [])[0] || null;
-            setRule(existing);
-            if (existing) {
-                setRuleForm({
-                    retailPercentage: existing.retailPercentage,
-                    basicPercentage: existing.basicPercentage,
-                    vipPercentage: existing.vipPercentage,
-                    isActive: existing.isActive
-                });
-            }
-        } catch (err) {
-            console.error('Failed to fetch SmePlug pricing rule', err);
-        } finally {
-            setRuleLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchPlans(); fetchRule(); }, []);
+    useEffect(() => { fetchPlans(); }, []);
 
     // Fast, SmePlug-only sync (a single call to SmePlug's plan list -- not the
     // slow, multi-provider /data-plans/sync used by "Legacy Data Pricing").
-    const syncSmeplug = async () => {
-        const res = await API.post('/api/admin/data-plans/smeplug-gifting/sync', {});
-        return res.data;
-    };
-
-    const saveRule = async (e) => {
-        e.preventDefault();
-        setRuleSaving(true);
-        setSyncing(true);
-        try {
-            // Sync first so the rule is applied against each plan's latest cost
-            // from SmePlug, and any not-yet-synced plan gets created before
-            // pricing is computed for it -- one click does both.
-            const syncResult = await syncSmeplug();
-
-            const res = await API.post('/api/admin/pricing-rules', {
-                network: SMEPLUG_RULE_NETWORK,
-                category: SMEPLUG_RULE_CATEGORY,
-                provider: 'smeplug',
-                retailPercentage: Number(ruleForm.retailPercentage),
-                basicPercentage: Number(ruleForm.basicPercentage),
-                vipPercentage: Number(ruleForm.vipPercentage),
-                isActive: ruleForm.isActive
-            });
-            setRule(res.data.rule);
-            const combinedMsg = syncResult.combined ? `, Combined: ${syncResult.combined}` : '';
-            alert(`Synced (Added: ${syncResult.added}, Updated: ${syncResult.updated}${combinedMsg}) and pricing rule applied to all SmePlug plans.`);
-            fetchPlans();
-        } catch (err) {
-            alert('Failed to sync/save pricing rule: ' + (err.response?.data?.message || err.message));
-        } finally {
-            setRuleSaving(false);
-            setSyncing(false);
-        }
-    };
-
+    // Only updates cost/name/size on existing plans (never a saved price) and
+    // creates any not-yet-synced plan with a starting price of cost + 20,
+    // ready for you to edit manually below.
     const handleSync = async () => {
         setSyncing(true);
         try {
-            const res = await syncSmeplug();
-            const combinedMsg = res.combined ? `, Combined (duplicates deactivated): ${res.combined}` : '';
-            alert(`Sync complete! Added: ${res.added}, Updated: ${res.updated}${combinedMsg}`);
+            const res = await API.post('/api/admin/data-plans/smeplug-gifting/sync', {});
+            alert(`Sync complete! Added: ${res.data.added}, Updated: ${res.data.updated}`);
             fetchPlans();
         } catch (err) {
             alert('Sync failed: ' + (err.response?.data?.message || err.message));
@@ -176,64 +116,13 @@ const SmeplugGiftingPricing = ({ token }) => {
                 <span>
                     These plans are fulfilled by <b>SmePlug</b> (MTN Data Gifting) and shown to customers under their own
                     <b> "SME Xtra"</b> category -- deliberately separate from the "SME" category (Peyflex/ClubKonnect's Gifting plans)
-                    so it's easy to identify and toggle off later without touching anything else. Pricing here is completely independent
-                    from the Peyflex plans on "Legacy Data Pricing" / "V3 Pricing Rules" and from the (disabled) Ogdams plans -- saving
-                    the rule below, or editing a price in the table, never changes another provider's plan, and vice versa.
+                    so it's easy to identify and toggle off later without touching anything else. <b>Pricing here is manual only --
+                    no percentage rule.</b> Tap <b>Edit</b> on a row to set its exact Retail/Basic/VIP/Premium prices; "Sync SmePlug
+                    Plans" only refreshes cost and adds newly-selected plans, it never changes a price you've already set.
                     <b> Retail</b> is what a direct customer pays; <b>Basic</b> and <b>VIP</b> are what a reseller (including white-label
                     reseller websites) pays at each tier, unless that reseller has a specific price override; <b>Premium</b> is the top
                     reseller tier.
                 </span>
-            </div>
-
-            <div className="ogdams-sme-rule-card">
-                <h3><Percent size={16} /> V3 Pricing Rule (SmePlug MTN Data Gifting)</h3>
-                <p className="ogdams-sme-rule-desc">
-                    Same engine as "V3 Pricing Rules" for Peyflex, scoped only to SmePlug's MTN Data Gifting plans. Set a
-                    percentage markup here -- this button syncs SmePlug's plans first (fast, SmePlug-only, unlike the slower
-                    button above) and then recalculates Retail/Basic/VIP/Premium for all of them from cost, in one click.
-                    Never touches Peyflex's or Ogdams' MTN Gifting rule or plans.
-                </p>
-                {ruleLoading ? (
-                    <div className="loading-state">Loading rule...</div>
-                ) : (
-                    <form onSubmit={saveRule} className="ogdams-sme-rule-form">
-                        <div className="ogdams-sme-rule-field">
-                            <label>Retail %</label>
-                            <input
-                                type="number" step="0.01" required
-                                value={ruleForm.retailPercentage}
-                                onChange={(e) => setRuleForm({ ...ruleForm, retailPercentage: e.target.value })}
-                            />
-                        </div>
-                        <div className="ogdams-sme-rule-field">
-                            <label>Basic %</label>
-                            <input
-                                type="number" step="0.01" required
-                                value={ruleForm.basicPercentage}
-                                onChange={(e) => setRuleForm({ ...ruleForm, basicPercentage: e.target.value })}
-                            />
-                        </div>
-                        <div className="ogdams-sme-rule-field">
-                            <label>VIP %</label>
-                            <input
-                                type="number" step="0.01" required
-                                value={ruleForm.vipPercentage}
-                                onChange={(e) => setRuleForm({ ...ruleForm, vipPercentage: e.target.value })}
-                            />
-                        </div>
-                        <label className="ogdams-sme-rule-active">
-                            <input
-                                type="checkbox"
-                                checked={ruleForm.isActive}
-                                onChange={(e) => setRuleForm({ ...ruleForm, isActive: e.target.checked })}
-                            />
-                            Rule Active
-                        </label>
-                        <button type="submit" className="sync-btn" disabled={ruleSaving}>
-                            {ruleSaving ? 'Syncing & Applying...' : rule ? 'Sync & Save' : 'Sync & Create'}
-                        </button>
-                    </form>
-                )}
             </div>
 
             <div className="table-responsive">
