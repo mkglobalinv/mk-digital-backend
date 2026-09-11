@@ -1394,11 +1394,18 @@ app.get("/api/vtu/data-plans/:network", auth, async (req, res) => {
             return res.json([]);
         }
 
+        // Temporary diagnostic: pinpointing why smeplug plans aren't reaching
+        // the storefront -- logs the provider breakdown at each filter stage
+        // so the answer comes from real request data, not screenshots. Remove
+        // once resolved.
+        const smeplugRaw = plans.filter((p) => p.provider === 'smeplug');
+        console.log(`[VTU Diagnose] ${network}/${category || 'all'}: ${plans.length} active DB plan(s) total, ${smeplugRaw.length} from smeplug: [${smeplugRaw.map((p) => `${p.plan_size}/${p.validity}/₦${p.api_price}`).join(', ')}]`);
+
         const providerCategories = await ProviderCategory.find({}).lean();
 
         const validPlans = plans.filter(p => {
             const compositeName = `${network} ${p.category || 'Direct'}`;
-            const config = providerCategories.find(c => 
+            const config = providerCategories.find(c =>
                 c.category_name.toLowerCase() === compositeName.toLowerCase() &&
                 c.provider_name.toLowerCase() === (p.provider || '').toLowerCase()
             );
@@ -1407,7 +1414,13 @@ app.get("/api/vtu/data-plans/:network", auth, async (req, res) => {
             return true;
         });
 
+        const smeplugAfterCategoryFilter = validPlans.filter((p) => p.provider === 'smeplug');
+        console.log(`[VTU Diagnose] After ProviderCategory filter: ${validPlans.length} plan(s), ${smeplugAfterCategoryFilter.length} from smeplug`);
+
         const bulkPrices = await calculateBulkDataPrices(req.user.id, validPlans, network);
+
+        const smeplugAfterPricing = bulkPrices.filter((bp) => bp.plan.provider === 'smeplug');
+        console.log(`[VTU Diagnose] After pricing: ${smeplugAfterPricing.length} smeplug plan(s), sellingPrice=[${smeplugAfterPricing.map((bp) => bp.sellingPrice).join(', ')}], errors=[${smeplugAfterPricing.map((bp) => bp.error || 'none').join(', ')}]`);
 
         const formattedPlans = bulkPrices.filter(p => p.sellingPrice !== null).map(({ plan: p, sellingPrice }) => {
             return {
