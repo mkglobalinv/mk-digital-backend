@@ -287,6 +287,39 @@ export async function getOgdamsDataPlans() {
     return { success: true, plans: normalized };
 }
 
+/**
+ * Diagnostic only: probes /get/data/plans, v2, v3 and v4 and logs each raw
+ * response server-side (no assumed shape, since the docs don't supply one for
+ * v2-v4 -- "different grouping/extra fields" is all that's documented).
+ * Ogdams support suggested trying these after v1 kept returning zero plans
+ * for this account. Never called from the normal sync path; only from the
+ * dedicated diagnostic admin route. Returns a small summary per version
+ * (success, HTTP status, and how many top-level items came back) so the
+ * admin route has something to show without duplicating the raw log output.
+ */
+export async function diagnoseOgdamsDataPlanVersions() {
+    const versions = [
+        { label: "v1", path: "/get/data/plans" },
+        { label: "v2", path: "/get/data/plans/v2" },
+        { label: "v3", path: "/get/data/plans/v3" },
+        { label: "v4", path: "/get/data/plans/v4" }
+    ];
+    const results = [];
+    for (const { label, path } of versions) {
+        const result = await ogdamsGet(path);
+        if (!result.success) {
+            console.log(`[Ogdams] Diagnose ${label} (${path}): request failed -- ${result.errorCode || "unknown"} (httpStatus=${result.httpStatus ?? "n/a"})`);
+            results.push({ version: label, path, success: false, errorCode: result.errorCode, httpStatus: result.httpStatus });
+            continue;
+        }
+        console.log(`[Ogdams] Diagnose ${label} (${path}) raw response:`, JSON.stringify(result.data));
+        const msg = result.data?.data?.msg;
+        const itemCount = Array.isArray(msg) ? msg.length : (msg && typeof msg === "object" ? Object.keys(msg).length : null);
+        results.push({ version: label, path, success: true, httpStatus: result.httpStatus, itemCount, isArray: Array.isArray(msg) });
+    }
+    return results;
+}
+
 // Confirmed directly by Ogdams support (not inferred, not guessed): these are
 // the account's official MTN Data Gifting plan IDs. Gifting is fulfilled from
 // the connected MTN SIM's own airtime/MoMo balance -- the Ogdams wallet is
