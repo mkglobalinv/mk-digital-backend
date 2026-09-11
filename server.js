@@ -611,6 +611,17 @@ if (process.env.NODE_ENV !== 'test') {
 }
 // -----------------------------------------------------------------
 
+// --- NEW INSERTION: SMEPLUG PROVIDER (Strictly Additive) ---
+import { validateSmeplugConfig, ensureSmeplugProviderStatus } from "./services/providers/smeplug.js";
+if (process.env.NODE_ENV !== 'test') {
+    const smeplugStatus = validateSmeplugConfig();
+    if (smeplugStatus.enabled) {
+        console.log(`[SmePlug] Provider enabled. Configured: ${smeplugStatus.configured}`);
+    }
+    ensureSmeplugProviderStatus();
+}
+// -----------------------------------------------------------------
+
 // --- RESELLER ONBOARDING & ACTIVATION (MUST BE BEFORE /api/reseller ROUTER) ---
 app.post("/api/reseller/activate-intent", auth, async (req, res) => {
     try {
