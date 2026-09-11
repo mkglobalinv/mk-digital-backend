@@ -12,6 +12,7 @@ import DataPlan from "../models/DataPlan.js";
 import { handleProviderTransactionSuccess, handleProviderTransactionFailure } from "./providerMonitoringService.js";
 import { fetchDataPlansFromPeyflex } from "./providers/peyflex.js";
 import { buyDataWithOgdams, getOgdamsMtnGiftingPlans } from "./providers/ogdams.js";
+import { buyDataWithSmeplug, getSmeplugMtnGiftingPlans } from "./providers/smeplug.js";
 
 const dataPlanCache = { smart: {}, value: {} };
 const CACHE_TTL = 5 * 60 * 1000;
@@ -127,6 +128,10 @@ export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, 
             // provider to 'ogdams' -- there is no automatic primary/priority
             // promotion here, matching "do not automatically make Ogdams primary."
             result = await buyDataWithOgdams(networkId || network, dataPlan, phone, transactionId);
+        } else if (pName === 'smeplug') {
+            // Same posture as Ogdams above: smeplug is never reached unless an
+            // admin explicitly sets a DataPlan's provider to 'smeplug'.
+            result = await buyDataWithSmeplug(networkId || network, dataPlan, phone, transactionId);
         } else {
             result = await buyDataWithPeyflex(networkId || network, dataPlan, phone, category);
         }
@@ -251,6 +256,30 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
                 }
             } catch (e) { }
         }
+    } else if (option === 'smeplug') {
+        // Same posture as the 'ogdams' branch above: MTN data only, deliberately
+        // not fetched for any other network, returns [] (not a throw) for a
+        // non-MTN network or a real fetch failure so a multi-provider sync loop
+        // can never abort because of smeplug.
+        if (network.toUpperCase() === 'MTN') {
+            try {
+                // getSmeplugMtnGiftingPlans() (not the unfiltered getSmeplugDataPlans)
+                // -- restricts sync to only the confirmed MTN Data Gifting plan
+                // IDs the user selected, per current scope (Gifting only).
+                const result = await getSmeplugMtnGiftingPlans();
+                if (result && result.success && result.plans) {
+                    allPlans = result.plans.map((p) => ({
+                        provider: 'smeplug',
+                        plan_id: p.planId,
+                        plan_code: p.planId,
+                        name: p.name,
+                        price: p.price,
+                        validity: p.validity || '30 Days',
+                        label: `${p.name} - ₦${p.price}`
+                    }));
+                }
+            } catch (e) { }
+        }
     } else {
         for (const id of identifiers) {
             try {
@@ -281,7 +310,7 @@ export const smartFetchDataPlans = async (network, option = 'smart') => {
     // expected to just mean "no plans from Ogdams right now", not an error that
     // should abort routes/adminRoutes.js's /data-plans/sync loop for every other
     // provider/network pair it still needs to process.
-    if (option === 'ogdams') return [];
+    if (option === 'ogdams' || option === 'smeplug') return [];
     throw new Error(`No data plans available for this network on the ${option} option.`);
 };
 

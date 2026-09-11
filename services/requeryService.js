@@ -6,6 +6,7 @@ import { requeryClubkonnect } from "./providers/clubkonnect.js";
 // import { requeryVTPass } from "./providers/vtpass.js";
 import { requeryPeyflex } from "./providers/peyflex.js";
 import { requeryOgdams } from "./providers/ogdams.js";
+import { requerySmeplug } from "./providers/smeplug.js";
 // billsplash provider decommissioned — stubs preserve requery logic without crashing
 const requeryBillsplash = async () => ({ status: 'pending', message: 'Billsplash decommissioned' });
 const pollIPEStatus    = async () => ({ done: false,       message: 'Billsplash decommissioned' });
@@ -67,6 +68,13 @@ export const resolvePendingTransaction = async (transaction, overrideResult = nu
             // the webhook route (routes/webhookRoutes.js POST /ogdams) is the
             // only real resolution path, same as PeyFlex above.
             result = await requeryOgdams(transaction.reference);
+        } else if (provider === 'smeplug') {
+            // Unlike Ogdams, SmePlug documents a real transaction-status endpoint
+            // (GET /transactions/{reference}) -- requerySmeplug() actually polls
+            // it, so this can resolve a 'pending'/'unknown' transaction without
+            // needing the webhook, though the webhook route (routes/webhookRoutes.js
+            // POST /smeplug) still resolves it faster when delivered.
+            result = await requerySmeplug(transaction.reference);
         } else if (provider === 'billsplash') {
             // For IPE clearance transactions, use trackingID polling (done=true → success)
             if (transaction.api_response && transaction.api_response.trackingID) {

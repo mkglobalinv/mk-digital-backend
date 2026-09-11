@@ -124,7 +124,8 @@ import PriceOverride from "../models/PriceOverride.js";
 import AdminPricingOverride from "../models/AdminPricingOverride.js";
 import SystemSetting from "../models/SystemSetting.js";
 import { smartFetchDataPlans } from "../services/switcher.js";
-import { MTN_DATA_GIFTING_PLAN_IDS, diagnoseOgdamsDataPlanVersions } from "../services/providers/ogdams.js";
+import { MTN_DATA_GIFTING_PLAN_IDS as OGDAMS_MTN_DATA_GIFTING_PLAN_IDS, diagnoseOgdamsDataPlanVersions } from "../services/providers/ogdams.js";
+import { MTN_DATA_GIFTING_PLAN_IDS as SMEPLUG_MTN_DATA_GIFTING_PLAN_IDS } from "../services/providers/smeplug.js";
 import fs from "fs";
 import ApiLog from "../models/ApiLog.js";
 import PricingSettings from "../models/PricingSettings.js";
@@ -633,11 +634,26 @@ function mergeOgdamsSmePlans(existingPlans, whitelist) {
 router.get("/data-plans/ogdams-sme", async (req, res) => {
     try {
         const existingPlans = await DataPlan.find({ provider: 'ogdams', network: 'MTN', category: 'Gifting' }).lean();
-        const plans = mergeOgdamsSmePlans(existingPlans, MTN_DATA_GIFTING_PLAN_IDS);
+        const plans = mergeOgdamsSmePlans(existingPlans, OGDAMS_MTN_DATA_GIFTING_PLAN_IDS);
         res.json({ plans });
     } catch (err) {
         console.error("[Admin API] Error fetching Ogdams SME plans:", err);
         res.status(500).json({ message: "Error fetching Ogdams SME plans: " + err.message });
+    }
+});
+
+// Same independent view as GET /data-plans/ogdams-sme above, but for SmePlug's
+// user-selected MTN Gifting plan IDs (services/providers/smeplug.js's
+// MTN_DATA_GIFTING_PLAN_IDS). mergeOgdamsSmePlans() is fully generic (takes
+// any existingPlans+whitelist pair) so it's reused as-is, no duplicate needed.
+router.get("/data-plans/smeplug-gifting", async (req, res) => {
+    try {
+        const existingPlans = await DataPlan.find({ provider: 'smeplug', network: 'MTN', category: 'Gifting' }).lean();
+        const plans = mergeOgdamsSmePlans(existingPlans, SMEPLUG_MTN_DATA_GIFTING_PLAN_IDS);
+        res.json({ plans });
+    } catch (err) {
+        console.error("[Admin API] Error fetching SmePlug Gifting plans:", err);
+        res.status(500).json({ message: "Error fetching SmePlug Gifting plans: " + err.message });
     }
 });
 
@@ -683,13 +699,13 @@ function dataPlanMatchKey(planSize, validity) {
 // extracted so both stay in sync instead of drifting apart.
 async function upsertDataPlanFromProviderPlan(p, network) {
     let category = 'Direct';
-    if (p.provider === 'ogdams') {
-        // Every plan getOgdamsMtnGiftingPlans() returns is, by construction,
-        // one of the confirmed MTN Data Gifting plan IDs -- never derived
-        // from name-substring matching for this provider, since Ogdams' own
-        // plan name text isn't guaranteed to say "gifting" and guessing it
-        // from the name would be exactly the kind of assumption this
-        // integration was told not to make.
+    if (p.provider === 'ogdams' || p.provider === 'smeplug') {
+        // Every plan getOgdamsMtnGiftingPlans()/getSmeplugMtnGiftingPlans()
+        // returns is, by construction, one of the confirmed MTN Data Gifting
+        // plan IDs -- never derived from name-substring matching for these
+        // providers, since their own plan name text isn't guaranteed to say
+        // "gifting" and guessing it from the name would be exactly the kind
+        // of assumption this integration was told not to make.
         category = 'Gifting';
     } else {
         const nLower = String(p.name || '').toLowerCase();
@@ -740,41 +756,43 @@ async function upsertDataPlanFromProviderPlan(p, network) {
     }
 }
 
-// Combine catalog: an Ogdams MTN Data Gifting plan that matches an existing
-// MTN Gifting-category plan from another provider -- by exact data volume +
-// validity -- is the customer-facing "same plan" as that other provider's
-// version. Rather than showing two duplicate plans for the same bundle,
-// deactivate the non-Ogdams duplicate (via the existing, already
-// admin-editable DataPlan.status flag) and let the Ogdams plan represent it
-// going forward. Any non-Ogdams Gifting plan with no matching Ogdams plan is
-// left completely untouched. Shared by the full sync route and the fast,
-// Ogdams-only sync below.
-async function combineOgdamsCatalog() {
+// Combine catalog: a `providerName` MTN Data Gifting plan that matches an
+// existing MTN Gifting-category plan from another provider -- by exact data
+// volume + validity -- is the customer-facing "same plan" as that other
+// provider's version. Rather than showing two duplicate plans for the same
+// bundle, deactivate the other provider's duplicate (via the existing,
+// already admin-editable DataPlan.status flag) and let `providerName`'s plan
+// represent it going forward. Any other Gifting plan with no match is left
+// completely untouched. Shared by the full sync route and each provider's
+// own fast sync (syncOgdamsMtnPlans, syncSmeplugMtnPlans).
+async function combineProviderCatalog(providerName) {
     let combined = 0;
     try {
-        const ogdamsGiftingPlans = await DataPlan.find({ provider: 'ogdams', network: 'MTN', category: 'Gifting', status: true });
-        if (ogdamsGiftingPlans.length > 0) {
-            const otherGiftingPlans = await DataPlan.find({ provider: { $ne: 'ogdams' }, network: 'MTN', category: 'Gifting', status: true });
-            for (const ogPlan of ogdamsGiftingPlans) {
-                const ogKey = dataPlanMatchKey(ogPlan.plan_size, ogPlan.validity);
-                if (!ogKey) continue;
+        const providerGiftingPlans = await DataPlan.find({ provider: providerName, network: 'MTN', category: 'Gifting', status: true });
+        if (providerGiftingPlans.length > 0) {
+            const otherGiftingPlans = await DataPlan.find({ provider: { $ne: providerName }, network: 'MTN', category: 'Gifting', status: true });
+            for (const ownPlan of providerGiftingPlans) {
+                const ownKey = dataPlanMatchKey(ownPlan.plan_size, ownPlan.validity);
+                if (!ownKey) continue;
                 for (const other of otherGiftingPlans) {
                     if (other.status === false) continue; // already deactivated by an earlier match this run
                     const otherKey = dataPlanMatchKey(other.plan_size, other.validity);
-                    if (otherKey && otherKey === ogKey) {
+                    if (otherKey && otherKey === ownKey) {
                         other.status = false;
                         await other.save();
                         combined++;
-                        console.log(`[Sync] Combined catalog: deactivated duplicate ${other.provider} MTN Gifting plan "${other.plan_name}" (matches Ogdams plan "${ogPlan.plan_name}")`);
+                        console.log(`[Sync] Combined catalog: deactivated duplicate ${other.provider} MTN Gifting plan "${other.plan_name}" (matches ${providerName} plan "${ownPlan.plan_name}")`);
                     }
                 }
             }
         }
     } catch (err) {
-        console.error("[Sync] Combine catalog step failed (non-fatal):", err.message);
+        console.error(`[Sync] Combine catalog step failed for ${providerName} (non-fatal):`, err.message);
     }
     return combined;
 }
+const combineOgdamsCatalog = () => combineProviderCatalog('ogdams');
+const combineSmeplugCatalog = () => combineProviderCatalog('smeplug');
 
 // Fast, Ogdams-only sync: fetches just the 9 confirmed MTN Data Gifting
 // plans from Ogdams (one HTTP call), upserts their DataPlan documents, then
@@ -805,6 +823,31 @@ router.post("/data-plans/ogdams-sme/sync", async (req, res) => {
     }
 });
 
+// Fast, SmePlug-only sync -- same pattern as syncOgdamsMtnPlans above, fetches
+// just the 8 user-selected MTN Data Gifting plans from SmePlug.
+async function syncSmeplugMtnPlans() {
+    const plans = await smartFetchDataPlans('MTN', 'smeplug');
+    let added = 0;
+    let updated = 0;
+    for (const p of plans || []) {
+        const result = await upsertDataPlanFromProviderPlan(p, 'MTN');
+        if (result) result.created ? added++ : updated++;
+    }
+    const combined = await combineSmeplugCatalog();
+    return { added, updated, combined };
+}
+
+router.post("/data-plans/smeplug-gifting/sync", async (req, res) => {
+    try {
+        console.log("[Admin] Starting SmePlug-only MTN Gifting sync...");
+        const { added, updated, combined } = await syncSmeplugMtnPlans();
+        res.json({ message: "SmePlug sync complete", added, updated, combined });
+    } catch (err) {
+        console.error("SmePlug Sync Error:", err);
+        res.status(500).json({ message: "Error syncing SmePlug plans: " + err.message });
+    }
+});
+
 // Diagnostic only -- does not write anything to the catalog. Probes
 // /get/data/plans v1-v4 (Ogdams support suggested trying the other versions
 // after v1 kept returning zero plans) and logs each raw response body
@@ -826,10 +869,10 @@ router.post("/data-plans/sync", async (req, res) => {
     try {
         console.log("[Admin] Starting Data Plan Sync...");
         const networks = ['MTN', 'GLO', 'AIRTEL', '9MOBILE'];
-        // 'ogdams' is scoped to MTN only for now (see smartFetchDataPlans) --
-        // it safely no-ops (returns []) for GLO/AIRTEL/9MOBILE rather than
-        // fetching anything for them.
-        const options = ['smart', 'value', 'ogdams'];
+        // 'ogdams'/'smeplug' are scoped to MTN only for now (see
+        // smartFetchDataPlans) -- they safely no-op (return []) for
+        // GLO/AIRTEL/9MOBILE rather than fetching anything for them.
+        const options = ['smart', 'value', 'ogdams', 'smeplug'];
         let added = 0;
         let updated = 0;
 
@@ -845,7 +888,7 @@ router.post("/data-plans/sync", async (req, res) => {
             }
         }
 
-        const combined = await combineOgdamsCatalog();
+        const combined = (await combineOgdamsCatalog()) + (await combineSmeplugCatalog());
 
         for (const p of JARAPOINT_PLANS) {
             const apiPrice = Number(p.price) || 0;
@@ -1182,7 +1225,7 @@ router.post("/diagnostics/email", requireOwner, executeEmailDiagnosticTest);
 router.post("/providers/:name/reset-failures", async (req, res) => {
     try {
         const { name } = req.params;
-        const validProviders = ['peyflex', 'clubkonnect', 'reloadly', 'ogdams'];
+        const validProviders = ['peyflex', 'clubkonnect', 'reloadly', 'ogdams', 'smeplug'];
         if (!validProviders.includes(name)) {
             return res.status(400).json({ message: `Unknown provider: ${name}. Valid: ${validProviders.join(', ')}` });
         }

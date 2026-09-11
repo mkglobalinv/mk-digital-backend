@@ -109,4 +109,47 @@ router.post("/ogdams", async (req, res) => {
     }
 });
 
+// ============================================================================
+// SmePlug webhook -- documented payload shape (Transaction Webhook section):
+// {"transaction": {status, reference, customer_reference, type, beneficiary,
+// memo, response, price}}. Set from the SmePlug dashboard's settings page.
+//
+// IMPORTANT DOCUMENTED GAP: no signature header or HMAC scheme was supplied
+// in the docs (unlike Ogdams' `ogdams-simhosting-signature`), so this webhook
+// CANNOT verify the request actually came from SmePlug -- it is trusted
+// as-is. It only ever resolves a transaction already sitting in
+// pending/unknown for the given reference (resolveTransactionByReference's
+// own guard), and only to a status this codebase's own convention
+// recognizes, so the worst a forged delivery can do is flip an already-
+// pending transaction to failed/success early -- it can never fabricate a
+// brand-new transaction. If SmePlug's dashboard later reveals a webhook
+// secret/signature header, this is the only place that needs to change.
+// ============================================================================
+export const normalizeSmeplugWebhookStatus = (body) => {
+    const raw = String(body?.transaction?.status ?? body?.status ?? "").toLowerCase();
+    if (["success", "successful", "completed", "delivered"].includes(raw)) return "success";
+    if (["failed", "failure", "declined", "error", "cancelled", "canceled"].includes(raw)) return "failed";
+    return null; // ambiguous / unrecognized / still pending — never guessed
+};
+
+router.post("/smeplug", async (req, res) => {
+    try {
+        const transaction = req.body?.transaction || req.body;
+        const reference = transaction?.customer_reference || transaction?.reference;
+        const normalizedStatus = normalizeSmeplugWebhookStatus(req.body);
+        console.log(`[Webhook] SmePlug triggered for reference: ${reference} | status: ${transaction?.status} -> ${normalizedStatus || 'unrecognized/pending'}`);
+
+        if (reference && normalizedStatus) {
+            // resolveTransactionByReference is itself idempotent -- it only acts on
+            // a transaction still in pending/unknown, so a duplicate/replayed
+            // webhook delivery for an already-resolved transaction is a safe no-op.
+            await resolveTransactionByReference(reference, { status: normalizedStatus, data: req.body });
+        }
+        res.status(200).send("OK");
+    } catch (e) {
+        console.error("[Webhook Error] SmePlug:", e.message);
+        res.status(500).send("Error");
+    }
+});
+
 export default router;
