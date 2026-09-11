@@ -414,39 +414,6 @@ const connectDB = async () => {
             } catch (e) {
                 console.warn("Could not sync PricingRule indexes on startup:", e.message);
             }
-
-            // One-time self-heal: the first SmePlug sync briefly shared the
-            // 'Gifting' category with Peyflex/ClubKonnect, and its combine-
-            // catalog step deactivated 7 of their plans as "duplicates" before
-            // SmePlug was moved to its own separate 'GiftingXtra' category.
-            // They're no longer duplicates of anything -- reactivate them.
-            // Idempotent (a no-op once they're already active), safe to run
-            // on every startup.
-            try {
-                const reactivated = await DataPlan.updateMany(
-                    {
-                        network: 'MTN', category: 'Gifting', status: false,
-                        provider: { $in: ['peyflex', 'clubkonnect'] },
-                        plan_name: {
-                            $in: [
-                                '2.5GB = N650 (2 Days)12hrs YouTube Buffer',
-                                '2.5GB = N893 (2 Days)',
-                                '1.5GB Weekly Plan - 7 days (Direct Data)',
-                                '6GB Weekly Plan - 7 days (Direct Data)',
-                                '6GB = N2480 (Weekly)',
-                                '2.7GB+2mins Monthly Plan - 30 days (Direct Data)',
-                                '3.5GB+5mins Monthly Plan - 30 days (Direct Data)'
-                            ]
-                        }
-                    },
-                    { $set: { status: true } }
-                );
-                if (reactivated.modifiedCount > 0) {
-                    console.log(`[Startup] Reactivated ${reactivated.modifiedCount} Peyflex/ClubKonnect MTN Gifting plan(s) incorrectly deactivated by the earlier SmePlug combine-catalog step.`);
-                }
-            } catch (e) {
-                console.warn("Could not run SmePlug combine-catalog reactivation fix on startup:", e.message);
-            }
             break;
         } catch (err) {
             console.error("MongoDB Connection Error ❌:", err.message);
@@ -1427,13 +1394,6 @@ app.get("/api/vtu/data-plans/:network", auth, async (req, res) => {
             return res.json([]);
         }
 
-        // Temporary diagnostic: pinpointing why smeplug plans aren't reaching
-        // the storefront -- logs the provider breakdown at each filter stage
-        // so the answer comes from real request data, not screenshots. Remove
-        // once resolved.
-        const smeplugRaw = plans.filter((p) => p.provider === 'smeplug');
-        console.log(`[VTU Diagnose] ${network}/${category || 'all'}: ${plans.length} active DB plan(s) total, ${smeplugRaw.length} from smeplug: [${smeplugRaw.map((p) => `${p.plan_size}/${p.validity}/₦${p.api_price}`).join(', ')}]`);
-
         const providerCategories = await ProviderCategory.find({}).lean();
 
         const validPlans = plans.filter(p => {
@@ -1447,13 +1407,7 @@ app.get("/api/vtu/data-plans/:network", auth, async (req, res) => {
             return true;
         });
 
-        const smeplugAfterCategoryFilter = validPlans.filter((p) => p.provider === 'smeplug');
-        console.log(`[VTU Diagnose] After ProviderCategory filter: ${validPlans.length} plan(s), ${smeplugAfterCategoryFilter.length} from smeplug`);
-
         const bulkPrices = await calculateBulkDataPrices(req.user.id, validPlans, network);
-
-        const smeplugAfterPricing = bulkPrices.filter((bp) => bp.plan.provider === 'smeplug');
-        console.log(`[VTU Diagnose] After pricing: ${smeplugAfterPricing.length} smeplug plan(s), sellingPrice=[${smeplugAfterPricing.map((bp) => bp.sellingPrice).join(', ')}], errors=[${smeplugAfterPricing.map((bp) => bp.error || 'none').join(', ')}]`);
 
         const formattedPlans = bulkPrices.filter(p => p.sellingPrice !== null).map(({ plan: p, sellingPrice }) => {
             return {
