@@ -648,7 +648,7 @@ router.get("/data-plans/ogdams-sme", async (req, res) => {
 // any existingPlans+whitelist pair) so it's reused as-is, no duplicate needed.
 router.get("/data-plans/smeplug-gifting", async (req, res) => {
     try {
-        const existingPlans = await DataPlan.find({ provider: 'smeplug', network: 'MTN', category: 'Gifting' }).lean();
+        const existingPlans = await DataPlan.find({ provider: 'smeplug', network: 'MTN', category: 'GiftingXtra' }).lean();
         const plans = mergeOgdamsSmePlans(existingPlans, SMEPLUG_MTN_DATA_GIFTING_PLAN_IDS);
         res.json({ plans });
     } catch (err) {
@@ -699,14 +699,22 @@ function dataPlanMatchKey(planSize, validity) {
 // extracted so both stay in sync instead of drifting apart.
 async function upsertDataPlanFromProviderPlan(p, network) {
     let category = 'Direct';
-    if (p.provider === 'ogdams' || p.provider === 'smeplug') {
-        // Every plan getOgdamsMtnGiftingPlans()/getSmeplugMtnGiftingPlans()
-        // returns is, by construction, one of the confirmed MTN Data Gifting
-        // plan IDs -- never derived from name-substring matching for these
-        // providers, since their own plan name text isn't guaranteed to say
-        // "gifting" and guessing it from the name would be exactly the kind
-        // of assumption this integration was told not to make.
+    if (p.provider === 'ogdams') {
+        // Every plan getOgdamsMtnGiftingPlans() returns is, by construction,
+        // one of the confirmed MTN Data Gifting plan IDs -- never derived
+        // from name-substring matching for this provider, since its own
+        // plan name text isn't guaranteed to say "gifting" and guessing it
+        // from the name would be exactly the kind of assumption this
+        // integration was told not to make.
         category = 'Gifting';
+    } else if (p.provider === 'smeplug') {
+        // Deliberately its OWN category (not 'Gifting') -- SmePlug is meant
+        // to be a separate, clearly-distinguishable, easy-to-toggle-off
+        // customer-facing offering ("SME Xtra"), not blended into the same
+        // "SME" bucket as Peyflex/ClubKonnect's Gifting plans. Same
+        // never-guess-from-name reasoning as Ogdams above for WHICH plan IDs
+        // qualify (getSmeplugMtnGiftingPlans() already restricts that).
+        category = 'GiftingXtra';
     } else {
         const nLower = String(p.name || '').toLowerCase();
         if (nLower.includes('smart sme')) category = 'Smart SME';
@@ -728,6 +736,11 @@ async function upsertDataPlanFromProviderPlan(p, network) {
             existingPlan.api_price = apiPrice;
             existingPlan.plan_name = p.name || p.plan_name;
             existingPlan.plan_size = planSize;
+            // Self-heals a plan created under an old category assignment (e.g.
+            // the 8 SmePlug plans created as 'Gifting' before it got its own
+            // 'GiftingXtra' category) the next time it's synced, without
+            // needing a one-off DB migration.
+            existingPlan.category = category;
             await existingPlan.save();
             return { created: false };
         } catch (updateErr) {
@@ -792,7 +805,10 @@ async function combineProviderCatalog(providerName) {
     return combined;
 }
 const combineOgdamsCatalog = () => combineProviderCatalog('ogdams');
-const combineSmeplugCatalog = () => combineProviderCatalog('smeplug');
+// No combineSmeplugCatalog: SmePlug's plans live under their own 'GiftingXtra'
+// category (see upsertDataPlanFromProviderPlan), a deliberately separate,
+// easy-to-toggle-off customer-facing bucket -- not merged/deduped against
+// Peyflex/ClubKonnect's 'Gifting' plans the way Ogdams' were.
 
 // Fast, Ogdams-only sync: fetches just the 9 confirmed MTN Data Gifting
 // plans from Ogdams (one HTTP call), upserts their DataPlan documents, then
@@ -833,8 +849,7 @@ async function syncSmeplugMtnPlans() {
         const result = await upsertDataPlanFromProviderPlan(p, 'MTN');
         if (result) result.created ? added++ : updated++;
     }
-    const combined = await combineSmeplugCatalog();
-    return { added, updated, combined };
+    return { added, updated, combined: 0 };
 }
 
 router.post("/data-plans/smeplug-gifting/sync", async (req, res) => {
@@ -888,7 +903,7 @@ router.post("/data-plans/sync", async (req, res) => {
             }
         }
 
-        const combined = (await combineOgdamsCatalog()) + (await combineSmeplugCatalog());
+        const combined = await combineOgdamsCatalog();
 
         for (const p of JARAPOINT_PLANS) {
             const apiPrice = Number(p.price) || 0;

@@ -8,11 +8,20 @@ import { useTransactionBanner } from '../context/TransactionBannerContext';
 import './Purchase.css';
 import logo from '../assets/9jasub.jpg';
 
-// Display-only rename: the "Gifting" category (Ogdams MTN Data Gifting plans,
-// plus any existing Peyflex Gifting plans) is shown to customers as "SME".
-// The underlying category value stays "Gifting" everywhere else (filtering,
+// Display-only rename: the "Gifting" category (Peyflex/ClubKonnect/disabled-
+// Ogdams plans) is shown to customers as "SME". SmePlug's plans live under
+// their own separate "GiftingXtra" category (deliberately not merged into
+// "Gifting" -- see routes/adminRoutes.js's upsertDataPlanFromProviderPlan),
+// shown as "SME Xtra" so it's obviously related but distinguishable, and easy
+// to remove later without touching the main "SME" category at all. The
+// underlying category values stay as-is everywhere else (filtering,
 // ProviderCategory matching, React keys) -- this only changes rendered text.
-const displayCategoryLabel = (cat) => (String(cat || '').toLowerCase() === 'gifting' ? 'SME' : cat);
+const displayCategoryLabel = (cat) => {
+  const lower = String(cat || '').toLowerCase();
+  if (lower === 'giftingxtra') return 'SME Xtra';
+  if (lower === 'gifting') return 'SME';
+  return cat;
+};
 
 const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   const location = useLocation();
@@ -537,7 +546,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                     <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data Category</label>
                     <div className="data-category-chips">
                       {['all', ...new Set(dataPlans
-                        .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge') : p.provider === 'clubkonnect')
+                        .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge' || p.provider === 'smeplug') : p.provider === 'clubkonnect')
                         .map(p => p.category || 'Direct')
                       )]
                       .filter(catId => {
@@ -545,7 +554,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                         if (catId === 'all') return true;
                         const compositeName = `${network} ${catId}`;
                         // We check if ANY provider matching the current dataOption has this category as ACTIVE/VISIBLE
-                        const matchingProviders = dataOption === 'smart' ? ['peyflex', 'connectbridge'] : ['clubkonnect'];
+                        const matchingProviders = dataOption === 'smart' ? ['peyflex', 'connectbridge', 'smeplug'] : ['clubkonnect'];
                         const configs = publicCategories.filter(c => 
                           c.category_name.toLowerCase() === compositeName.toLowerCase() && 
                           matchingProviders.includes(c.provider_name.toLowerCase())
@@ -562,12 +571,12 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                         
                         // Check if maintenance
                         const compositeName = `${network} ${catId}`;
-                        const matchingProviders = dataOption === 'smart' ? ['peyflex', 'connectbridge'] : ['clubkonnect'];
-                        const configs = publicCategories.filter(c => 
-                          c.category_name.toLowerCase() === compositeName.toLowerCase() && 
+                        const matchingProviders = dataOption === 'smart' ? ['peyflex', 'connectbridge', 'smeplug'] : ['clubkonnect'];
+                        const configs = publicCategories.filter(c =>
+                          c.category_name.toLowerCase() === compositeName.toLowerCase() &&
                           matchingProviders.includes(c.provider_name.toLowerCase())
                         );
-                        
+
                         // If all available configs are maintenance, mark the chip as maintenance
                         const isMaintenance = configs.length > 0 && configs.every(c => c.status === 'MAINTENANCE');
                         
@@ -701,7 +710,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                             return true;
                           })
                           .filter(p => dataCategory === 'all' || (p.category && p.category.toLowerCase() === dataCategory.toLowerCase()))
-                          .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge') : p.provider === 'clubkonnect')
+                          .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge' || p.provider === 'smeplug') : p.provider === 'clubkonnect')
                           .map(plan => {
                          const sizeLabel = plan.plan_size || (plan.name || '').match(/(\d+(?:\.\d+)?\s*(?:MB|GB|TB))/i)?.[0] || plan.name;
                          

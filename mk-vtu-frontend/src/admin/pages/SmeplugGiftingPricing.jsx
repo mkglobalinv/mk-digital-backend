@@ -5,7 +5,7 @@ import './DataPlanPricing.css';
 import './OgdamsSmePricing.css';
 
 const SMEPLUG_RULE_NETWORK = 'MTN';
-const SMEPLUG_RULE_CATEGORY = 'Gifting';
+const SMEPLUG_RULE_CATEGORY = 'GiftingXtra';
 
 // Independent pricing page for the 8 user-selected SmePlug MTN Data Gifting
 // plans (services/providers/smeplug.js's MTN_DATA_GIFTING_PLAN_IDS). Each row
@@ -174,13 +174,14 @@ const SmeplugGiftingPricing = ({ token }) => {
             <div className="ogdams-sme-note">
                 <Info size={16} />
                 <span>
-                    These plans are fulfilled by <b>SmePlug</b> (MTN Data Gifting) and shown to customers under the <b>SME</b> category.
-                    Pricing here is completely independent from the Peyflex plans on "Legacy Data Pricing" / "V3 Pricing Rules" and from
-                    the (disabled) Ogdams plans -- saving the rule below, or editing a price in the table, never changes another
-                    provider's plan, and vice versa. <b>Retail</b> is what a direct customer pays; <b>Basic</b> and <b>VIP</b> are what a
-                    reseller (including white-label reseller websites) pays at each tier, unless that reseller has a specific price
-                    override; <b>Premium</b> is the top reseller tier. Use <b>Provider Manager</b> (Manage Categories) to control whether
-                    MTN Data transactions actually route to SmePlug or Peyflex.
+                    These plans are fulfilled by <b>SmePlug</b> (MTN Data Gifting) and shown to customers under their own
+                    <b> "SME Xtra"</b> category -- deliberately separate from the "SME" category (Peyflex/ClubKonnect's Gifting plans)
+                    so it's easy to identify and toggle off later without touching anything else. Pricing here is completely independent
+                    from the Peyflex plans on "Legacy Data Pricing" / "V3 Pricing Rules" and from the (disabled) Ogdams plans -- saving
+                    the rule below, or editing a price in the table, never changes another provider's plan, and vice versa.
+                    <b> Retail</b> is what a direct customer pays; <b>Basic</b> and <b>VIP</b> are what a reseller (including white-label
+                    reseller websites) pays at each tier, unless that reseller has a specific price override; <b>Premium</b> is the top
+                    reseller tier.
                 </span>
             </div>
 
