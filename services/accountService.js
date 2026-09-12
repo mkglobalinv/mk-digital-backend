@@ -4,13 +4,22 @@ import Setting from "../models/Setting.js";
 import { createVirtualAccount as createFlutterwaveVirtualAccount } from "./flutterwaveService.js";
 import { createVirtualAccount as createPaymentPointVirtualAccount } from "./paymentpointService.js";
 
-const DEFAULT_VA_PROVIDER_CONFIG = { primary: "paymentpoint", fallbackEnabled: true };
+// PaymentPoint's business account is currently unable to provision ANY
+// reserved bank account (confirmed via production testing: every bank code,
+// every customer, fails with bankAccounts: [] and business_Id: null on
+// their end) -- so Flutterwave is the default primary for now, with
+// PaymentPoint fallback OFF (attempting it first/as fallback would just add
+// a guaranteed-failing request and misleading log noise). Once PaymentPoint
+// support confirms their business account is fixed, switch this back (or
+// just use the admin dashboard's "Virtual Account Gateway" page, which
+// overrides this default without needing a redeploy).
+const DEFAULT_VA_PROVIDER_CONFIG = { primary: "flutterwave", fallbackEnabled: false };
 
 /**
  * Reads the admin-controlled virtual account provider switch (Setting doc,
  * key 'virtualAccountProvider' -- managed from the admin dashboard's
- * "Virtual Account Gateway" page). Defaults to PaymentPoint-primary with
- * Flutterwave fallback if no setting has been saved yet.
+ * "Virtual Account Gateway" page). Defaults to Flutterwave-only (see above)
+ * if no setting has been saved yet.
  */
 export const getVirtualAccountProviderConfig = async () => {
     // readyState 1 = connected. Skip the query (rather than let Mongoose

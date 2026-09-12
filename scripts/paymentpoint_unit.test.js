@@ -18,7 +18,7 @@ process.env.PAYMENTPOINT_WEBHOOK_SECRET = process.env.PAYMENTPOINT_WEBHOOK_SECRE
 
 const { initializeTestMode } = await import('../utils/testModeAdapter.js');
 const { createVirtualAccount: createPaymentPointVirtualAccount } = await import('../services/paymentpointService.js');
-const { createVirtualAccountWithFallback } = await import('../services/accountService.js');
+const { createVirtualAccountWithFallback, getVirtualAccountProviderConfig } = await import('../services/accountService.js');
 const { verifyPaymentPointSignature } = await import('../controllers/paymentpointController.js');
 
 describe('PaymentPoint Integration (Unit, no DB required)', () => {
@@ -49,8 +49,20 @@ describe('PaymentPoint Integration (Unit, no DB required)', () => {
         });
     });
 
-    describe('accountService.createVirtualAccountWithFallback (PRIMARY -> FALLBACK)', () => {
-        test('uses PaymentPoint when it succeeds', async () => {
+    describe('accountService.createVirtualAccountWithFallback (default: Flutterwave-only)', () => {
+        // PaymentPoint's business account is currently unable to provision any
+        // reserved bank account in production, so the default was switched to
+        // Flutterwave-primary with PaymentPoint fallback OFF. These tests
+        // exercise that current default; re-enabling PaymentPoint (via the
+        // admin "Virtual Account Gateway" page, DB-backed) is outside what
+        // this no-DB unit test can cover.
+        test('default config is Flutterwave-primary with fallback disabled', async () => {
+            const config = await getVirtualAccountProviderConfig();
+            assert.strictEqual(config.primary, 'flutterwave');
+            assert.strictEqual(config.fallbackEnabled, false);
+        });
+
+        test('uses Flutterwave by default', async () => {
             const result = await createVirtualAccountWithFallback({
                 email: 'primary-path@9jasub.com',
                 phone: '08033334444',
@@ -58,18 +70,18 @@ describe('PaymentPoint Integration (Unit, no DB required)', () => {
                 lastname: 'Path'
             });
             assert.strictEqual(result.status, 'success');
-            assert.strictEqual(result.data.bank_name, 'Palmpay', 'Expected the PaymentPoint mock to have issued the account');
+            assert.strictEqual(result.data.bank_name, 'Test Flutterwave Bank', 'Expected the Flutterwave mock to have issued the account');
         });
 
-        test('falls back to Flutterwave when PaymentPoint fails', async () => {
+        test('does not fall back to PaymentPoint when Flutterwave fails (fallback disabled by default)', async () => {
             const result = await createVirtualAccountWithFallback({
-                email: 'fallback-path@9jasub.com',
-                phone: '08000000000', // magic number: simulates PaymentPoint failure in TEST_MODE
-                firstname: 'Fallback',
-                lastname: 'Path'
+                email: 'no-fallback-path@9jasub.com',
+                phone: '08033334444',
+                firstname: 'NoFallback',
+                lastname: 'Path',
+                amount: 999 // magic number: simulates a provider timeout in TEST_MODE
             });
-            assert.strictEqual(result.status, 'success');
-            assert.strictEqual(result.data.bank_name, 'Test Flutterwave Bank', 'Expected automatic fallback to the Flutterwave mock');
+            assert.strictEqual(result.status, 'error');
         });
     });
 
