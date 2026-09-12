@@ -33,7 +33,13 @@ export const createVirtualAccount = async (userData) => {
     return { status: "error", message: "PaymentPoint credentials are not configured" };
   }
 
-  const name = [userData.firstname, userData.lastname].filter(Boolean).join(" ").trim() || userData.name || "Customer";
+  // accountService.js already builds "<reseller site name or 9JASUB> - <firstname>"
+  // into `narration` for Flutterwave's benefit; PaymentPoint has no separate
+  // narration field, so the account's registered name (what the payer's bank
+  // app displays as the beneficiary) must come from the same branded string
+  // here too -- otherwise a reseller's customers would see plain customer
+  // names instead of their reseller's own storefront name.
+  const name = userData.narration || [userData.firstname, userData.lastname].filter(Boolean).join(" ").trim() || userData.name || "Customer";
 
   const body = {
     email: userData.email,
