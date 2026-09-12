@@ -228,17 +228,17 @@ const Wallet = ({ token, user }) => {
           <p>Total Balance</p>
           <h2>₦{(localUser?.totalBalance || 0).toLocaleString()}</h2>
         </div>
-        <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
-          <div style={{ flex: 1, background: 'rgba(255,255,255,0.1)', padding: '12px', borderRadius: '12px' }}>
-            <p style={{ margin: 0, fontSize: '12px', opacity: 0.8 }}>Earnings</p>
-            <h4 style={{ margin: '4px 0 0 0', fontSize: '16px' }}>₦{(localUser?.earningsBalance || 0).toLocaleString()}</h4>
+        <div className="balance-stats-row">
+          <div className="balance-stat-pill">
+            <p>Earnings</p>
+            <h4>₦{(localUser?.earningsBalance || 0).toLocaleString()}</h4>
           </div>
-          <div style={{ flex: 1, background: 'rgba(255,255,255,0.1)', padding: '12px', borderRadius: '12px' }}>
-            <p style={{ margin: 0, fontSize: '12px', opacity: 0.8 }}>Cashback</p>
-            <h4 style={{ margin: '4px 0 0 0', fontSize: '16px' }}>₦{(localUser?.cashbackBalance || 0).toLocaleString()}</h4>
+          <div className="balance-stat-pill">
+            <p>Cashback</p>
+            <h4>₦{(localUser?.cashbackBalance || 0).toLocaleString()}</h4>
           </div>
         </div>
-        <button className="fintech-fund-btn" onClick={() => setShowFundModal(true)} style={{ marginTop: '20px' }}>
+        <button className="fintech-fund-btn" onClick={() => setShowFundModal(true)}>
           <PlusCircle size={20} /> Fund Wallet
         </button>
       </div>
@@ -298,32 +298,32 @@ const Wallet = ({ token, user }) => {
                  <span className="account-status warning-status">
                     <Clock size={16} /> Temporary Virtual Account
                  </span>
-                 <span className="account-timer">Expires In: {timeLeft}</span>
-              </div>
-              
-              <div className="account-card-body" style={{ textAlign: 'center', margin: '20px 0' }}>
-                <p className="transfer-label" style={{ fontSize: '14px', marginBottom: '4px' }}>Amount Expected</p>
-                <h3 style={{ fontSize: '36px', color: '#111827', margin: 0 }}>₦{(localUser?.temporaryAmount || 0).toLocaleString()}</h3>
-                <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>Generated For: <strong>{localUser?.name}</strong></p>
+                 <span className="account-timer"><span className="timer-dot"></span> Expires In: {timeLeft}</span>
               </div>
 
-              <div className="account-details-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#f9fafb', padding: '16px', borderRadius: '16px', marginBottom: '20px' }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>Bank Name:</p>
-                    <p style={{ margin: 0, fontWeight: 700, color: '#111827' }}>{localUser?.bank_name}</p>
+              <div className="account-card-body expected-amount-block">
+                <p className="transfer-label">Amount Expected</p>
+                <h3 className="expected-amount-value">₦{(localUser?.temporaryAmount || 0).toLocaleString()}</h3>
+                <p className="expected-amount-for">Generated For: <strong>{localUser?.name}</strong></p>
+              </div>
+
+              <div className="account-details-list">
+                 <div className="account-detail-row">
+                    <p className="detail-label">Bank Name:</p>
+                    <p className="detail-value">{localUser?.bank_name}</p>
                  </div>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>Account Number:</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                       <p style={{ margin: 0, fontWeight: 700, color: '#111827', fontSize: '18px' }}>{localUser?.account_number}</p>
-                       <button className="copy-icon-btn" onClick={() => copyToClipboard(localUser?.account_number, 'temp')} style={{ padding: '6px' }}>
+                 <div className="account-detail-row">
+                    <p className="detail-label">Account Number:</p>
+                    <div className="detail-value-copy">
+                       <p className="detail-value big">{localUser?.account_number}</p>
+                       <button className="copy-icon-btn" onClick={() => copyToClipboard(localUser?.account_number, 'temp')}>
                           {copiedIndex === 'temp' ? <CheckCircle2 size={18} color="#10B981" /> : <Copy size={18} />}
                        </button>
                     </div>
                  </div>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>Account Holder:</p>
-                    <p style={{ margin: 0, fontWeight: 700, color: '#111827' }}>{localUser?.name} ✓</p>
+                 <div className="account-detail-row">
+                    <p className="detail-label">Account Holder:</p>
+                    <p className="detail-value">{localUser?.name} ✓</p>
                  </div>
               </div>
 
@@ -352,6 +352,7 @@ const Wallet = ({ token, user }) => {
             {/* UPGRADE PROMPT */}
             <div className="upgrade-banner-card">
                <div className="upgrade-content">
+                 <span className="upgrade-eyebrow"><ShieldCheck size={12} /> Recommended</span>
                  <h4>Get A Permanent Virtual Account</h4>
                  <ul className="upgrade-benefits">
                    <li><CheckCircle2 size={16} color="#10B981"/> Never Expires</li>
@@ -369,25 +370,23 @@ const Wallet = ({ token, user }) => {
 
         {/* FUNDING SUCCESS VIEW */}
         {fundingSuccessData && (
-          <div className="fintech-account-card fade-in" style={{ borderTop: '4px solid #10B981', textAlign: 'center', padding: '40px 24px' }}>
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', background: '#ecfdf5', color: '#10B981', marginBottom: '16px' }}>
-                <CheckCircle2 size={32} />
-              </div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#111827' }}>Wallet Funded Successfully</h3>
-              <div style={{ display: 'inline-block', background: '#ecfdf5', color: '#10B981', padding: '6px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: '700', letterSpacing: '1px' }}>
-                FUNDED ✓
-              </div>
+          <div className="fintech-account-card funding-success-card fade-in">
+            <div className="funding-success-icon">
+              <CheckCircle2 size={32} />
             </div>
-            
-            <div style={{ background: '#f9fafb', borderRadius: '16px', padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>Amount Received:</p>
-                  <p style={{ margin: 0, fontWeight: 800, color: '#111827', fontSize: '16px' }}>₦{(fundingSuccessData.amount || 0).toLocaleString()}</p>
+            <h3 className="funding-success-title">Wallet Funded Successfully</h3>
+            <div className="funding-success-badge">
+              FUNDED ✓
+            </div>
+
+            <div className="funding-success-details">
+               <div className="funding-success-row">
+                  <p className="label">Amount Received:</p>
+                  <p className="value">₦{(fundingSuccessData.amount || 0).toLocaleString()}</p>
                </div>
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>New Balance:</p>
-                  <p style={{ margin: 0, fontWeight: 800, color: '#10B981', fontSize: '18px' }}>₦{(fundingSuccessData.balance || 0).toLocaleString()}</p>
+               <div className="funding-success-row">
+                  <p className="label">New Balance:</p>
+                  <p className="value highlight">₦{(fundingSuccessData.balance || 0).toLocaleString()}</p>
                </div>
             </div>
           </div>
