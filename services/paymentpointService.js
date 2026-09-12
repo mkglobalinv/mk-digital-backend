@@ -9,7 +9,12 @@ const PAYMENTPOINT_API_KEY = process.env.PAYMENTPOINT_API_KEY;
 const PAYMENTPOINT_BUSINESS_ID = process.env.PAYMENTPOINT_BUSINESS_ID;
 
 // Partner bank codes documented by PaymentPoint for reserved account issuance.
-const DEFAULT_BANK_CODES = ["20946", "20897"]; // PalmPay, OPay
+// TEMPORARY: PalmPay (20946) is currently failing on PaymentPoint's side --
+// "Failed to create reserved account for bank code 20946." -- confirmed via
+// production logs. Requesting only OPay (20897) as an empirical test of
+// whether account creation succeeds while PalmPay is broken. Restore
+// "20946" once PaymentPoint support confirms PalmPay is fixed.
+const DEFAULT_BANK_CODES = ["20897"]; // OPay only (PalmPay temporarily disabled)
 
 function authHeaders() {
   return {
