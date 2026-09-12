@@ -136,6 +136,7 @@ const AdminLayout = ({ children, admin, logout }) => {
         { name: 'Maintenance', path: '/admin/maintenance', icon: <Settings size={18} /> },
         { name: 'AI Assistant Control', path: '/admin/ai-assistant', icon: <Sparkles size={18} /> },
         { name: 'Provider Monitoring', path: '/admin/provider-monitoring', icon: <ShieldCheck size={18} /> },
+        { name: 'Virtual Account Gateway', path: '/admin/virtual-account-provider', icon: <Banknote size={18} />, badge: 'NEW' },
         { name: 'Master Settings', path: '/admin/master-settings', icon: <Settings size={18} /> },
       ]
     });

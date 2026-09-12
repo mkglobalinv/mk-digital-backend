@@ -1,0 +1,86 @@
+.vag-provider-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.vag-provider-card {
+    text-align: left;
+    background: var(--bg-card);
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    font: inherit;
+    color: inherit;
+}
+
+.vag-provider-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.vag-provider-card.selected {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.vag-provider-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.vag-provider-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.vag-provider-check {
+    color: #10b981;
+    display: inline-flex;
+}
+
+.vag-provider-card h3 {
+    margin: 0 0 6px 0;
+    font-size: 17px;
+    color: var(--text-dark, #1f2937);
+}
+
+.vag-provider-card p {
+    margin: 0 0 14px 0;
+    font-size: 13.5px;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.vag-provider-role {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.vag-provider-role.primary {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.vag-updated-at {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #9ca3af;
+}
