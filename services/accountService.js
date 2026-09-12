@@ -87,6 +87,13 @@ export const generateTemporaryAccount = async (user, amount, reseller = null) =>
 
         const brandName = actualReseller?.branding?.siteName || "9JASUB";
 
+        // TEMP DIAGNOSTIC: a generated account still showed a stale brand
+        // name ("Mksubdata") the user says should now read "9JASUB" --
+        // logging exactly which path (tenantOwnerId vs reseller_admin vs
+        // default) and DB value produced it, instead of guessing. Remove
+        // once confirmed.
+        console.log(`[AccountService] Branding resolution: user.role=${user.role}, user.tenantOwnerId=${user.tenantOwnerId || 'none'}, actualReseller._id=${actualReseller?._id || 'none'}, actualReseller.branding.siteName=${actualReseller?.branding?.siteName || 'none'}, resolved brandName="${brandName}"`);
+
         const vaData = {
             email: providerEmail,
             phone: user.kycData?.phone || `080${String(parseInt(user._id.toString().slice(-8), 16)).slice(0, 8).padStart(8, '0')}`,

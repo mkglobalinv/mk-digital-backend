@@ -76,11 +76,16 @@ export const createVirtualAccount = async (userData) => {
     }
 
     const account = data.bankAccounts[0];
+    // TEMP DIAGNOSTIC: confirming the registered account holder name
+    // (what the payer's bank app actually displays) matches the branded
+    // `name` we sent, not a stale/cached one -- remove once confirmed.
+    console.log(`[PaymentPoint] Created account ${account.accountNumber} with registered holder name: "${account.accountName}" (we sent name: "${name}")`);
     return {
       status: "success",
       data: {
         account_number: account.accountNumber,
         bank_name: account.bankName,
+        account_name: account.accountName,
         order_ref: account.Reserved_Account_Id,
         customer_id: data.customer?.customer_id,
         // PaymentPoint reserved accounts are not time/amount-locked like
