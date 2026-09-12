@@ -66,13 +66,18 @@ export const createVirtualAccount = async (userData) => {
 
     const data = response.data;
     if (data?.status !== "success" || !Array.isArray(data.bankAccounts) || data.bankAccounts.length === 0) {
-      // TEMP DIAGNOSTIC: a real production response was rejected here despite
-      // PaymentPoint's own message indicating success ("Customer account
-      // created successfully..."), so this branch's status/bankAccounts
-      // check is wrong somewhere. Logging the raw shape to fix it precisely
-      // instead of guessing -- remove once confirmed.
-      console.error("[PaymentPoint] Rejected response shape:", JSON.stringify(data));
-      return { status: "error", message: data?.message || "PaymentPoint did not return a virtual account" };
+      // PaymentPoint's top-level status/message can read as success
+      // ("Customer account created successfully...") even when it failed to
+      // actually provision a bank account for the requested bank code --
+      // the real reason lives in `errors`. Surface that instead of the
+      // misleading top-level message so callers/logs show what actually
+      // went wrong (e.g. "Failed to create reserved account for bank code
+      // 20946.") rather than a confusing success-sounding string.
+      const reason = Array.isArray(data?.errors) && data.errors.length > 0
+        ? data.errors.join("; ")
+        : (data?.message || "PaymentPoint did not return a virtual account");
+      console.error("[PaymentPoint] Failed to provision a bank account:", JSON.stringify(data));
+      return { status: "error", message: reason };
     }
 
     const account = data.bankAccounts[0];
