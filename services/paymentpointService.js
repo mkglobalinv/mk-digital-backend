@@ -60,6 +60,12 @@ export const createVirtualAccount = async (userData) => {
 
     const data = response.data;
     if (data?.status !== "success" || !Array.isArray(data.bankAccounts) || data.bankAccounts.length === 0) {
+      // TEMP DIAGNOSTIC: a real production response was rejected here despite
+      // PaymentPoint's own message indicating success ("Customer account
+      // created successfully..."), so this branch's status/bankAccounts
+      // check is wrong somewhere. Logging the raw shape to fix it precisely
+      // instead of guessing -- remove once confirmed.
+      console.error("[PaymentPoint] Rejected response shape:", JSON.stringify(data));
       return { status: "error", message: data?.message || "PaymentPoint did not return a virtual account" };
     }
 
