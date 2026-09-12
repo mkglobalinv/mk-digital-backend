@@ -1,33 +1,73 @@
+import mongoose from "mongoose";
 import User from "../models/User.js";
+import Setting from "../models/Setting.js";
 import { createVirtualAccount as createFlutterwaveVirtualAccount } from "./flutterwaveService.js";
 import { createVirtualAccount as createPaymentPointVirtualAccount } from "./paymentpointService.js";
 
+const DEFAULT_VA_PROVIDER_CONFIG = { primary: "paymentpoint", fallbackEnabled: true };
+
 /**
- * PaymentPoint is the PRIMARY virtual account provider; Flutterwave is the
- * automatic fallback whenever PaymentPoint is unavailable or returns a
- * failure. Flutterwave's own createVirtualAccount function, request shape,
- * and behavior are untouched — this only decides which one gets called.
- * paymentpointService normalizes its response to Flutterwave's existing
- * { status, data: { account_number, bank_name, order_ref, expiry_date } }
+ * Reads the admin-controlled virtual account provider switch (Setting doc,
+ * key 'virtualAccountProvider' -- managed from the admin dashboard's
+ * "Virtual Account Gateway" page). Defaults to PaymentPoint-primary with
+ * Flutterwave fallback if no setting has been saved yet.
+ */
+export const getVirtualAccountProviderConfig = async () => {
+    // readyState 1 = connected. Skip the query (rather than let Mongoose
+    // buffer/time out) when there's no live DB connection, e.g. in unit
+    // tests that exercise this fallback logic without a MongoDB instance.
+    if (mongoose.connection.readyState !== 1) return DEFAULT_VA_PROVIDER_CONFIG;
+    try {
+        const setting = await Setting.findOne({ key: "virtualAccountProvider" });
+        if (!setting?.value?.primary) return DEFAULT_VA_PROVIDER_CONFIG;
+        return {
+            primary: setting.value.primary === "flutterwave" ? "flutterwave" : "paymentpoint",
+            fallbackEnabled: setting.value.fallbackEnabled !== false
+        };
+    } catch (err) {
+        console.warn(`[AccountService] Failed to read virtual account provider setting, using default: ${err.message}`);
+        return DEFAULT_VA_PROVIDER_CONFIG;
+    }
+};
+
+const VA_PROVIDERS = {
+    paymentpoint: { name: "PaymentPoint", fn: createPaymentPointVirtualAccount },
+    flutterwave: { name: "Flutterwave", fn: createFlutterwaveVirtualAccount }
+};
+
+/**
+ * Calls the admin-selected primary virtual account provider, falling back to
+ * the other one on failure (unless fallback has been switched off). Both
+ * providers' createVirtualAccount functions already return/normalize to the
+ * same { status, data: { account_number, bank_name, order_ref, expiry_date } }
  * shape, so the caller below needs no provider-specific branching.
  */
 export const createVirtualAccountWithFallback = async (vaData) => {
+    const { primary, fallbackEnabled } = await getVirtualAccountProviderConfig();
+    const primaryProvider = VA_PROVIDERS[primary];
+    const fallbackProvider = VA_PROVIDERS[primary === "flutterwave" ? "paymentpoint" : "flutterwave"];
+
     try {
-        const ppResponse = await createPaymentPointVirtualAccount(vaData);
-        if (ppResponse?.status === "success") {
-            console.log(`[AccountService] Virtual account issued via PaymentPoint (primary) for ${vaData.email}`);
-            return ppResponse;
+        const primaryResponse = await primaryProvider.fn(vaData);
+        if (primaryResponse?.status === "success") {
+            console.log(`[AccountService] Virtual account issued via ${primaryProvider.name} (primary) for ${vaData.email}`);
+            return primaryResponse;
         }
-        console.warn(`[AccountService] PaymentPoint VA creation failed, falling back to Flutterwave. Reason: ${ppResponse?.message}`);
+        console.warn(`[AccountService] ${primaryProvider.name} VA creation failed. Reason: ${primaryResponse?.message}`);
     } catch (err) {
-        console.warn(`[AccountService] PaymentPoint VA creation threw an error, falling back to Flutterwave: ${err.message}`);
+        console.warn(`[AccountService] ${primaryProvider.name} VA creation threw an error: ${err.message}`);
     }
 
-    const flwResponse = await createFlutterwaveVirtualAccount(vaData);
-    if (flwResponse?.status === "success") {
-        console.log(`[AccountService] Virtual account issued via Flutterwave (fallback) for ${vaData.email}`);
+    if (!fallbackEnabled) {
+        console.warn(`[AccountService] Fallback is disabled; not attempting ${fallbackProvider.name}.`);
+        return { status: "error", message: `${primaryProvider.name} is currently unavailable.` };
     }
-    return flwResponse;
+
+    const fallbackResponse = await fallbackProvider.fn(vaData);
+    if (fallbackResponse?.status === "success") {
+        console.log(`[AccountService] Virtual account issued via ${fallbackProvider.name} (fallback) for ${vaData.email}`);
+    }
+    return fallbackResponse;
 };
 
 /**

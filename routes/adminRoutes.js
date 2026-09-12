@@ -12,6 +12,8 @@ import {
   verifyKyc,
   getSettings,
   updateSetting,
+  getVirtualAccountProviderSettings,
+  updateVirtualAccountProviderSettings,
   sendNotification,
   getAdminLogs,
   getWithdrawals,
@@ -160,6 +162,8 @@ router.get("/kyc", getKycSubmissions);
 router.post("/kyc/verify", verifyKyc);
 router.get("/settings", getSettings);
 router.post("/settings", updateSetting);
+router.get("/virtual-account-provider", requireOwner, getVirtualAccountProviderSettings);
+router.post("/virtual-account-provider", requireOwner, updateVirtualAccountProviderSettings);
 router.post("/notifications", sendNotification);
 router.get("/logs", getAdminLogs);
 router.get("/withdrawals", getWithdrawals);

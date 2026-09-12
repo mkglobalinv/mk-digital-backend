@@ -1567,6 +1567,38 @@ export const updateSetting = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+// --- VIRTUAL ACCOUNT (WALLET FUNDING) PROVIDER SWITCH ---
+// Controls which gateway generateTemporaryAccount/generatePermanentAccount
+// (services/accountService.js) tries first, and whether it's allowed to fall
+// back to the other one. Stored as a single Setting document so it can be
+// changed live without a redeploy; accountService.js reads it on every
+// virtual account request via getVirtualAccountProviderConfig().
+export const getVirtualAccountProviderSettings = async (req, res) => {
+    try {
+        const setting = await Setting.findOne({ key: 'virtualAccountProvider' });
+        const primary = setting?.value?.primary === 'flutterwave' ? 'flutterwave' : 'paymentpoint';
+        const fallbackEnabled = setting?.value?.fallbackEnabled !== false;
+        res.json({ primary, fallbackEnabled, updatedAt: setting?.updatedAt || null });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+export const updateVirtualAccountProviderSettings = async (req, res) => {
+    const { primary, fallbackEnabled } = req.body;
+    if (!['paymentpoint', 'flutterwave'].includes(primary)) {
+        return res.status(400).json({ message: "primary must be 'paymentpoint' or 'flutterwave'" });
+    }
+    try {
+        const value = { primary, fallbackEnabled: fallbackEnabled !== false };
+        const setting = await Setting.findOneAndUpdate(
+            { key: 'virtualAccountProvider' },
+            { value, updatedBy: req.user._id },
+            { upsert: true, new: true }
+        );
+        await AdminLog.create({ adminId: req.user._id, action: 'UPDATE_VIRTUAL_ACCOUNT_PROVIDER', details: value });
+        res.json({ primary: setting.value.primary, fallbackEnabled: setting.value.fallbackEnabled, updatedAt: setting.updatedAt });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 /**
  * Background task to handle bulk email and in-app notifications
  * This avoids blocking the main thread during large broadcasts.
