@@ -243,8 +243,12 @@ export async function getSmeplugDataPlans() {
             });
         }
     }
-    const mtnPlanIds = normalized.filter((p) => p.network === "MTN").map((p) => p.planId);
-    console.log(`[SmePlug] /data/plans returned ${normalized.length} plan(s) total, ${mtnPlanIds.length} for MTN: [${mtnPlanIds.join(", ")}]`);
+    const mtnPlans = normalized.filter((p) => p.network === "MTN");
+    // TEMP DIAGNOSTIC: full live MTN catalog (not just the whitelisted 8) so
+    // it can be compared against a competitor's plan list without guessing --
+    // remove once the comparison is done.
+    console.log(`[SmePlug] /data/plans returned ${normalized.length} plan(s) total, ${mtnPlans.length} for MTN:`);
+    mtnPlans.forEach((p) => console.log(`[SmePlug]   id=${p.planId} name="${p.name}" price=${p.price} telcoPrice=${p.telcoPrice}`));
     return { success: true, plans: normalized };
 }
 
