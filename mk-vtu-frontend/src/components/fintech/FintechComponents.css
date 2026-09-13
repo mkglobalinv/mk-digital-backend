@@ -102,27 +102,27 @@ body.dark-theme .nav-avatar {
    2. PREMIUM WALLET CARD  — Compact (~40% shorter)
    ----------------------------------------------------------- */
 .fintech-wallet-card {
-  background: linear-gradient(135deg, #054A38 0%, #059669 55%, #047857 100%);
+  background: linear-gradient(135deg, #0B1F45 0%, #123C73 50%, #2563EB 100%);
   border-radius: 18px;
   padding: 7px 10px 8px;            /* 50% of previous */
   border: 1px solid rgba(255,255,255,0.08);
   position: relative;
   overflow: hidden;
   box-shadow:
-    0 10px 28px rgba(5,74,56,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.07);
+    0 10px 28px rgba(18,60,115,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.08);
 }
 .fintech-wallet-card::before {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 80% 0%, rgba(16,185,129,0.18) 0%, transparent 60%);
+  background: radial-gradient(ellipse at 80% 0%, rgba(244,180,0,0.16) 0%, transparent 60%);
   pointer-events: none;
 }
 .fintech-wallet-card::after {
   content: '';
   position: absolute; top: -50%; right: -25%;
   width: 180px; height: 180px; border-radius: 50%;
-  background: rgba(244,180,0,0.05);
+  background: rgba(244,180,0,0.09);
   pointer-events: none;
 }
 
@@ -213,11 +213,11 @@ body.dark-theme .nav-avatar {
   background: rgba(255,255,255,0.12); transform: translateY(-2px);
 }
 .action-item.primary .action-icon-wrap {
-  background: #10B981; border-color: #10B981;
-  color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+  background: #F4B400; border-color: #F4B400;
+  color: #0B1F45;
+  box-shadow: 0 4px 12px rgba(244,180,0,0.4);
 }
-.action-item.primary:hover .action-icon-wrap { background: #0EA271; }
+.action-item.primary:hover .action-icon-wrap { background: #D97706; }
 .action-item span {
   font-size: 12px; font-weight: 800;  /* +2px, bold */
   color: rgba(255,255,255,0.6);
