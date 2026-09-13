@@ -244,9 +244,11 @@ export async function getSmeplugDataPlans() {
         }
     }
     const mtnPlans = normalized.filter((p) => p.network === "MTN");
-    // TEMP DIAGNOSTIC: full live MTN catalog (not just the whitelisted 8) so
-    // it can be compared against a competitor's plan list without guessing --
-    // remove once the comparison is done.
+    // Logs the full live MTN catalog (not just the whitelisted plan IDs) every
+    // time this runs (e.g. on "Sync SmePlug Plans") -- this is what caught
+    // MTN_DATA_GIFTING_PLAN_IDS' ids 15-20 having drifted to different plans
+    // than their labels said, so it stays on as cheap, ongoing visibility
+    // into whether SmePlug's plan-ID-to-plan mapping has shifted again.
     console.log(`[SmePlug] /data/plans returned ${normalized.length} plan(s) total, ${mtnPlans.length} for MTN:`);
     mtnPlans.forEach((p) => console.log(`[SmePlug]   id=${p.planId} name="${p.name}" price=${p.price} telcoPrice=${p.telcoPrice}`));
     return { success: true, plans: normalized };
@@ -258,15 +260,43 @@ export async function getSmeplugDataPlans() {
 // response mixes [SME] and [Gifting]-tagged plans together with no separate
 // category field, so this whitelist is what keeps this integration strictly
 // to Gifting, matching current scope (no SME, no other SmePlug service).
+//
+// IDs 15-20's labels were corrected on 2026-09-13: a fresh live catalog pull
+// showed SmePlug's plan-ID-to-plan mapping had drifted since these were first
+// picked (e.g. id 18 was originally "6GB - Weekly", live data now shows it as
+// "2GB+2mins Monthly Plan [Gifting]") -- the size/validity label here is only
+// used to derive `validity` (never shown to customers directly, see
+// getSmeplugMtnGiftingPlans below), but a wrong one still mis-describes the
+// plan on the storefront, so all six were re-labeled to match the live names
+// pulled via the "Sync SmePlug Plans" admin action's diagnostic log.
 export const MTN_DATA_GIFTING_PLAN_IDS = Object.freeze({
+    "6": "75MB - Daily",
     "11": "1GB - Daily",
     "13": "2.5GB - 2 Days",
-    "15": "750MB - 2 Weeks",
-    "16": "1GB - Weekly",
-    "17": "2GB - Weekly",
-    "18": "6GB - Weekly",
-    "19": "1.5GB - Monthly",
-    "20": "2GB - Monthly"
+    "15": "1GB - Weekly",
+    "16": "1.5GB - Weekly",
+    "17": "6GB - Weekly",
+    "18": "2GB - Monthly",
+    "19": "2.7GB - Monthly",
+    "20": "3.5GB - Monthly",
+    "21": "7GB - Monthly",
+    "22": "10GB - Monthly",
+    "23": "12.5GB - Monthly",
+    "24": "16.5GB - Monthly",
+    "25": "20GB - Monthly",
+    "26": "25GB - Monthly",
+    "27": "36GB - Monthly",
+    "28": "75GB - Monthly",
+    "29": "165GB - Monthly",
+    "30": "250GB - Monthly",
+    "226": "11GB - 7 Days",
+    "227": "2GB - 2 Days",
+    "229": "3.2GB - 2 Days",
+    "231": "1.5GB - 2 Days",
+    "233": "14.5GB - Monthly",
+    "259": "1.8GB - 3 Days",
+    "261": "3.5GB - Weekly",
+    "272": "5.5GB - Monthly"
 });
 
 /**
