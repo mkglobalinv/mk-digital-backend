@@ -1,4 +1,4 @@
-const CACHE_NAME = 'app-cache-v6';
+const CACHE_NAME = 'app-cache-v7';
 const STATIC_ASSETS = [
   '/index.html',
   '/offline.html',
