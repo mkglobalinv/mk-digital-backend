@@ -506,7 +506,16 @@ const Login = ({ setToken, siteInfo }) => {
                 <div className="quick-access-item">
                   <div className="quick-access-content">
                     <h4>🏪 Become a Merchant</h4>
-                    <p>Basic Reseller Prices • Fund ₦2,000 to Activate</p>
+                    <p>
+                      Basic Reseller Prices • Fund ₦2,000 to Activate
+                      {' • '}
+                      <span
+                        onClick={() => navigate('/merchant/login')}
+                        style={{ color: '#818cf8', cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Already a merchant? Sign in
+                      </span>
+                    </p>
                   </div>
                   <button
                     type="button"

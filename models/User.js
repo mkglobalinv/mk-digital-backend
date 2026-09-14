@@ -337,12 +337,19 @@ userSchema.post('save', async function(doc) {
  * @param {string} email
  * @param {ObjectId|string|null} resellerId — null means Main Platform
  * @param {boolean} preferBusiness — when an email resolves to more than one
- *   main-platform account (the Merchant program's reseller/admin-plus-
+ *   main-platform account (the Merchant program's admin/reseller-plus-
  *   merchant case — see the schema index above), which one to return: the
- *   reseller_admin account when true, otherwise the non-reseller_admin one
- *   (merchant or plain user). Callers that don't pass it get the
- *   non-business account, matching every pre-existing call site's behavior
- *   for the overwhelmingly common case where an email only has one account.
+ *   admin/superadmin/reseller_admin account when true, otherwise the
+ *   merchant/plain-user one. Callers that don't pass it get the non-business
+ *   account, matching every pre-existing call site's behavior for the
+ *   overwhelmingly common case where an email only has one account.
+ *   NOTE: real admin sign-in never goes through here -- it uses its own
+ *   /api/admin/login (adminLogin controller), which looks up by role
+ *   directly. This "admin always wins" tie-break existed only as a no-op
+ *   safety net back when at most one main-platform document could ever
+ *   share an email; now that a second (merchant) document can, it must
+ *   respect preferBusiness like reseller_admin does, or it silently
+ *   hijacks a merchant's own login into their admin sibling account.
  */
 userSchema.statics.findByTenant = async function(email, resellerId, preferBusiness = false) {
   const users = await this.find({ email: email.toLowerCase() });
@@ -356,14 +363,14 @@ userSchema.statics.findByTenant = async function(email, resellerId, preferBusine
     ) || null;
   } else {
     // Main platform: return a user that has no tenant owner (registered on main platform)
-    // Admins/superadmins are always accessible on main platform
     const mainPlatformUsers = users.filter(u => !u.tenantOwnerId);
-    const adminUser = mainPlatformUsers.find(u => u.role === 'admin' || u.role === 'superadmin');
-    if (adminUser) return adminUser;
+    const isBusinessRole = (u) => u.role === 'admin' || u.role === 'superadmin' || u.role === 'reseller_admin';
     if (preferBusiness) {
-      return mainPlatformUsers.find(u => u.role === 'reseller_admin') || mainPlatformUsers[0] || null;
+      return mainPlatformUsers.find(u => u.role === 'admin' || u.role === 'superadmin') ||
+             mainPlatformUsers.find(u => u.role === 'reseller_admin') ||
+             mainPlatformUsers[0] || null;
     }
-    return mainPlatformUsers.find(u => u.role !== 'reseller_admin') || mainPlatformUsers[0] || null;
+    return mainPlatformUsers.find(u => !isBusinessRole(u)) || mainPlatformUsers[0] || null;
   }
 };
 

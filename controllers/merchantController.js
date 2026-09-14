@@ -1,5 +1,7 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
+import OTP from "../models/OTP.js";
+import { sendOTPEmail } from "../services/emailService.js";
 import { MERCHANT_MIN_ACTIVATION_AMOUNT } from "../config/merchant.js";
 
 // Merchant program ("Reseller 2"): a self-service, no-website tier layered
@@ -122,7 +124,11 @@ export const registerMerchant = async (req, res) => {
         // email is brand new, or it belongs only to a reseller_admin/admin/
         // superadmin account. Either way, create a fresh, independent
         // merchant identity (own password/PIN, unrelated to any other
-        // account on this email).
+        // account on this email). Unlike reseller signup, this does NOT
+        // skip email verification -- isEmailVerified defaults to false, so
+        // Home.jsx's existing "Verify email to secure your account" banner
+        // (already shown to every retail customer) shows for a merchant
+        // too, and a real OTP is sent right away just like /api/register.
         const hashedPassword = await bcrypt.hash(password, 10);
         const hashedPin = await bcrypt.hash(transactionPin, 10);
         const user = new User({
@@ -132,10 +138,20 @@ export const registerMerchant = async (req, res) => {
             password: hashedPassword,
             transactionPin: hashedPin,
             role: "merchant",
-            isEmailVerified: true, // Same convention as reseller signup -- see registerResellerWithPayment
             isSignupComplete: true
         });
         await user.save();
+
+        try {
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const hashedOtp = await bcrypt.hash(otp, 10);
+            await OTP.create({ userId: user._id, hashedOtp, expiresAt: new Date(Date.now() + 5 * 60 * 1000) });
+            setImmediate(async () => {
+                try { await sendOTPEmail(user.email, otp); } catch (e) { console.error("[Merchant Register] OTP email failed:", e.message); }
+            });
+        } catch (e) {
+            console.warn("[Merchant Register] Could not create verification OTP:", e.message);
+        }
 
         res.status(201).json({ status: "success", message: "Merchant account created.", userId: user._id });
     } catch (err) {
