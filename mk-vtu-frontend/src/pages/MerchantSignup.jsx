@@ -126,7 +126,7 @@ const MerchantSignup = ({ setToken }) => {
         </form>
 
         <p style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-gray)', marginTop: '18px' }}>
-          Already have an account? <a href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Sign In</a>
+          Already a merchant? <a href="/merchant/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Sign In</a>
         </p>
       </div>
     </div>
