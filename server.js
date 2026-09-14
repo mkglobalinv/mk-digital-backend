@@ -1024,9 +1024,23 @@ app.post("/api/login", async (req, res) => {
 
     if (sessionType === 'business' && !isBiz) {
         console.log(`[Login] Blocked: Retail user logging in via Business flow (${email})`);
-        return res.status(403).json({ 
-            message: "This portal is for Business Console accounts only. Personal accounts should use the main login page.", 
-            isRetail: true 
+        return res.status(403).json({
+            message: "This portal is for Business Console accounts only. Personal accounts should use the main login page.",
+            isRetail: true
+        });
+    }
+
+    // Merchant program ("Reseller 2") login -- /merchant/login sends this
+    // session_type specifically so it can enforce role === 'merchant'
+    // server-side, not just hide the result client-side. Without this, any
+    // valid retail/reseller/admin credentials would still authenticate
+    // successfully here (findByTenant with preferBusiness=false resolves
+    // the same way 'retail' does), just not get stored by the frontend.
+    if (sessionType === 'merchant' && user.role !== 'merchant') {
+        console.log(`[Login] Blocked: Non-merchant logging in via Merchant flow (${email})`);
+        return res.status(403).json({
+            message: "This portal is for Merchant accounts only. Personal accounts should use the main login page.",
+            isRetail: true
         });
     }
 
