@@ -114,9 +114,10 @@ const SmeplugGiftingPricing = ({ token }) => {
             <div className="ogdams-sme-note">
                 <Info size={16} />
                 <span>
-                    These plans are fulfilled by <b>SmePlug</b> (MTN Data Gifting) and shown to customers under their own
-                    <b> "SME Xtra"</b> category -- deliberately separate from the "SME" category (Peyflex/ClubKonnect's Gifting plans)
-                    so it's easy to identify and toggle off later without touching anything else. <b>Pricing here is manual only --
+                    These plans are fulfilled by <b>SmePlug</b> (MTN Data Gifting) and shown to customers under the
+                    <b> "SME"</b> category -- stored under its own separate "GiftingXtra" category behind the scenes (distinct from
+                    Peyflex/ClubKonnect's "Gifting" category) so it's easy to manage independently, even though both now display the
+                    same "SME" label. <b>Pricing here is manual only --
                     no percentage rule.</b> Tap <b>Edit</b> on a row to set its exact Retail/Basic/VIP/Premium prices; "Sync SmePlug
                     Plans" only refreshes cost and adds newly-selected plans, it never changes a price you've already set.
                     <b> Retail</b> is what a direct customer pays; <b>Basic</b> and <b>VIP</b> are what a reseller (including white-label
