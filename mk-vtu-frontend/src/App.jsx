@@ -1050,8 +1050,18 @@ function App() {
                 <Route path="/continue-signup" element={<ContinueSignup siteInfo={siteInfo} />} />
                 <Route path="/reseller/onboarding" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/home" replace /> : (token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />)} />
                 <Route path="/merchant/onboarding" element={token ? <MerchantOnboarding user={user} refreshUser={fetchUserInfo} /> : <Navigate to="/login" />} />
-                <Route path="/merchant/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : (token ? <Navigate to="/merchant/onboarding" replace /> : <MerchantSignup setToken={setToken} siteInfo={siteInfo} />)} />
-                <Route path="/merchant/login" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : (token ? <Navigate to="/home" replace /> : <MerchantLogin setToken={setToken} />)} />
+                {/* A merchant account is a separate identity that can coexist under the
+                    same email as a reseller_admin/admin/plain-user account (see
+                    models/User.js's {email, tenantOwnerId, role} index), so someone can
+                    easily already be holding a valid token for a DIFFERENT account of
+                    theirs when they come here to sign up/sign in as a merchant. Only
+                    skip the form when the token they're already holding IS the merchant
+                    account -- gating on token presence alone silently bounced every such
+                    visitor straight to /home (or /merchant/onboarding) still logged into
+                    their other account, without ever exchanging it for a merchant
+                    session, which is what made "click Home" land on the wrong dashboard. */}
+                <Route path="/merchant/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/onboarding" replace /> : <MerchantSignup setToken={setToken} siteInfo={siteInfo} />)} />
+                <Route path="/merchant/login" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/home" replace /> : <MerchantLogin setToken={setToken} />)} />
                 <Route path="/app" element={<AppDownload />} />
 
                 <Route path="/home" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Home token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
