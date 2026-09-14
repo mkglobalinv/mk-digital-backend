@@ -99,7 +99,7 @@ const BusinessLogin = ({ setToken, siteInfo }) => {
       sessionStorage.setItem('justLoggedIn', 'true');
 
       updateToast(toastId, { message: 'Login Successful! Redirecting...', type: 'success' });
-      navigate('/reseller/dashboard');
+      navigate('/merchant/dashboard');
     } catch (err) {
       if (err.response?.data?.unverified) {
         updateToast(toastId, { message: 'Please verify your email.', type: 'warning' });

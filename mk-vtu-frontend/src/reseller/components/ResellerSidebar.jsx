@@ -74,7 +74,7 @@ const ResellerSidebar = ({ user, logout, isOpen, onClose }) => {
                 <div style={{ width: '32px', height: '32px', background: 'var(--reseller-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                     <ShieldCheck size={20} />
                 </div>
-                <h2>WEBSITE ADMIN</h2>
+                <h2>MERCHANT PORTAL</h2>
                 <button className="res-sidebar-close-btn" onClick={onClose}>
                     <X size={24} />
                 </button>
@@ -86,10 +86,11 @@ const ResellerSidebar = ({ user, logout, isOpen, onClose }) => {
                         <div className="res-nav-label">{group.label}</div>
                         {group.items.map(item => {
                             const isLocked = item.premium && user?.resellerTier !== 'premium';
+                            const targetPath = isLocked ? '/merchant/premium' : item.path.replace('/reseller', '/merchant').replace('/website', '/merchant');
                             return (
                                 <NavLink 
                                     key={item.id} 
-                                    to={isLocked ? '/website/premium' : item.path.replace('/reseller', '/website')} 
+                                    to={targetPath} 
                                     className={({ isActive }) => `res-nav-item ${isActive ? 'active' : ''} ${isLocked ? 'locked-item' : ''}`}
                                     onClick={() => { if (window.innerWidth < 1024) onClose(); }}
                                 >

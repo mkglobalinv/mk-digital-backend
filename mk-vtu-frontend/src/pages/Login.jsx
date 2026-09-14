@@ -8,6 +8,7 @@ import BrandLogo from '../components/BrandLogo';
 import logoDefault from '../assets/9jasub.jpg';
 import { isBiometricAvailable, authenticateBiometric, isNativeBiometric } from '../services/biometricService';
 import { isWhiteLabelSite } from '../utils/whiteLabelHelper';
+import { isMerchantUser } from '../utils/merchantHelper';
 
 const Login = ({ setToken, siteInfo }) => {
   const [email, setEmail] = useState(() => {
@@ -110,13 +111,10 @@ const Login = ({ setToken, siteInfo }) => {
         if (loggedUser && loggedUser.emergencyId) {
           localStorage.setItem('emergencyId', loggedUser.emergencyId);
         }
-        const isReseller = loggedUser && (loggedUser.role === 'reseller_admin' || loggedUser.resellerActivationStatus === 'active' || loggedUser.whiteLabelStatus === 'active' || loggedUser.apiLevel === 'reseller');
+        const isMerchant = isMerchantUser(loggedUser);
 
-        if (isReseller) {
-          // Business user tried retail login — show popup instead of redirecting silently
-          setBizInfo({ siteName: loggedUser.onboardingData?.siteName || "your Website", subdomain: loggedUser.subdomain || loggedUser.admin_subdomain });
-          setShowBizDetectedPopup(true);
-          setLoading(false);
+        if (isMerchant) {
+          navigate('/merchant/dashboard');
         } else {
           navigate('/home');
         }
