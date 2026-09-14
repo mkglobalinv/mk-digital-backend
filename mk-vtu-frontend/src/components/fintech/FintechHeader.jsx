@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Moon, Sun } from 'lucide-react';
+import { Bell, Moon, Sun, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import './FintechComponents.css';
@@ -30,6 +30,16 @@ const FintechHeader = ({ user, greeting: propGreeting, unreadCount = 0, isMercha
           <span className="greeting-text">{greeting},</span>
           <span className="user-name">{user?.name?.split(' ')[0] || user?.username || 'Member'}</span>
         </div>
+        {isMerchant && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '8px',
+            padding: '3px 8px', borderRadius: '999px', background: 'var(--primary)', color: '#fff',
+            fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.4px', textTransform: 'uppercase'
+          }}>
+            <Store size={11} />
+            Merchant
+          </span>
+        )}
       </div>
       <div className="nav-actions">
         <button className="icon-btn" onClick={toggleTheme} style={{ marginRight: '4px' }}>
