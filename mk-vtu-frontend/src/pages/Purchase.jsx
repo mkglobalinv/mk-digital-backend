@@ -25,6 +25,43 @@ const displayCategoryLabel = (cat) => {
   return cat;
 };
 
+// Everything currently sold as "SME" (see displayCategoryLabel above), plus
+// the raw literal "SME" category some providers use directly -- this is the
+// entire dataset the SME/Daily/Weekly/Monthly category tabs draw from. Any
+// other raw category (Corporate, Direct, Data Share, ...) is out of scope
+// for these tabs, since only gifting-type data is sold through this flow.
+const isSmeCategory = (cat) => {
+  const lower = String(cat || '').toLowerCase();
+  return lower === 'gifting' || lower === 'giftingxtra' || lower === 'sme';
+};
+
+// Groups SME-type plans by validity into DAILY/WEEKLY/MONTHLY tabs (SME
+// itself always shows all of them, unfiltered -- see isSmeCategory above).
+// Every plan is guaranteed a bucket: an unparseable validity string
+// defaults to 'monthly', matching DataPlan's own schema default of
+// '30 Days', so a plan is never left out of every tab.
+const getValidityDays = (validity) => {
+  const s = String(validity || '').toLowerCase();
+  const dayMatch = s.match(/(\d+(?:\.\d+)?)\s*day/);
+  if (dayMatch) return parseFloat(dayMatch[1]);
+  const hourMatch = s.match(/(\d+(?:\.\d+)?)\s*(?:hr|hour)/);
+  if (hourMatch) return parseFloat(hourMatch[1]) / 24;
+  if (/\bdaily\b/.test(s)) return 1;
+  if (/\bweekly\b/.test(s)) return 7;
+  if (/\bmonthly\b/.test(s)) return 30;
+  return null;
+};
+
+const getValidityBucket = (validity) => {
+  const days = getValidityDays(validity);
+  if (days === null) return 'monthly';
+  if (days <= 1) return 'daily';
+  if (days <= 7) return 'weekly';
+  return 'monthly';
+};
+
+const TAB_BUCKET_LABELS = { sme: 'SME', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
+
 const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -39,7 +76,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   const [dataPlan, setDataPlan] = useState('');
   const [dataPlanNetworkId, setDataPlanNetworkId] = useState(''); 
   const [fetchingPlans, setFetchingPlans] = useState(false);
-  const [dataCategory, setDataCategory] = useState('all'); // 'all', 'SME', 'Corporate', 'Gifting', 'Direct'
+  const [dataCategory, setDataCategory] = useState('sme'); // 'sme', 'daily', 'weekly', 'monthly'
   const [dataPlans, setDataPlans] = useState([]);
   const [airtimeOption, setAirtimeOption] = useState('smart'); // kept for airtime
   const [dataOption, setDataOption] = useState('smart');
@@ -213,7 +250,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   useEffect(() => {
     if (!isInternational && activeTab === 'data' && network) {
       setDataPlan(''); // Reset plan selection on network change
-      setDataCategory('all'); // Reset category selection on network change
+      setDataCategory('sme'); // Reset category selection on network change
       setAmount('');
       fetchDataPlans();
     }
@@ -545,79 +582,65 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                     </div>
                   </div>
                   <div className="purchase-input-group">
-                    <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data Category</label>
+                    <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Category</label>
                     <div className="data-category-chips">
-                      {['all', ...[...new Set(dataPlans
-                        .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge' || p.provider === 'smeplug') : p.provider === 'clubkonnect')
-                        .map(p => p.category || 'Direct')
-                      )].sort((a, b) => {
-                        // SmePlug's "GiftingXtra" category (now also labeled
-                        // "SME" like Peyflex/ClubKonnect's "Gifting") always
-                        // leads the tab list, right after "All Plans" -- if
-                        // it and Peyflex/ClubKonnect's "SME" ever end up
-                        // visible for the same network again, this still
-                        // picks a deterministic order instead of two
-                        // identically-labeled tabs swapping places between
-                        // loads. Everything else keeps its original
-                        // (price-derived) relative order.
-                        const aFirst = a.toLowerCase() === 'giftingxtra';
-                        const bFirst = b.toLowerCase() === 'giftingxtra';
-                        if (aFirst && !bFirst) return -1;
-                        if (bFirst && !aFirst) return 1;
-                        return 0;
-                      })]
-                      .filter(catId => {
-                        // Hide DISABLED/HIDDEN categories
-                        if (catId === 'all') return true;
-                        const compositeName = `${network} ${catId}`;
-                        // We check if ANY provider matching the current dataOption has this category as ACTIVE/VISIBLE
+                      {(() => {
                         const matchingProviders = dataOption === 'smart' ? ['peyflex', 'connectbridge', 'smeplug'] : ['clubkonnect'];
-                        const configs = publicCategories.filter(c => 
-                          c.category_name.toLowerCase() === compositeName.toLowerCase() && 
-                          matchingProviders.includes(c.provider_name.toLowerCase())
-                        );
-                        
-                        // If all configs for this category in the selected providers are HIDDEN, hide the chip
-                        if (configs.length > 0 && configs.every(c => c.visibility === 'HIDDEN' || c.status === 'DISABLED')) return false;
-                        return true;
-                      })
-                      .map(catId => {
-                        const isAll = catId === 'all';
-                        const label = isAll ? 'All Plans' : displayCategoryLabel(catId);
-                        const cls = isAll ? 'chip-all' : 'chip-direct';
-                        
-                        // Check if maintenance
-                        const compositeName = `${network} ${catId}`;
-                        const matchingProviders = dataOption === 'smart' ? ['peyflex', 'connectbridge', 'smeplug'] : ['clubkonnect'];
-                        const configs = publicCategories.filter(c =>
-                          c.category_name.toLowerCase() === compositeName.toLowerCase() &&
-                          matchingProviders.includes(c.provider_name.toLowerCase())
-                        );
+                        const getConfig = (p) => {
+                          const compositeName = `${network} ${p.category || 'Direct'}`;
+                          return publicCategories.find(c =>
+                            c.category_name.toLowerCase() === compositeName.toLowerCase() &&
+                            c.provider_name.toLowerCase() === (p.provider || '').toLowerCase()
+                          );
+                        };
+                        // Only SME-type plans (Gifting/GiftingXtra/literal SME) ever
+                        // feed these tabs -- Corporate/Direct/Data Share etc. aren't
+                        // sold through this flow. Hidden/disabled ones are dropped
+                        // up front so an empty tab never gets a chip.
+                        const smePlans = dataPlans
+                          .filter(p => matchingProviders.includes(p.provider) && isSmeCategory(p.category))
+                          .filter(p => {
+                            const config = getConfig(p);
+                            if (config && config.visibility === 'HIDDEN') return false;
+                            if (config && config.status === 'DISABLED') return false;
+                            return true;
+                          });
 
-                        // If all available configs are maintenance, mark the chip as maintenance
-                        const isMaintenance = configs.length > 0 && configs.every(c => c.status === 'MAINTENANCE');
-                        
-                        // Use the first available maintenance message
-                        const maintenanceMessage = isMaintenance ? configs[0].maintenance_message : null;
-                        
-                        return (
-                          <button
-                            key={catId}
-                            type="button"
-                            className={`category-chip ${cls} ${dataCategory.toLowerCase() === catId.toLowerCase() ? 'active' : ''} ${isMaintenance ? 'maintenance-chip' : ''}`}
-                            onClick={() => { 
-                              if (isMaintenance) {
-                                alert(maintenanceMessage || "This category is currently under maintenance.");
-                              }
-                              setDataCategory(catId); 
-                              setDataPlan(''); 
-                              setAmount(''); 
-                            }}
-                          >
-                            {label} {isMaintenance && <ShieldAlert size={12} style={{marginLeft: 4, display: 'inline'}} />}
-                          </button>
-                        );
-                      })}
+                        return ['sme', 'daily', 'weekly', 'monthly']
+                          .map(bucket => ({
+                            bucket,
+                            plans: smePlans.filter(p => bucket === 'sme' || getValidityBucket(p.validity) === bucket)
+                          }))
+                          .filter(({ plans }) => plans.length > 0)
+                          .map(({ bucket, plans }) => {
+                            // A bucket can span multiple raw categories/providers (e.g.
+                            // MONTHLY can include Gifting AND GiftingXtra plans) -- only
+                            // flag the whole chip as under maintenance when every plan
+                            // currently in it is, since some being purchasable is enough
+                            // to keep the tab usable.
+                            const maintenanceConfigs = plans.map(getConfig).filter(c => c && c.status === 'MAINTENANCE');
+                            const isMaintenance = maintenanceConfigs.length === plans.length;
+                            const maintenanceMessage = isMaintenance ? (maintenanceConfigs[0].maintenance_message || null) : null;
+
+                            return (
+                              <button
+                                key={bucket}
+                                type="button"
+                                className={`category-chip ${bucket === 'sme' ? 'chip-sme' : 'chip-direct'} ${dataCategory === bucket ? 'active' : ''} ${isMaintenance ? 'maintenance-chip' : ''}`}
+                                onClick={() => {
+                                  if (isMaintenance) {
+                                    alert(maintenanceMessage || "This category is currently under maintenance.");
+                                  }
+                                  setDataCategory(bucket);
+                                  setDataPlan('');
+                                  setAmount('');
+                                }}
+                              >
+                                {TAB_BUCKET_LABELS[bucket]} {isMaintenance && <ShieldAlert size={12} style={{marginLeft: 4, display: 'inline'}} />}
+                              </button>
+                            );
+                          });
+                      })()}
                     </div>
                   </div>
                   </>
@@ -726,7 +749,8 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                             if (config && config.status === 'DISABLED') return false;
                             return true;
                           })
-                          .filter(p => dataCategory === 'all' || (p.category && p.category.toLowerCase() === dataCategory.toLowerCase()))
+                          .filter(p => isSmeCategory(p.category))
+                          .filter(p => dataCategory === 'sme' || getValidityBucket(p.validity) === dataCategory)
                           .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge' || p.provider === 'smeplug') : p.provider === 'clubkonnect')
                           .map(plan => {
                          const sizeLabel = plan.plan_size || (plan.name || '').match(/(\d+(?:\.\d+)?\s*(?:MB|GB|TB))/i)?.[0] || plan.name;
@@ -761,11 +785,11 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                        })}
                      </div>
                  )}
-                 {!fetchingPlans && (dataCategory === 'all' ? dataPlans : dataPlans.filter(p => p.category === dataCategory)).length === 0 && network && (
+                 {!fetchingPlans && dataPlans.filter(p => isSmeCategory(p.category) && (dataCategory === 'sme' || getValidityBucket(p.validity) === dataCategory)).length === 0 && network && (
                    <div style={{ textAlign: 'center', padding: '28px 20px', color: '#888', fontSize: '14px' }}>
                      {dataPlans.length === 0
                        ? 'No plans available for this network. Try syncing from admin.'
-                       : `No ${dataCategory} plans available for ${network}.`}
+                       : `No ${TAB_BUCKET_LABELS[dataCategory] || dataCategory} plans available for ${network}.`}
                    </div>
                  )}
                </div>
