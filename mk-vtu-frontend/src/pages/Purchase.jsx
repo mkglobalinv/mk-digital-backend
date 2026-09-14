@@ -25,21 +25,20 @@ const displayCategoryLabel = (cat) => {
   return cat;
 };
 
-// Everything currently sold as "SME" (see displayCategoryLabel above), plus
-// the raw literal "SME" category some providers use directly -- this is the
-// entire dataset the SME/Daily/Weekly/Monthly category tabs draw from. Any
-// other raw category (Corporate, Direct, Data Share, ...) is out of scope
-// for these tabs, since only gifting-type data is sold through this flow.
+// "SME" (Gifting/GiftingXtra/literal SME -- see displayCategoryLabel above)
+// is its own dedicated tab, shown unfiltered. EVERY OTHER plan, from EVERY
+// provider and EVERY raw category (Corporate, Direct, Data Share, Smart
+// SME, ...) -- e.g. the bulk of Peyflex's GLO/AIRTEL/9MOBILE catalog, most
+// of which isn't literally named "Gifting" or "SME" -- still has to show
+// up somewhere, so it's grouped into DAILY/WEEKLY/MONTHLY by validity
+// instead. No plan is ever dropped from every tab.
 const isSmeCategory = (cat) => {
   const lower = String(cat || '').toLowerCase();
   return lower === 'gifting' || lower === 'giftingxtra' || lower === 'sme';
 };
 
-// Groups SME-type plans by validity into DAILY/WEEKLY/MONTHLY tabs (SME
-// itself always shows all of them, unfiltered -- see isSmeCategory above).
-// Every plan is guaranteed a bucket: an unparseable validity string
-// defaults to 'monthly', matching DataPlan's own schema default of
-// '30 Days', so a plan is never left out of every tab.
+// An unparseable validity string defaults to 'monthly', matching DataPlan's
+// own schema default of '30 Days', so a plan is never left out of every tab.
 const getValidityDays = (validity) => {
   const s = String(validity || '').toLowerCase();
   const dayMatch = s.match(/(\d+(?:\.\d+)?)\s*day/);
@@ -59,6 +58,11 @@ const getValidityBucket = (validity) => {
   if (days <= 7) return 'weekly';
   return 'monthly';
 };
+
+// Single source of truth for which of the 4 tabs a given plan belongs to --
+// used identically for the chip list, the plan grid, and the empty-state
+// message so they can never disagree with each other.
+const getPlanTabBucket = (plan) => (isSmeCategory(plan.category) ? 'sme' : getValidityBucket(plan.validity));
 
 const TAB_BUCKET_LABELS = { sme: 'SME', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
 
@@ -420,18 +424,26 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
         if (!isInternational && (!network || !dataPlan || !phone)) throw new Error("Missing data details");
         if (isInternational && (!countryCode || !operatorId || !amount || !phone)) throw new Error("Missing international data details");
 
-        console.log(`[Data] Initiating purchase: ${network} | ${dataPlan} | ${phone} | Category: ${dataCategory}`);
-        const dataPayload = { 
+        // Send the selected plan's own raw category (e.g. "Gifting"/"SME"/
+        // "Corporate") to the purchase API -- NOT the SME/Daily/Weekly/Monthly
+        // display tab (`dataCategory`), which is a display-only grouping and
+        // would otherwise silently break Peyflex's category-based routing
+        // (see services/providers/peyflex.js's MTN identifier selection).
+        const selectedPlanForPurchase = dataPlans.find(p => String(p.plan_code) === String(dataPlan));
+        const purchaseCategory = selectedPlanForPurchase?.category || dataCategory;
+
+        console.log(`[Data] Initiating purchase: ${network} | ${dataPlan} | ${phone} | Category: ${purchaseCategory}`);
+        const dataPayload = {
             ...commonPayload,
-            network, 
-            phone, 
-            plan_code: dataPlan, 
-            plan_id: dataPlan, 
+            network,
+            phone,
+            plan_code: dataPlan,
+            plan_id: dataPlan,
             service: "data",
             network_id: dataPlanNetworkId,
             countryCode: isInternational ? countryCode : 'NG',
             operatorId: isInternational ? operatorId : null,
-            category: dataCategory,
+            category: purchaseCategory,
             option: dataOption // Backend uses smart (Peyflex) or value (ClubKonnect)
         };
 
@@ -593,12 +605,11 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                             c.provider_name.toLowerCase() === (p.provider || '').toLowerCase()
                           );
                         };
-                        // Only SME-type plans (Gifting/GiftingXtra/literal SME) ever
-                        // feed these tabs -- Corporate/Direct/Data Share etc. aren't
-                        // sold through this flow. Hidden/disabled ones are dropped
-                        // up front so an empty tab never gets a chip.
-                        const smePlans = dataPlans
-                          .filter(p => matchingProviders.includes(p.provider) && isSmeCategory(p.category))
+                        // Every plan from the current provider option feeds these tabs
+                        // (see getPlanTabBucket above) -- hidden/disabled ones are
+                        // dropped up front so an empty tab never gets a chip.
+                        const candidatePlans = dataPlans
+                          .filter(p => matchingProviders.includes(p.provider))
                           .filter(p => {
                             const config = getConfig(p);
                             if (config && config.visibility === 'HIDDEN') return false;
@@ -609,7 +620,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                         return ['sme', 'daily', 'weekly', 'monthly']
                           .map(bucket => ({
                             bucket,
-                            plans: smePlans.filter(p => bucket === 'sme' || getValidityBucket(p.validity) === bucket)
+                            plans: candidatePlans.filter(p => getPlanTabBucket(p) === bucket)
                           }))
                           .filter(({ plans }) => plans.length > 0)
                           .map(({ bucket, plans }) => {
@@ -749,8 +760,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                             if (config && config.status === 'DISABLED') return false;
                             return true;
                           })
-                          .filter(p => isSmeCategory(p.category))
-                          .filter(p => dataCategory === 'sme' || getValidityBucket(p.validity) === dataCategory)
+                          .filter(p => getPlanTabBucket(p) === dataCategory)
                           .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge' || p.provider === 'smeplug') : p.provider === 'clubkonnect')
                           .map(plan => {
                          const sizeLabel = plan.plan_size || (plan.name || '').match(/(\d+(?:\.\d+)?\s*(?:MB|GB|TB))/i)?.[0] || plan.name;
@@ -785,7 +795,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                        })}
                      </div>
                  )}
-                 {!fetchingPlans && dataPlans.filter(p => isSmeCategory(p.category) && (dataCategory === 'sme' || getValidityBucket(p.validity) === dataCategory)).length === 0 && network && (
+                 {!fetchingPlans && dataPlans.filter(p => getPlanTabBucket(p) === dataCategory).length === 0 && network && (
                    <div style={{ textAlign: 'center', padding: '28px 20px', color: '#888', fontSize: '14px' }}>
                      {dataPlans.length === 0
                        ? 'No plans available for this network. Try syncing from admin.'
