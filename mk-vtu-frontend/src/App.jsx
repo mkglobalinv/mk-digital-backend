@@ -686,7 +686,8 @@ function App() {
     const seenOnboarding = localStorage.getItem('seenOnboarding');
     const userType = localStorage.getItem('userType');
     const isResellerLogout = (user && (user.role === 'reseller_admin' || user.apiLevel === 'reseller')) || userType === 'business';
-    
+    const isMerchantLogout = user && user.role === 'merchant';
+
     localStorage.clear();
     sessionStorage.clear();
     
@@ -708,6 +709,8 @@ function App() {
       navigate('/admin/login');
     } else if (isResellerLogout) {
       navigate('/business/login');
+    } else if (isMerchantLogout) {
+      navigate('/merchant/login');
     } else {
       navigate('/login');
     }
@@ -1051,7 +1054,7 @@ function App() {
                 <Route path="/continue-signup" element={<ContinueSignup siteInfo={siteInfo} />} />
                 <Route path="/reseller/onboarding" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/home" replace /> : (token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />)} />
                 <Route path="/merchant/onboarding" element={token ? <MerchantOnboarding user={user} refreshUser={fetchUserInfo} /> : <Navigate to="/login" />} />
-                <Route path="/merchant/dashboard" element={token ? (user?.role === 'merchant' ? <MerchantDashboard token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
+                <Route path="/merchant/dashboard" element={token ? (user?.role === 'merchant' ? <MerchantDashboard token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} logout={logout} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
                 {/* A merchant account is a separate identity that can coexist under the
                     same email as a reseller_admin/admin/plain-user account (see
                     models/User.js's {email, tenantOwnerId, role} index), so someone can
@@ -1064,6 +1067,23 @@ function App() {
                     session, which is what made "click Home" land on the wrong dashboard. */}
                 <Route path="/merchant/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/dashboard" replace /> : <MerchantSignup setToken={setToken} siteInfo={siteInfo} />)} />
                 <Route path="/merchant/login" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/dashboard" replace /> : <MerchantLogin setToken={setToken} />)} />
+
+                {/* Merchant-namespaced mirrors of the retail routes below, rendering
+                    the SAME page components (no duplicated UI/business logic) so
+                    merchant navigation never lands on a bare /wallet, /purchase,
+                    /profile, /transactions, /notifications or /identity URL -- those
+                    pages carry retail/reseller-only content (e.g. Purchase.jsx's
+                    "Start Your Brand" -> /reseller/onboarding upsell banner) that has
+                    no place in an isolated merchant experience. A non-merchant token
+                    holder bounces to /home, which itself resolves to wherever that
+                    account actually belongs (reseller dashboard or retail Home). */}
+                <Route path="/merchant/fund" element={token ? (user?.role === 'merchant' ? <Wallet token={token} user={user} refreshUser={fetchUserInfo} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
+                <Route path="/merchant/services" element={token ? (user?.role === 'merchant' ? <Purchase token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} isMerchant /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
+                <Route path="/merchant/transactions" element={token ? (user?.role === 'merchant' ? <Transactions token={token} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
+                <Route path="/merchant/profile" element={token ? (user?.role === 'merchant' ? <Profile logout={logout} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
+                <Route path="/merchant/notifications" element={token ? (user?.role === 'merchant' ? <Notifications token={token} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
+                <Route path="/merchant/identity/:serviceId" element={token ? (user?.role === 'merchant' ? <IdentityPurchase user={user} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
+                <Route path="/merchant/referrals" element={token ? (user?.role === 'merchant' ? <ReferralCenter user={user} siteInfo={siteInfo} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
                 <Route path="/app" element={<AppDownload />} />
 
                 {/* A merchant has its own distinct dashboard (MerchantDashboard.jsx,
@@ -1255,7 +1275,7 @@ function App() {
           </div>
         </div>
         {token && !loadingUser && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/reseller') && !location.pathname.startsWith('/website') && (
-          <BottomNav />
+          <BottomNav isMerchant={user?.role === 'merchant'} />
         )}
         </BrandingProvider>
       </ToastProvider>

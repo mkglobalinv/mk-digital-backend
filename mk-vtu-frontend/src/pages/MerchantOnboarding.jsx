@@ -132,14 +132,14 @@ const MerchantOnboarding = ({ refreshUser }) => {
               )}
 
               {isMerchant && !isActivated && (
-                <button onClick={() => navigate('/wallet')} style={primaryBtnStyle}>
+                <button onClick={() => navigate('/merchant/fund')} style={primaryBtnStyle}>
                   <Wallet2 size={18} />
                   <span>Fund Wallet</span>
                 </button>
               )}
 
               {isMerchant && isActivated && (
-                <button onClick={() => navigate('/purchase', { state: { defaultTab: 'data' } })} style={primaryBtnStyle}>
+                <button onClick={() => navigate('/merchant/services', { state: { defaultTab: 'data' } })} style={primaryBtnStyle}>
                   Start Buying
                 </button>
               )}

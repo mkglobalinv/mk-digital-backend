@@ -7,9 +7,11 @@ const PremiumWalletCard = ({
   user,
   recentlyFundedStatus,
   setShowMoreMenu,
-  isReseller = false
+  isReseller = false,
+  isMerchant = false
 }) => {
   const navigate = useNavigate();
+  const walletPath = isMerchant ? '/merchant/fund' : (isReseller ? '/reseller/wallet' : '/wallet');
   const [hideBalance, setHideBalance] = useState(() => {
     return sessionStorage.getItem('hideBalance') === 'true';
   });
@@ -51,7 +53,7 @@ const PremiumWalletCard = ({
 
       <div
         className="wallet-account-row"
-        onClick={() => navigate(isReseller ? '/reseller/wallet' : '/wallet')}
+        onClick={() => navigate(walletPath)}
       >
         {user?.account_number ? (
           <>
@@ -68,11 +70,11 @@ const PremiumWalletCard = ({
       </div>
 
       <div className="wallet-actions">
-        <div className="action-item primary" onClick={() => navigate(isReseller ? '/reseller/wallet' : '/wallet')}>
+        <div className="action-item primary" onClick={() => navigate(walletPath)}>
           <div className="action-icon-wrap"><ArrowDownLeft size={14} /></div>
           <span>Fund</span>
         </div>
-        <div className="action-item" onClick={() => navigate(isReseller ? '/reseller/wallet' : '/wallet')}>
+        <div className="action-item" onClick={() => navigate(walletPath)}>
           <div className="action-icon-wrap"><ArrowUpRight size={14} /></div>
           <span>Transfer</span>
         </div>

@@ -14,6 +14,7 @@ const ReferralCenter = ({ user, siteInfo }) => {
     const [copied, setCopied] = useState(false);
     const [showHowToEarn, setShowHowToEarn] = useState(false);
     const isResellerScope = window.location.pathname.startsWith('/reseller');
+    const isMerchantScope = window.location.pathname.startsWith('/merchant');
 
     useEffect(() => {
         const fetchReferralData = async () => {
@@ -79,7 +80,7 @@ const ReferralCenter = ({ user, siteInfo }) => {
         <div className="referral-container">
             {/* Header */}
             <div className="referral-header">
-                <button onClick={() => navigate(isResellerScope ? '/reseller/dashboard' : '/home')} className="back-btn">
+                <button onClick={() => navigate(isResellerScope ? '/reseller/dashboard' : isMerchantScope ? '/merchant/dashboard' : '/home')} className="back-btn">
                     <ArrowLeft size={20} />
                 </button>
                 <h1 className="header-title">Referral Center</h1>
@@ -103,7 +104,7 @@ const ReferralCenter = ({ user, siteInfo }) => {
                             <p className="balance-label">Current Available Earnings</p>
                             <p className="balance-amount small">₦{((user?.earningsBalance || 0)).toLocaleString()}</p>
                         </div>
-                        <button onClick={() => navigate(isResellerScope ? '/reseller/wallet' : '/wallet')} className="withdraw-btn">
+                        <button onClick={() => navigate(isResellerScope ? '/reseller/wallet' : isMerchantScope ? '/merchant/fund' : '/wallet')} className="withdraw-btn">
                             Withdraw
                         </button>
                     </div>
