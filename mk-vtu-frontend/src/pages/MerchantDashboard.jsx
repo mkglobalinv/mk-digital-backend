@@ -106,7 +106,7 @@ const MerchantDashboard = ({ token, user, refreshUser, siteInfo, logout }) => {
             dashboard rather than a copy of Home: activation state and the
             Basic Reseller pricing badge, front and center. */}
         <div
-          onClick={() => navigate('/merchant/onboarding')}
+          onClick={() => navigate(isActivated ? '/merchant/onboarding' : '/merchant/fund')}
           role="button"
           tabIndex={0}
           style={{
