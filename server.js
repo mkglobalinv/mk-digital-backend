@@ -104,7 +104,6 @@ import resellerRoutes from "./routes/resellerRoutes.js";
 import { smartFetchDataPlans, smartBuyAirtime, smartBuyData } from "./services/switcher.js";
 import { startResellerMaintenanceWorker } from "./services/resellerService.js";
 import { checkProviderAvailability } from "./services/providerMonitoringService.js";
-import { setDataProviderForNetwork } from "./services/providerRouting.js";
 import managementRoutes from "./routes/managementRoutes.js";
 import intelligenceRoutes from "./routes/intelligenceRoutes.js";
 import diagnosticRoutes from "./routes/diagnosticRoutes.js";
@@ -414,20 +413,6 @@ const connectDB = async () => {
                 console.log("PricingRule indexes synced ✅");
             } catch (e) {
                 console.warn("Could not sync PricingRule indexes on startup:", e.message);
-            }
-
-            // ONE-TIME MIGRATION (2026-09-14): switch MTN's data provider
-            // routing from Peyflex/ClubKonnect to SmePlug now that both
-            // categories share the customer-facing "SME" label -- without
-            // this, MTN customers would see two identically-labeled "SME"
-            // tabs. Idempotent (safe to run every boot): setDataProviderForNetwork
-            // just re-asserts the same VISIBLE/HIDDEN state if already set.
-            // Remove this block once confirmed live via Railway logs.
-            try {
-                const result = await setDataProviderForNetwork("MTN", "smeplug", null);
-                console.log(`[Migration] MTN data provider routing set to smeplug ✅ (provider=${result.provider})`);
-            } catch (e) {
-                console.warn("[Migration] Could not set MTN data provider routing to smeplug on startup:", e.message);
             }
             break;
         } catch (err) {
