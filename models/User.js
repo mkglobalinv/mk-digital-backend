@@ -355,6 +355,15 @@ userSchema.statics.findByTenant = async function(email, resellerId, preferBusine
   const users = await this.find({ email: email.toLowerCase() });
   if (!users || users.length === 0) return null;
 
+  if (users.length > 1) {
+    // Diagnostic: this branch only matters for the Merchant program's
+    // dual-account case, and printing it only when >1 document actually
+    // exists for the email keeps it from spamming logs for the near-
+    // universal single-account case.
+    console.log(`[findByTenant] Multiple accounts for ${email.toLowerCase()} (resellerId=${resellerId || 'null'}, preferBusiness=${preferBusiness}):`,
+      users.map(u => ({ id: u._id.toString(), role: u.role, tenantOwnerId: u.tenantOwnerId ? u.tenantOwnerId.toString() : null, resellerActivationStatus: u.resellerActivationStatus, whiteLabelStatus: u.whiteLabelStatus, apiLevel: u.apiLevel, merchantActivatedAt: u.merchantActivatedAt })));
+  }
+
   if (resellerId) {
     // Reseller portal: return the user that belongs to this tenant OR is the owner themselves
     return users.find(u =>
@@ -365,12 +374,18 @@ userSchema.statics.findByTenant = async function(email, resellerId, preferBusine
     // Main platform: return a user that has no tenant owner (registered on main platform)
     const mainPlatformUsers = users.filter(u => !u.tenantOwnerId);
     const isBusinessRole = (u) => u.role === 'admin' || u.role === 'superadmin' || u.role === 'reseller_admin';
+    let picked;
     if (preferBusiness) {
-      return mainPlatformUsers.find(u => u.role === 'admin' || u.role === 'superadmin') ||
-             mainPlatformUsers.find(u => u.role === 'reseller_admin') ||
-             mainPlatformUsers[0] || null;
+      picked = mainPlatformUsers.find(u => u.role === 'admin' || u.role === 'superadmin') ||
+               mainPlatformUsers.find(u => u.role === 'reseller_admin') ||
+               mainPlatformUsers[0] || null;
+    } else {
+      picked = mainPlatformUsers.find(u => !isBusinessRole(u)) || mainPlatformUsers[0] || null;
     }
-    return mainPlatformUsers.find(u => !isBusinessRole(u)) || mainPlatformUsers[0] || null;
+    if (users.length > 1) {
+      console.log(`[findByTenant] Picked: ${picked ? `${picked._id.toString()} (role=${picked.role})` : 'null'}`);
+    }
+    return picked;
   }
 };
 

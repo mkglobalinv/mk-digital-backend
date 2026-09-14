@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Phone, Store, Loader2, KeyRound } from 'lucide-react';
+import { Mail, Lock, User, Phone, Store, Loader2, KeyRound, CheckCircle2 } from 'lucide-react';
 import API from '../api';
 
 // Public, unauthenticated entry point into the Merchant program ("Reseller
@@ -13,12 +13,23 @@ const MerchantSignup = ({ setToken }) => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', transactionPin: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const update = (field) => (e) => setFormData({ ...formData, [field]: e.target.value });
+
+  // After a signup submission, wait briefly on a visible message before
+  // handing off -- otherwise the near-instant auto-login + navigate makes
+  // "you already have an account, signing you in" indistinguishable from a
+  // fresh signup, which is exactly what was reported as confusing.
+  const finishAndGo = (message) => new Promise((resolve) => {
+    setNotice(message);
+    setTimeout(resolve, 1400);
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setNotice('');
 
     if (!formData.name || !formData.email || !formData.password) {
       setError('Please fill in your name, email and password.');
@@ -31,13 +42,17 @@ const MerchantSignup = ({ setToken }) => {
 
     setLoading(true);
     try {
-      await API.post('/api/merchant/register', {
+      const registerRes = await API.post('/api/merchant/register', {
         name: formData.name,
         email: formData.email.toLowerCase(),
         phone: formData.phone,
         password: formData.password,
         transactionPin: formData.transactionPin
       });
+
+      if (registerRes.data.alreadyExisted) {
+        await finishAndGo('You already have a Merchant account with this email. Signing you in...');
+      }
 
       const loginRes = await API.post('/api/login', { email: formData.email, password: formData.password });
       if (loginRes.data.token) {
@@ -73,6 +88,13 @@ const MerchantSignup = ({ setToken }) => {
             Buy at Basic Reseller prices. No website, no setup fee.
           </p>
         </div>
+
+        {notice && (
+          <div style={{ background: 'var(--success-light)', color: 'var(--success)', borderRadius: 'var(--radius-md)', padding: '12px', fontSize: '13px', marginBottom: '14px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>{notice}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div style={inputWrapStyle}>
@@ -121,7 +143,7 @@ const MerchantSignup = ({ setToken }) => {
             }}
           >
             {loading && <Loader2 className="animate-spin" size={18} />}
-            <span>{loading ? 'Creating account...' : 'Create Merchant Account'}</span>
+            <span>{notice ? 'Signing you in...' : (loading ? 'Creating account...' : 'Create Merchant Account')}</span>
           </button>
         </form>
 
