@@ -176,6 +176,16 @@ export const registerMerchant = async (req, res) => {
 
         res.status(201).json({ status: "success", message: "Merchant account created.", userId: user._id });
     } catch (err) {
+        // A rapid double-submit (double-click, slow network retry) can race past the
+        // find-then-create check above -- both requests see "no existing merchant"
+        // and both try to insert, so the second one hits the {email, tenantOwnerId,
+        // role} unique index (models/User.js) instead of the friendly early-return.
+        // Without this, that raced second request surfaced as an opaque 500 instead
+        // of the same "you already have an account" messaging as a genuine repeat.
+        if (err.code === 11000) {
+            console.warn(`[Merchant Register] Duplicate-key race for ${req.body?.email}:`, err.message);
+            return res.status(400).json({ message: "You already have a merchant account with this email. Please sign in instead." });
+        }
         console.error("[Merchant Register Error]", err.message);
         res.status(500).json({ message: "Failed to create merchant account: " + err.message });
     }
