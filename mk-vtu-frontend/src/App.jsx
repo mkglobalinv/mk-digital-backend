@@ -529,6 +529,19 @@ function App() {
     }
   };
 
+  // Merchant login/signup pass this instead of the raw setToken setter. Between
+  // a fresh token being set and fetchUserInfo's async /api/user/me resolving,
+  // `user` would otherwise still hold whatever account was previously loaded in
+  // this tab (e.g. a reseller_admin/admin sibling browsed earlier without a full
+  // logout) -- and role-gated routes like /merchant/dashboard read `user.role`
+  // on that very first render, before the fetch completes. Clearing it
+  // synchronously here means that window can only ever be "not yet loaded",
+  // never "loaded as the WRONG account", closing that race for good.
+  const loginWithToken = (newToken) => {
+    setUser(null);
+    setToken(newToken);
+  };
+
   const fetchUserInfo = () => {
     if (token) {
       API.get(`/api/user/me?_t=${Date.now()}`)
@@ -1065,8 +1078,8 @@ function App() {
                     visitor straight to /home (or /merchant/onboarding) still logged into
                     their other account, without ever exchanging it for a merchant
                     session, which is what made "click Home" land on the wrong dashboard. */}
-                <Route path="/merchant/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/dashboard" replace /> : <MerchantSignup setToken={setToken} siteInfo={siteInfo} />)} />
-                <Route path="/merchant/login" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/dashboard" replace /> : <MerchantLogin setToken={setToken} />)} />
+                <Route path="/merchant/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/dashboard" replace /> : <MerchantSignup setToken={loginWithToken} siteInfo={siteInfo} />)} />
+                <Route path="/merchant/login" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/dashboard" replace /> : <MerchantLogin setToken={loginWithToken} />)} />
 
                 {/* Merchant-namespaced mirrors of the retail routes below, rendering
                     the SAME page components (no duplicated UI/business logic) so
