@@ -65,6 +65,33 @@ const getValidityBucket = (validity) => {
 const getPlanTabBucket = (plan) => (isSmeCategory(plan.category) ? 'sme' : getValidityBucket(plan.validity));
 
 const TAB_BUCKET_LABELS = { sme: 'SME', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
+const TAB_BUCKET_ORDER = ['sme', 'daily', 'weekly', 'monthly'];
+
+const DATA_OPTION_PROVIDERS = { smart: ['peyflex', 'connectbridge', 'smeplug'], value: ['clubkonnect'] };
+
+const getCategoryConfig = (plan, network, publicCategories) => {
+  const compositeName = `${network} ${plan.category || 'Direct'}`;
+  return publicCategories.find(c =>
+    c.category_name.toLowerCase() === compositeName.toLowerCase() &&
+    c.provider_name.toLowerCase() === (plan.provider || '').toLowerCase()
+  );
+};
+
+// Plans for the current network+provider-option, with HIDDEN/DISABLED
+// categories already dropped -- the shared base both the chip list and the
+// auto-tab-selection effect below build on, so they can never disagree
+// about which networks/tabs actually have anything purchasable.
+const getVisibleCandidatePlans = (dataPlans, publicCategories, network, dataOption) => {
+  const matchingProviders = DATA_OPTION_PROVIDERS[dataOption] || DATA_OPTION_PROVIDERS.smart;
+  return dataPlans
+    .filter(p => matchingProviders.includes(p.provider))
+    .filter(p => {
+      const config = getCategoryConfig(p, network, publicCategories);
+      if (config && config.visibility === 'HIDDEN') return false;
+      if (config && config.status === 'DISABLED') return false;
+      return true;
+    });
+};
 
 const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   const location = useLocation();
@@ -265,6 +292,24 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
     setDataPlan('');
     setAmount('');
   }, [dataCategory]);
+
+  // The network-change effect above always resets to the 'sme' tab, but not
+  // every network's Peyflex catalog actually has a plan literally categorized
+  // "SME"/"Gifting" (most of GLO/AIRTEL/9MOBILE's plans are Corporate/Direct/
+  // Data Share instead, and land in Daily/Weekly/Monthly -- see
+  // getPlanTabBucket above). Once plans arrive, if the current tab turns out
+  // empty, jump to the first tab that actually has something, so a network
+  // never renders an apparently-blank data tab.
+  useEffect(() => {
+    if (!isInternational && activeTab === 'data' && network && dataPlans.length > 0) {
+      const visiblePlans = getVisibleCandidatePlans(dataPlans, publicCategories, network, dataOption);
+      const bucketHasPlans = (bucket) => visiblePlans.some(p => getPlanTabBucket(p) === bucket);
+      if (!bucketHasPlans(dataCategory)) {
+        const firstNonEmpty = TAB_BUCKET_ORDER.find(bucketHasPlans);
+        if (firstNonEmpty) setDataCategory(firstNonEmpty);
+      }
+    }
+  }, [dataPlans, dataOption, network, activeTab, isInternational, publicCategories]);
 
   useEffect(() => {
     if (activeTab === 'cable' && cablePlans.length === 0) {
@@ -597,27 +642,12 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                     <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Category</label>
                     <div className="data-category-chips">
                       {(() => {
-                        const matchingProviders = dataOption === 'smart' ? ['peyflex', 'connectbridge', 'smeplug'] : ['clubkonnect'];
-                        const getConfig = (p) => {
-                          const compositeName = `${network} ${p.category || 'Direct'}`;
-                          return publicCategories.find(c =>
-                            c.category_name.toLowerCase() === compositeName.toLowerCase() &&
-                            c.provider_name.toLowerCase() === (p.provider || '').toLowerCase()
-                          );
-                        };
                         // Every plan from the current provider option feeds these tabs
                         // (see getPlanTabBucket above) -- hidden/disabled ones are
                         // dropped up front so an empty tab never gets a chip.
-                        const candidatePlans = dataPlans
-                          .filter(p => matchingProviders.includes(p.provider))
-                          .filter(p => {
-                            const config = getConfig(p);
-                            if (config && config.visibility === 'HIDDEN') return false;
-                            if (config && config.status === 'DISABLED') return false;
-                            return true;
-                          });
+                        const candidatePlans = getVisibleCandidatePlans(dataPlans, publicCategories, network, dataOption);
 
-                        return ['sme', 'daily', 'weekly', 'monthly']
+                        return TAB_BUCKET_ORDER
                           .map(bucket => ({
                             bucket,
                             plans: candidatePlans.filter(p => getPlanTabBucket(p) === bucket)
@@ -629,7 +659,9 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                             // flag the whole chip as under maintenance when every plan
                             // currently in it is, since some being purchasable is enough
                             // to keep the tab usable.
-                            const maintenanceConfigs = plans.map(getConfig).filter(c => c && c.status === 'MAINTENANCE');
+                            const maintenanceConfigs = plans
+                              .map(p => getCategoryConfig(p, network, publicCategories))
+                              .filter(c => c && c.status === 'MAINTENANCE');
                             const isMaintenance = maintenanceConfigs.length === plans.length;
                             const maintenanceMessage = isMaintenance ? (maintenanceConfigs[0].maintenance_message || null) : null;
 
