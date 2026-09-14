@@ -7,12 +7,17 @@ import { useNavigate } from 'react-router-dom';
 import API from '../../api';
 import './FintechComponents.css';
 
-const PRIMARY_SERVICES = [
-  { id: 'data',        label: 'Data',     icon: Wifi,       cls: 'srv-gold'  },
-  { id: 'airtime',     label: 'Airtime',  icon: Smartphone, cls: 'srv-navy'  },
-  { id: 'cable',       label: 'Cable TV', icon: Tv2,        cls: 'srv-blue'  },
-  { id: 'electricity', label: 'Electric', icon: Zap,        cls: 'srv-teal'  },
+// The primary row's 4th slot swaps between Electric and Airtime-to-Cash: when
+// Airtime-to-Cash is available it takes that slot and Electric moves down into
+// the "more services" panel (in the spot Airtime-to-Cash used to occupy);
+// otherwise Electric stays primary and there's nothing to swap it with.
+const BASE_PRIMARY_SERVICES = [
+  { id: 'data',    label: 'Data',     icon: Wifi,       cls: 'srv-gold' },
+  { id: 'airtime', label: 'Airtime',  icon: Smartphone, cls: 'srv-navy' },
+  { id: 'cable',   label: 'Cable TV', icon: Tv2,        cls: 'srv-blue' },
 ];
+
+const ELECTRIC_SERVICE = { id: 'electricity', label: 'Electric', icon: Zap, cls: 'srv-teal' };
 
 const MORE_SERVICES = [
   { id: 'epin',    label: 'Airtime PIN', icon: Hash,      cls: 'srv-purple', route: null },
@@ -41,7 +46,10 @@ const QuickServicesGrid = ({ isReseller = false }) => {
       .catch(() => setAirtimeToCashAvailable(false));
   }, []);
 
-  const moreServices = airtimeToCashAvailable ? [...MORE_SERVICES, AIRTIME_TO_CASH_SERVICE] : MORE_SERVICES;
+  const primaryServices = airtimeToCashAvailable
+    ? [...BASE_PRIMARY_SERVICES, AIRTIME_TO_CASH_SERVICE]
+    : [...BASE_PRIMARY_SERVICES, ELECTRIC_SERVICE];
+  const moreServices = airtimeToCashAvailable ? [...MORE_SERVICES, ELECTRIC_SERVICE] : MORE_SERVICES;
 
   const handleServiceClick = (svc) => {
     if (svc.route) {
@@ -59,7 +67,7 @@ const QuickServicesGrid = ({ isReseller = false }) => {
 
       {/* Primary 4 */}
       <div className="services-grid primary-grid">
-        {PRIMARY_SERVICES.map(svc => {
+        {primaryServices.map(svc => {
           const Icon = svc.icon;
           return (
             <div key={svc.id} className={`service-card ${svc.cls}`} onClick={() => handleServiceClick(svc)}>
