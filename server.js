@@ -101,6 +101,7 @@ import { createVirtualAccount } from "./services/flutterwaveService.js";
 import { whiteLabelMiddleware } from "./middlewares/whiteLabel.js";
 import { maintenanceMiddleware } from "./middlewares/maintenanceMiddleware.js";
 import resellerRoutes from "./routes/resellerRoutes.js";
+import merchantRoutes from "./routes/merchantRoutes.js";
 import { smartFetchDataPlans, smartBuyAirtime, smartBuyData } from "./services/switcher.js";
 import { startResellerMaintenanceWorker } from "./services/resellerService.js";
 import { checkProviderAvailability } from "./services/providerMonitoringService.js";
@@ -814,6 +815,7 @@ app.post("/api/reseller/submit-onboarding", auth, async (req, res) => {
 });
 
 app.use("/api/reseller", resellerRoutes);
+app.use("/api/merchant", merchantRoutes);
 
 // Multi-Tenant Diagnostics (Internal Debug)
 app.get("/api/diagnostics/tenant", (req, res) => {

@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   accountType: { type: String, enum: ["none", "temporary", "permanent"], default: "none" },
   accountExpiryDate: { type: Date },
   temporaryAmount: { type: Number },
-  role: { type: String, enum: ["user", "admin", "superadmin", "reseller_admin"], default: "user" },
+  role: { type: String, enum: ["user", "admin", "superadmin", "reseller_admin", "merchant"], default: "user" },
   activationRewardGiven: { type: Boolean, default: false },
   isSuspended: { type: Boolean, default: false },
   isProcessingTx: { type: Boolean, default: false },
@@ -175,6 +175,14 @@ const userSchema = new mongoose.Schema({
   customBannerEnabled: { type: Boolean, default: false },
   canOverridePricing: { type: Boolean, default: false }, // Explicit permission — true for premium/vip, false for basic
   resellerType: { type: String, enum: ["basic", "premium"], default: "basic" },
+  // Merchant program ("Reseller 2"): a lighter-weight self-service tier --
+  // no website/branding/domain/sub-customers, just Basic Reseller pricing
+  // on the same shared portal (see services/pricing/vtuPricing.js's
+  // isReseller checks and config/merchant.js). null/unset until the user's
+  // first single wallet top-up of at least MERCHANT_MIN_ACTIVATION_AMOUNT
+  // lands (see services/walletService.js's creditBalance) -- permanent
+  // once set, even if their balance later drops.
+  merchantActivatedAt: { type: Date, default: null },
   assignedPrices: { type: Map, of: Number, default: {} },
   customPrices: { type: Map, of: Number, default: {} },
   
