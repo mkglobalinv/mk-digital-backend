@@ -415,6 +415,20 @@ const connectDB = async () => {
             } catch (e) {
                 console.warn("Could not sync PricingRule indexes on startup:", e.message);
             }
+
+            // User's unique index moved from {email, tenantOwnerId} to
+            // {email, tenantOwnerId, role} (Merchant program -- lets a
+            // reseller_admin/admin also hold a separate merchant identity
+            // under the same email). Same reasoning as PricingRule above:
+            // an existing deployment still has the old 2-field unique index
+            // enforced, which would block that second account from ever
+            // being created. Safe to run every startup.
+            try {
+                await User.syncIndexes();
+                console.log("User indexes synced ✅");
+            } catch (e) {
+                console.warn("Could not sync User indexes on startup:", e.message);
+            }
             break;
         } catch (err) {
             console.error("MongoDB Connection Error ❌:", err.message);
@@ -971,8 +985,8 @@ app.post("/api/login", async (req, res) => {
     const resellerId = req.reseller?._id || null;
     sessionType = resellerId ? 'retail' : sessionType;
 
-    let user = await User.findByTenant(email, resellerId);
-    
+    let user = await User.findByTenant(email, resellerId, sessionType === 'business');
+
     if (!user && resellerId) {
         // Fallback for allowing reseller owners to log into their own site
         const potentialOwner = await User.findById(resellerId);
