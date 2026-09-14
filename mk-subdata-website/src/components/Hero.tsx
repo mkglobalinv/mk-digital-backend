@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Briefcase, Headphones, ShieldCheck, Star, User, Zap } from 'lucide-react';
+import { ArrowRight, Briefcase, Headphones, ShieldCheck, Star, Store, User, Zap } from 'lucide-react';
 import { trackMetaEvent } from '@/lib/metaPixel';
 
 const trustBadges = [
@@ -94,6 +94,37 @@ export default function Hero() {
                   <span className="hidden sm:inline">Create Your Own VTU Website</span>
                   <ArrowRight size={14} className="sm:hidden shrink-0" />
                   <ArrowRight size={16} className="hidden sm:block shrink-0" />
+                </span>
+              </button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.32 }}
+              className="max-w-xl mx-auto lg:mx-0 mt-2.5 sm:mt-4"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  trackMetaEvent('Lead', { content_name: 'Become a Merchant' });
+                  window.location.assign('/merchant/signup');
+                }}
+                className="group w-full flex items-center gap-3 sm:gap-4 text-left bg-white border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/60 rounded-xl sm:rounded-2xl p-3 sm:p-4 transition-all duration-300"
+              >
+                <div className="shrink-0 w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Store size={16} className="sm:hidden" />
+                  <Store size={20} className="hidden sm:block" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-extrabold text-slate-900 text-xs sm:text-base leading-tight">Become a Merchant</h3>
+                  <p className="text-[10.5px] sm:text-sm text-slate-500 font-medium leading-snug">
+                    Buy at Basic Reseller prices &bull; No website, no setup fee
+                  </p>
+                </div>
+                <span className="shrink-0 btn-primary inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-sm leading-tight">
+                  <span className="hidden sm:inline">Sign Up</span>
+                  <ArrowRight size={14} className="shrink-0" />
                 </span>
               </button>
             </motion.div>

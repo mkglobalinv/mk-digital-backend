@@ -29,6 +29,7 @@ import Onboarding from "./pages/Onboarding";
 import OfflineData from "./pages/OfflineData";
 import ResellerOnboarding from "./pages/ResellerOnboarding";
 import MerchantOnboarding from "./pages/MerchantOnboarding";
+import MerchantSignup from "./pages/MerchantSignup";
 import DeveloperApi from "./pages/DeveloperApi";
 
 import IdentityPurchase from "./pages/identity/IdentityPurchase";
@@ -1048,6 +1049,7 @@ function App() {
                 <Route path="/continue-signup" element={<ContinueSignup siteInfo={siteInfo} />} />
                 <Route path="/reseller/onboarding" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/home" replace /> : (token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />)} />
                 <Route path="/merchant/onboarding" element={token ? <MerchantOnboarding user={user} refreshUser={fetchUserInfo} /> : <Navigate to="/login" />} />
+                <Route path="/merchant/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : (token ? <Navigate to="/merchant/onboarding" replace /> : <MerchantSignup setToken={setToken} siteInfo={siteInfo} />)} />
                 <Route path="/app" element={<AppDownload />} />
 
                 <Route path="/home" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Home token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
