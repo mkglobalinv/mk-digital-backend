@@ -214,7 +214,7 @@
   transform: translateY(-1px);
 }
 
-.category-chip.active.chip-sme    { background: #059669; border-color: #059669; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3); }
+.category-chip.active.chip-sme    { background: #F4B400; border-color: #F4B400; color: #0B1F45; box-shadow: 0 4px 14px rgba(244, 180, 0, 0.35); }
 .category-chip.active.chip-corp   { background: #7C3AED; border-color: #7C3AED; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3); }
 .category-chip.active.chip-gift   { background: #DB2777; border-color: #DB2777; box-shadow: 0 4px 14px rgba(219, 39, 119, 0.3); }
 .category-chip.active.chip-direct { background: #D97706; border-color: #D97706; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3); }
