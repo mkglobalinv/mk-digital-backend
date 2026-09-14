@@ -429,6 +429,29 @@ const connectDB = async () => {
             } catch (e) {
                 console.warn("Could not sync User indexes on startup:", e.message);
             }
+
+            // ONE-TIME MIGRATION (2026-09-14): retroactively clean up
+            // merchant accounts created before registerMerchant started
+            // resetting resellerActivationStatus/whiteLabelStatus/apiLevel
+            // on upgrade -- an account that had ever touched the "Start
+            // Your Brand" reseller trial before becoming a merchant could
+            // still carry those fields set to values isBusinessAccount()/
+            // isActiveReseller() treat as "this is a reseller", wrongly
+            // routing Home to the reseller dashboard. Idempotent (matches
+            // nothing once already clean). Remove once confirmed via logs.
+            try {
+                const result = await User.updateMany(
+                    { role: "merchant", $or: [
+                        { resellerActivationStatus: { $ne: "none" } },
+                        { whiteLabelStatus: { $nin: ["pending", null] } },
+                        { apiLevel: { $nin: ["normal", null] } }
+                    ] },
+                    { $set: { resellerActivationStatus: "none", whiteLabelStatus: "pending", apiLevel: "normal" } }
+                );
+                console.log(`[Migration] Cleaned stale reseller fields on ${result.modifiedCount} merchant account(s) ✅`);
+            } catch (e) {
+                console.warn("[Migration] Could not clean merchant accounts on startup:", e.message);
+            }
             break;
         } catch (err) {
             console.error("MongoDB Connection Error ❌:", err.message);
@@ -1169,6 +1192,16 @@ app.post(["/user/generate-permanent-va", "/api/user/generate-permanent-va"], aut
 // (Keep internal helper import logic handled at top)
 
 app.get("/api/user/me", auth, async (req, res) => {
+  // This is the endpoint every balance/role-dependent UI (Wallet, Home,
+  // merchant status) polls to detect changes -- Express's default ETag
+  // behavior lets the browser conditionally-GET it and get back a 304 (no
+  // body) whenever it happens to compute the same weak hash, which meant
+  // a real wallet-sync socket push could update the global user state, but
+  // the NEXT plain poll of this route could still silently short-circuit
+  // to a stale cached copy instead of the fresh document -- exactly what
+  // looked like "balance doesn't update until I reload the page". This
+  // must never be conditionally cached.
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   const userDoc = await User.findById(req.user.id).select("-password");
   if (userDoc && req.reseller) {
       const isOwner = req.reseller._id.toString() === userDoc._id.toString();
