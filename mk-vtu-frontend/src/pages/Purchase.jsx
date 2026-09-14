@@ -8,17 +8,19 @@ import { useTransactionBanner } from '../context/TransactionBannerContext';
 import './Purchase.css';
 import logo from '../assets/9jasub.jpg';
 
-// Display-only rename: the "Gifting" category (Peyflex/ClubKonnect/disabled-
-// Ogdams plans) is shown to customers as "SME". SmePlug's plans live under
-// their own separate "GiftingXtra" category (deliberately not merged into
-// "Gifting" -- see routes/adminRoutes.js's upsertDataPlanFromProviderPlan),
-// shown as "SME Xtra" so it's obviously related but distinguishable, and easy
-// to remove later without touching the main "SME" category at all. The
-// underlying category values stay as-is everywhere else (filtering,
-// ProviderCategory matching, React keys) -- this only changes rendered text.
+// Display-only rename: both the "Gifting" category (Peyflex/ClubKonnect/
+// disabled-Ogdams plans) and SmePlug's separate "GiftingXtra" category are
+// shown to customers as plain "SME" -- as of the MTN provider-routing switch
+// to SmePlug, only one of the two is ever visible for a given network at a
+// time (Peyflex/ClubKonnect's MTN "Gifting" plans are now hidden; other
+// networks still show their Peyflex/ClubKonnect "Gifting" plans), so a
+// shared label no longer risks two identically-named tabs on the same
+// network. The underlying category values stay as-is everywhere else
+// (filtering, ProviderCategory matching, React keys) -- this only changes
+// rendered text.
 const displayCategoryLabel = (cat) => {
   const lower = String(cat || '').toLowerCase();
-  if (lower === 'giftingxtra') return 'SME Xtra';
+  if (lower === 'giftingxtra') return 'SME';
   if (lower === 'gifting') return 'SME';
   return cat;
 };
@@ -549,9 +551,15 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                         .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge' || p.provider === 'smeplug') : p.provider === 'clubkonnect')
                         .map(p => p.category || 'Direct')
                       )].sort((a, b) => {
-                        // SME Xtra (SmePlug) always leads the tab list, right
-                        // after "All Plans" -- everything else keeps its
-                        // original (price-derived) relative order.
+                        // SmePlug's "GiftingXtra" category (now also labeled
+                        // "SME" like Peyflex/ClubKonnect's "Gifting") always
+                        // leads the tab list, right after "All Plans" -- if
+                        // it and Peyflex/ClubKonnect's "SME" ever end up
+                        // visible for the same network again, this still
+                        // picks a deterministic order instead of two
+                        // identically-labeled tabs swapping places between
+                        // loads. Everything else keeps its original
+                        // (price-derived) relative order.
                         const aFirst = a.toLowerCase() === 'giftingxtra';
                         const bFirst = b.toLowerCase() === 'giftingxtra';
                         if (aFirst && !bFirst) return -1;
