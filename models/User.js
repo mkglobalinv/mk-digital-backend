@@ -256,8 +256,18 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Compound index to allow same email on different reseller portals
-userSchema.index({ email: 1, tenantOwnerId: 1 }, { unique: true, partialFilterExpression: { archived: false } });
+// Compound index to allow same email on different reseller portals, AND
+// (as of the Merchant program) the same email to have one account per role
+// on the SAME portal -- specifically so a reseller_admin (website owner) or
+// admin can also hold a fully separate 'merchant' identity under their own
+// email, without touching their existing account. A plain retail 'user'
+// becoming a merchant still upgrades their single existing document in
+// place (see controllers/merchantController.js's registerMerchant) rather
+// than creating a second row, so this widening only ever actually produces
+// two rows for the reseller/admin case. findByTenant's business-preference
+// argument is what lets /api/login disambiguate which of the two to sign
+// into when this happens.
+userSchema.index({ email: 1, tenantOwnerId: 1, role: 1 }, { unique: true, partialFilterExpression: { archived: false } });
 // Keep legacy referredBy index for referral/commission queries (not for auth)
 userSchema.index({ referredBy: 1 });
 
@@ -326,8 +336,15 @@ userSchema.post('save', async function(doc) {
  *
  * @param {string} email
  * @param {ObjectId|string|null} resellerId — null means Main Platform
+ * @param {boolean} preferBusiness — when an email resolves to more than one
+ *   main-platform account (the Merchant program's reseller/admin-plus-
+ *   merchant case — see the schema index above), which one to return: the
+ *   reseller_admin account when true, otherwise the non-reseller_admin one
+ *   (merchant or plain user). Callers that don't pass it get the
+ *   non-business account, matching every pre-existing call site's behavior
+ *   for the overwhelmingly common case where an email only has one account.
  */
-userSchema.statics.findByTenant = async function(email, resellerId) {
+userSchema.statics.findByTenant = async function(email, resellerId, preferBusiness = false) {
   const users = await this.find({ email: email.toLowerCase() });
   if (!users || users.length === 0) return null;
 
@@ -340,9 +357,13 @@ userSchema.statics.findByTenant = async function(email, resellerId) {
   } else {
     // Main platform: return a user that has no tenant owner (registered on main platform)
     // Admins/superadmins are always accessible on main platform
-    return users.find(u => u.role === 'admin' || u.role === 'superadmin') ||
-           users.find(u => !u.tenantOwnerId) ||
-           null;
+    const mainPlatformUsers = users.filter(u => !u.tenantOwnerId);
+    const adminUser = mainPlatformUsers.find(u => u.role === 'admin' || u.role === 'superadmin');
+    if (adminUser) return adminUser;
+    if (preferBusiness) {
+      return mainPlatformUsers.find(u => u.role === 'reseller_admin') || mainPlatformUsers[0] || null;
+    }
+    return mainPlatformUsers.find(u => u.role !== 'reseller_admin') || mainPlatformUsers[0] || null;
   }
 };
 

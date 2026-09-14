@@ -43,7 +43,10 @@ export const becomeMerchant = async (req, res) => {
         }
 
         if (user.role !== "user") {
-            return res.status(400).json({ message: "This account type can't become a merchant." });
+            // A reseller_admin/admin can still get a merchant identity, just not by
+            // converting THIS logged-in account -- see registerMerchant below, which
+            // creates a separate one under the same email instead.
+            return res.status(400).json({ message: "This account already has a role. To get a separate Merchant account under the same email, sign out and use the \"Become a Merchant\" sign-up form instead." });
         }
 
         user.role = "merchant";
@@ -63,13 +66,22 @@ export const becomeMerchant = async (req, res) => {
 };
 
 // POST /api/merchant/register -- public, unauthenticated entry point for
-// someone who isn't already logged in. Mirrors registerResellerWithPayment's
-// create-or-upgrade-by-password pattern (routes/... -> controllers/
-// resellerController.js) but far simpler: no business name, no subdomain,
-// no white-label paraphernalia -- just enough to log in and land on
-// /merchant/onboarding to fund their wallet. Always operates on the main
-// platform (tenantOwnerId: null), same as reseller registration -- the
-// merchant program isn't offered inside any white-label tenant site.
+// someone who isn't already logged in. Always operates on the main platform
+// (tenantOwnerId: null), same as reseller registration -- the merchant
+// program isn't offered inside any white-label tenant site.
+//
+// Three cases for an email that's already registered (see models/User.js's
+// {email, tenantOwnerId, role} index and findByTenant):
+//   1. Already has a merchant account -- just a repeat/duplicate sign-up
+//      attempt; verify the password and tell them, don't make a third one.
+//   2. A plain retail 'user' account -- upgraded IN PLACE (same single
+//      identity, same as registerResellerWithPayment's reseller upgrade
+//      pattern), requires the correct existing password.
+//   3. Any other role (reseller_admin/admin/superadmin) -- that account's
+//      role can't be overwritten without destroying what it already is, so
+//      this creates a SEPARATE, independent merchant identity under the
+//      same email instead. /api/login's sessionType then disambiguates
+//      which of the two to sign into.
 export const registerMerchant = async (req, res) => {
     try {
         const { name, email, phone, password, transactionPin } = req.body;
@@ -81,24 +93,36 @@ export const registerMerchant = async (req, res) => {
         }
 
         const normalizedEmail = email.toLowerCase();
-        const existing = await User.findOne({ email: normalizedEmail, tenantOwnerId: null });
+        const existingDocs = await User.find({ email: normalizedEmail, tenantOwnerId: null });
 
-        if (existing) {
-            if (existing.role !== "user") {
-                return res.status(400).json({ message: "An account with this email already exists." });
+        const existingMerchant = existingDocs.find(u => u.role === "merchant");
+        if (existingMerchant) {
+            const isMatch = await bcrypt.compare(password, existingMerchant.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: "You already have a merchant account with this email. Enter your correct password to sign in." });
             }
-            const isMatch = await bcrypt.compare(password, existing.password);
+            return res.status(200).json({ status: "success", message: "You already have a merchant account. Signing you in.", userId: existingMerchant._id });
+        }
+
+        const existingPlainUser = existingDocs.find(u => u.role === "user");
+        if (existingPlainUser) {
+            const isMatch = await bcrypt.compare(password, existingPlainUser.password);
             if (!isMatch) {
                 return res.status(400).json({ message: "This email is already registered. Enter your correct account password to become a merchant." });
             }
-            existing.role = "merchant";
-            existing.name = name || existing.name;
-            existing.phone = phone || existing.phone;
-            if (!existing.transactionPin) existing.transactionPin = await bcrypt.hash(transactionPin, 10);
-            await existing.save();
-            return res.status(200).json({ status: "success", message: "Merchant account activated.", userId: existing._id });
+            existingPlainUser.role = "merchant";
+            existingPlainUser.name = name || existingPlainUser.name;
+            existingPlainUser.phone = phone || existingPlainUser.phone;
+            if (!existingPlainUser.transactionPin) existingPlainUser.transactionPin = await bcrypt.hash(transactionPin, 10);
+            await existingPlainUser.save();
+            return res.status(200).json({ status: "success", message: "Merchant account activated.", userId: existingPlainUser._id });
         }
 
+        // No existing 'merchant' or 'user' doc for this email -- either the
+        // email is brand new, or it belongs only to a reseller_admin/admin/
+        // superadmin account. Either way, create a fresh, independent
+        // merchant identity (own password/PIN, unrelated to any other
+        // account on this email).
         const hashedPassword = await bcrypt.hash(password, 10);
         const hashedPin = await bcrypt.hash(transactionPin, 10);
         const user = new User({
