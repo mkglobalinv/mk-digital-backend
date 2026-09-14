@@ -95,15 +95,23 @@ export const registerMerchant = async (req, res) => {
         }
 
         const normalizedEmail = email.toLowerCase();
-        const existingDocs = await User.find({ email: normalizedEmail, tenantOwnerId: null });
+        // Diagnostic: also matches accounts under OTHER tenants (unlike the
+        // query below, which is scoped to tenantOwnerId: null) purely so a
+        // repeat/duplicate registration attempt is fully visible in logs.
+        const allDocsForEmail = await User.find({ email: normalizedEmail });
+        console.log(`[Merchant Register] ${normalizedEmail}: ${allDocsForEmail.length} existing account(s)`,
+            allDocsForEmail.map(u => ({ id: u._id.toString(), role: u.role, tenantOwnerId: u.tenantOwnerId ? u.tenantOwnerId.toString() : null })));
+
+        const existingDocs = allDocsForEmail.filter(u => !u.tenantOwnerId);
 
         const existingMerchant = existingDocs.find(u => u.role === "merchant");
         if (existingMerchant) {
             const isMatch = await bcrypt.compare(password, existingMerchant.password);
+            console.log(`[Merchant Register] ${normalizedEmail}: existing merchant found (${existingMerchant._id}), password match=${isMatch}`);
             if (!isMatch) {
-                return res.status(400).json({ message: "You already have a merchant account with this email. Enter your correct password to sign in." });
+                return res.status(400).json({ message: "You already have a merchant account with this email. Enter your correct password to sign in, or use \"Forgot password?\" on the Merchant Login page." });
             }
-            return res.status(200).json({ status: "success", message: "You already have a merchant account. Signing you in.", userId: existingMerchant._id });
+            return res.status(200).json({ status: "success", message: "You already have a merchant account. Signing you in.", userId: existingMerchant._id, alreadyExisted: true });
         }
 
         const existingPlainUser = existingDocs.find(u => u.role === "user");
@@ -128,6 +136,7 @@ export const registerMerchant = async (req, res) => {
             existingPlainUser.apiLevel = "normal";
             if (!existingPlainUser.transactionPin) existingPlainUser.transactionPin = await bcrypt.hash(transactionPin, 10);
             await existingPlainUser.save();
+            console.log(`[Merchant Register] ${normalizedEmail}: upgraded existing 'user' account IN PLACE (${existingPlainUser._id})`);
             return res.status(200).json({ status: "success", message: "Merchant account activated.", userId: existingPlainUser._id });
         }
 
@@ -152,6 +161,7 @@ export const registerMerchant = async (req, res) => {
             isSignupComplete: true
         });
         await user.save();
+        console.log(`[Merchant Register] ${normalizedEmail}: created NEW merchant account (${user._id})`);
 
         try {
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
