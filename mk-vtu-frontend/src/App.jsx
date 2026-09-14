@@ -52,6 +52,8 @@ import ResellerLayout from "./reseller/components/ResellerLayout";
 import { io } from "socket.io-client";
 import AdminErrorBoundary from "./admin/components/AdminErrorBoundary";
 import { supabase } from "./supabaseClient";
+import { isMerchantUser } from "./utils/merchantHelper";
+
 
 
 const lazyWithRetry = (componentImport) =>
@@ -661,7 +663,8 @@ function App() {
     }
   };
 
-  const isResellerUser = user && (user.role === 'reseller_admin' || user.resellerActivationStatus === 'active' || user.whiteLabelStatus === 'active' || user.apiLevel === 'reseller');
+  const isMerchant = isMerchantUser(user);
+  const isResellerUser = isMerchant;
 
   const isMaintenanceBlocked = (() => {
     if (!systemMaintenance || !systemMaintenance.maintenanceMode) {
@@ -975,52 +978,91 @@ function App() {
               </div>
             ) : (
               <Routes>
-                <Route path="/admin/login" element={adminToken ? <Navigate to="/admin/dashboard" /> : <AdminLogin setAdminToken={setAdminToken} setAdminUser={setAdminUser} />} />
-                <Route path="/reseller/login" element={token ? <Navigate to="/reseller" replace /> : <BusinessLogin setToken={setToken} siteInfo={siteInfo} />} />
-                <Route path="/business/login" element={token ? <Navigate to="/reseller" replace /> : <BusinessLogin setToken={setToken} siteInfo={siteInfo} />} />
-                <Route path="/business/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : (token ? <Navigate to="/reseller" replace /> : <BusinessSignup setToken={setToken} siteInfo={siteInfo} />)} />
-                
+                {/* Merchant Authentication Routes */}
+                <Route path="/merchant/login" element={
+                  token ? (
+                    loadingUser ? <PremiumLoader siteInfo={siteInfo} /> : (isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <Navigate to="/home" replace />)
+                  ) : <BusinessLogin setToken={setToken} siteInfo={siteInfo} />
+                } />
+                <Route path="/merchant/signup" element={token && !loadingUser && isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <BusinessSignup setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/merchant/register" element={token && !loadingUser && isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <BusinessSignup setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/merchant/activate" element={token && !loadingUser && isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <BusinessSignup setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/merchant/onboarding" element={
+                  isWhiteLabelSite(siteInfo) ? (
+                    <Navigate to="/home" replace />
+                  ) : token ? (
+                    loadingUser ? (
+                      <PremiumLoader siteInfo={siteInfo} />
+                    ) : isMerchant ? (
+                      <Navigate to="/merchant/dashboard" replace />
+                    ) : (
+                      <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />
+                    )
+                  ) : (
+                    <Navigate to="/merchant/login" replace />
+                  )
+                } />
+
+                {/* Legacy Entry Aliases */}
+                <Route path="/reseller/login" element={<Navigate to="/merchant/login" replace />} />
+                <Route path="/business/login" element={<Navigate to="/merchant/login" replace />} />
+                <Route path="/business/signup" element={<Navigate to="/merchant/register" replace />} />
+                <Route path="/reseller/onboarding" element={<Navigate to="/merchant/onboarding" replace />} />
+
                 <Route path="/onboarding" element={<Onboarding />} />
                 {/* Public / Entry Routes (Guard against authenticated users) */}
-                <Route path="/login" element={token ? <Navigate to="/home" replace /> : <Login setToken={setToken} siteInfo={siteInfo} />} />
-                <Route path="/signup" element={token ? <Navigate to="/home" replace /> : <Signup setToken={setToken} siteInfo={siteInfo} />} />
-                <Route path="/register" element={token ? <Navigate to="/home" replace /> : <Signup setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/login" element={token ? (loadingUser ? <PremiumLoader siteInfo={siteInfo} /> : (isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <Navigate to="/home" replace />)) : <Login setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/signup" element={token ? (loadingUser ? <PremiumLoader siteInfo={siteInfo} /> : (isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <Navigate to="/home" replace />)) : <Signup setToken={setToken} siteInfo={siteInfo} />} />
+                <Route path="/register" element={token ? (loadingUser ? <PremiumLoader siteInfo={siteInfo} /> : (isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <Navigate to="/home" replace />)) : <Signup setToken={setToken} siteInfo={siteInfo} />} />
                 <Route path="/forgot-password" element={token ? <Navigate to="/home" replace /> : <ForgotPassword siteInfo={siteInfo} />} />
                 <Route path="/forgot-pin" element={<ForgotPin siteInfo={siteInfo} />} />
                 <Route path="/verify-email" element={<VerifyEmail setToken={setToken} siteInfo={siteInfo} />} />
                 <Route path="/continue-signup" element={<ContinueSignup siteInfo={siteInfo} />} />
-                <Route path="/reseller/onboarding" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/home" replace /> : (token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />)} />
                 <Route path="/app" element={<AppDownload />} />
 
-                <Route path="/home" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Home token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
+                <Route path="/home" element={
+                  !token ? (
+                    <Navigate to="/login" replace />
+                  ) : loadingUser ? (
+                    <PremiumLoader siteInfo={siteInfo} />
+                  ) : isMerchant ? (
+                    <Navigate to="/merchant/dashboard" replace />
+                  ) : (
+                    <Home token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />
+                  )
+                } />
                 <Route path="/marketplace" element={token ? <Marketplace user={user} siteInfo={siteInfo} /> : <Navigate to="/login" />} />
                 <Route path="/app-viewer/:platformId" element={token ? <AppViewer user={user} siteInfo={siteInfo} /> : <Navigate to="/login" />} />
                 <Route path="/wallet" element={token ? <Wallet token={token} user={user} refreshUser={fetchUserInfo} /> : <Navigate to="/login" />} />
-                <Route path="/services" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Services token={token} user={user} />) : <Navigate to="/login" />} />
-                <Route path="/purchase" element={token ? (isResellerUser ? <Navigate to="/reseller/purchase" replace /> : <Purchase token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
+                <Route path="/services" element={token ? (isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <Services token={token} user={user} />) : <Navigate to="/login" />} />
+                <Route path="/purchase" element={token ? (isMerchant ? <Navigate to="/merchant/purchase" replace /> : <Purchase token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
                 <Route path="/offline-data" element={token ? <OfflineData user={user} /> : <Navigate to="/login" />} />
-                <Route path="/profile" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Profile logout={logout} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
-                <Route path="/support" element={token ? (isResellerUser ? <Navigate to="/reseller/support" replace /> : <Support token={token} user={user} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
-                <Route path="/kyc" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <KYC user={user} refreshUser={fetchUserInfo} />) : <Navigate to="/login" />} />
+                <Route path="/profile" element={token ? (isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <Profile logout={logout} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
+                <Route path="/support" element={token ? (isMerchant ? <Navigate to="/merchant/support" replace /> : <Support token={token} user={user} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
+                <Route path="/kyc" element={token ? (isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <KYC user={user} refreshUser={fetchUserInfo} />) : <Navigate to="/login" />} />
                 <Route path="/developer" element={token ? <DeveloperApi user={user} /> : <Navigate to="/login" />} />
-                <Route path="/transactions" element={token ? (isResellerUser ? <Navigate to="/reseller/transactions" replace /> : <Transactions token={token} />) : <Navigate to="/login" />} />
+                <Route path="/transactions" element={token ? (isMerchant ? <Navigate to="/merchant/transactions" replace /> : <Transactions token={token} />) : <Navigate to="/login" />} />
 
                 {/* Entry point: IdentityServicesGrid.jsx, gated by activatedManualServices('birth_attestation') on reseller sites, always visible on the main platform. */}
                 <Route path="/identity/birth-attestation-letter" element={token ? <BirthAttestationPurchase /> : <Navigate to="/login" />} />
                 {/* Entry point: IdentityServicesGrid.jsx, gated by activatedManualServices('court_affidavit') on reseller sites, always visible on the main platform. */}
                 <Route path="/court-affidavit" element={token ? <CourtAffidavitPage /> : <Navigate to="/login" />} />
                 <Route path="/identity/:serviceId" element={token ? <IdentityPurchase user={user} /> : <Navigate to="/login" />} />
-                <Route path="/notifications" element={token ? (isResellerUser ? <Navigate to="/reseller/notifications" replace /> : <Notifications token={token} />) : <Navigate to="/login" />} />
-                <Route path="/referrals" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <ReferralCenter user={user} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
+                <Route path="/notifications" element={token ? (isMerchant ? <Navigate to="/merchant/notifications" replace /> : <Notifications token={token} />) : <Navigate to="/login" />} />
+                <Route path="/referrals" element={token ? (isMerchant ? <Navigate to="/merchant/dashboard" replace /> : <ReferralCenter user={user} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
                 
 
-                <Route path="/reseller/*" element={<ResellerRedirect />} />
-                <Route path="/website/*" element={
-                  token && isResellerUser ? (
+                {/* Deterministic Merchant Portal Route Tree */}
+                <Route path="/merchant/*" element={
+                  !token ? (
+                    <Navigate to="/merchant/login" replace />
+                  ) : loadingUser ? (
+                    <PremiumLoader siteInfo={siteInfo} />
+                  ) : isMerchant ? (
                     <ResellerLayout user={user} logout={logout} siteInfo={siteInfo}>
                       <Suspense fallback={<PremiumLoader siteInfo={siteInfo} />}>
                         <Routes>
-                          <Route path="/" element={<Navigate to="/website/dashboard" />} />
+                          <Route path="/" element={<Navigate to="/merchant/dashboard" replace />} />
                           <Route path="/dashboard" element={<ResellerDashboard user={user} />} />
                           <Route path="/customers" element={<ResellerCustomers />} />
                           <Route path="/pricing" element={<ResellerPricing />} />
@@ -1030,6 +1072,8 @@ function App() {
                           <Route path="/email-campaigns" element={<PremiumGuard user={user}><ResellerEmailCampaign user={user} /></PremiumGuard>} />
                           <Route path="/branding" element={<PremiumGuard user={user}><ResellerBranding user={user} refreshUser={fetchUserInfo} refreshBranding={fetchSiteInfo} /></PremiumGuard>} />
                           <Route path="/wallet" element={<ResellerWallet user={user} />} />
+                          <Route path="/fund" element={<ResellerWallet user={user} />} />
+                          <Route path="/services" element={<Services token={token} user={user} />} />
                           <Route path="/security" element={<ResellerSecurity />} />
                           <Route path="/support" element={<ResellerSupport />} />
                           <Route path="/mobile-app" element={<PremiumGuard user={user}><ResellerApp user={user} refreshUser={fetchUserInfo} /></PremiumGuard>} />
@@ -1037,16 +1081,19 @@ function App() {
                           <Route path="/transactions" element={<ResellerTransactions user={user} />} />
                           <Route path="/referrals" element={<ReferralCenter user={user} siteInfo={siteInfo} />} />
                           <Route path="/notifications" element={<ResellerNotificationCenter user={user} />} />
-                          <Route path="/analytics" element={<div className="reseller-container"><h1>Business Analytics</h1><p>Detailed performance charts coming soon.</p></div>} />
-                          <Route path="/settings" element={<div className="reseller-container"><h1>Website Settings</h1><p>Advanced configuration options coming soon.</p></div>} />
-                          <Route path="/domain" element={<PremiumGuard user={user}><ResellerDomain user={user} refreshUser={fetchUserInfo} /></PremiumGuard>} />
+                          <Route path="/analytics" element={<div className="reseller-container"><h1>Merchant Analytics</h1><p>Detailed performance metrics.</p></div>} />
+                          <Route path="/settings" element={<div className="reseller-container"><h1>Merchant Settings</h1><p>Advanced configuration options.</p></div>} />
                           <Route path="/platforms" element={<ResellerPlatforms user={user} refreshUser={fetchUserInfo} />} />
-                          <Route path="*" element={<Navigate to="/website/dashboard" />} />
+                          <Route path="*" element={<Navigate to="/merchant/dashboard" replace />} />
                         </Routes>
                       </Suspense>
                     </ResellerLayout>
-                  ) : <Navigate to="/business/login" />
+                  ) : <Navigate to="/home" replace />
                 } />
+
+                {/* Legacy route redirects to Merchant portal */}
+                <Route path="/reseller/*" element={<Navigate to="/merchant/dashboard" replace />} />
+                <Route path="/website/*" element={<Navigate to="/merchant/dashboard" replace />} />
 
                          <Route path="/admin/*" element={
                   adminToken ? (
@@ -1116,12 +1163,19 @@ function App() {
                 } />
 
                 <Route path="/" element={
-                  token 
-                    ? <Navigate to="/home" /> 
-                    : (isWhiteLabelSite(siteInfo) 
-                        ? <ResellerMarketingHome siteInfo={siteInfo} /> 
-                        : (localStorage.getItem("seenOnboarding") === "true" ? <Navigate to="/login" /> : <Navigate to="/onboarding" />)
-                      )
+                  token ? (
+                    loadingUser ? (
+                      <PremiumLoader siteInfo={siteInfo} />
+                    ) : isMerchant ? (
+                      <Navigate to="/merchant/dashboard" replace />
+                    ) : (
+                      <Navigate to="/home" replace />
+                    )
+                  ) : (
+                    isWhiteLabelSite(siteInfo) 
+                      ? <ResellerMarketingHome siteInfo={siteInfo} /> 
+                      : (localStorage.getItem("seenOnboarding") === "true" ? <Navigate to="/login" /> : <Navigate to="/onboarding" />)
+                  )
                 } />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
