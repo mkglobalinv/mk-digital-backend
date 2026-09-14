@@ -34,7 +34,7 @@ const MerchantLogin = ({ setToken }) => {
 
       localStorage.setItem('token', res.data.token);
       setToken(res.data.token);
-      navigate('/home');
+      navigate('/merchant/dashboard');
     } catch (err) {
       if (err.response?.data?.unverified) {
         setLoading(false);

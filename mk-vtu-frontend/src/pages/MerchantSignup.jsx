@@ -59,7 +59,7 @@ const MerchantSignup = ({ setToken }) => {
       if (loginRes.data.token) {
         localStorage.setItem('token', loginRes.data.token);
         setToken(loginRes.data.token);
-        navigate('/merchant/onboarding');
+        navigate('/merchant/dashboard');
       } else {
         navigate('/login');
       }
