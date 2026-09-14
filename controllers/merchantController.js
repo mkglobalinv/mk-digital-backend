@@ -115,6 +115,17 @@ export const registerMerchant = async (req, res) => {
             existingPlainUser.role = "merchant";
             existingPlainUser.name = name || existingPlainUser.name;
             existingPlainUser.phone = phone || existingPlainUser.phone;
+            // Clear any residual reseller-trial state a plain 'user' account
+            // can pick up just by touching the "Start Your Brand" flow
+            // without ever completing it (e.g. claimSubdomain sets
+            // resellerActivationStatus to 'pending_onboarding' from merely
+            // claiming a subdomain). isBusinessAccount()/isActiveReseller()
+            // (server.js, bannerHelper.js) check these fields directly, so
+            // leftover values here would misclassify a brand-new merchant
+            // as a reseller and reroute them to the reseller dashboard.
+            existingPlainUser.resellerActivationStatus = "none";
+            existingPlainUser.whiteLabelStatus = "pending";
+            existingPlainUser.apiLevel = "normal";
             if (!existingPlainUser.transactionPin) existingPlainUser.transactionPin = await bcrypt.hash(transactionPin, 10);
             await existingPlainUser.save();
             return res.status(200).json({ status: "success", message: "Merchant account activated.", userId: existingPlainUser._id });
