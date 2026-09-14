@@ -29,6 +29,7 @@ import Onboarding from "./pages/Onboarding";
 import OfflineData from "./pages/OfflineData";
 import ResellerOnboarding from "./pages/ResellerOnboarding";
 import MerchantOnboarding from "./pages/MerchantOnboarding";
+import MerchantDashboard from "./pages/MerchantDashboard";
 import MerchantSignup from "./pages/MerchantSignup";
 import MerchantLogin from "./pages/MerchantLogin";
 import DeveloperApi from "./pages/DeveloperApi";
@@ -1050,6 +1051,7 @@ function App() {
                 <Route path="/continue-signup" element={<ContinueSignup siteInfo={siteInfo} />} />
                 <Route path="/reseller/onboarding" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/home" replace /> : (token ? (siteInfo ? <Navigate to="/home" /> : <ResellerOnboarding user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />)} />
                 <Route path="/merchant/onboarding" element={token ? <MerchantOnboarding user={user} refreshUser={fetchUserInfo} /> : <Navigate to="/login" />} />
+                <Route path="/merchant/dashboard" element={token ? (user?.role === 'merchant' ? <MerchantDashboard token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
                 {/* A merchant account is a separate identity that can coexist under the
                     same email as a reseller_admin/admin/plain-user account (see
                     models/User.js's {email, tenantOwnerId, role} index), so someone can
@@ -1060,11 +1062,15 @@ function App() {
                     visitor straight to /home (or /merchant/onboarding) still logged into
                     their other account, without ever exchanging it for a merchant
                     session, which is what made "click Home" land on the wrong dashboard. */}
-                <Route path="/merchant/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/onboarding" replace /> : <MerchantSignup setToken={setToken} siteInfo={siteInfo} />)} />
-                <Route path="/merchant/login" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/home" replace /> : <MerchantLogin setToken={setToken} />)} />
+                <Route path="/merchant/signup" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/dashboard" replace /> : <MerchantSignup setToken={setToken} siteInfo={siteInfo} />)} />
+                <Route path="/merchant/login" element={isWhiteLabelSite(siteInfo) ? <Navigate to="/login" replace /> : ((token && user?.role === 'merchant') ? <Navigate to="/merchant/dashboard" replace /> : <MerchantLogin setToken={setToken} />)} />
                 <Route path="/app" element={<AppDownload />} />
 
-                <Route path="/home" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : <Home token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />) : <Navigate to="/login" />} />
+                {/* A merchant has its own distinct dashboard (MerchantDashboard.jsx,
+                    same underlying purchase features as Home but framed with
+                    activation status + Basic Reseller pricing) instead of the plain
+                    retail Home -- mirrors the isResellerUser redirect just below. */}
+                <Route path="/home" element={token ? (isResellerUser ? <Navigate to="/reseller/dashboard" replace /> : (user?.role === 'merchant' ? <Navigate to="/merchant/dashboard" replace /> : <Home token={token} user={user} refreshUser={fetchUserInfo} siteInfo={siteInfo} />)) : <Navigate to="/login" />} />
                 <Route path="/marketplace" element={token ? <Marketplace user={user} siteInfo={siteInfo} /> : <Navigate to="/login" />} />
                 <Route path="/app-viewer/:platformId" element={token ? <AppViewer user={user} siteInfo={siteInfo} /> : <Navigate to="/login" />} />
                 <Route path="/wallet" element={token ? <Wallet token={token} user={user} refreshUser={fetchUserInfo} /> : <Navigate to="/login" />} />
