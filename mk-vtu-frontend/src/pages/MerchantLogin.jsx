@@ -24,16 +24,10 @@ const MerchantLogin = ({ setToken }) => {
     setError('');
 
     try {
-      const res = await API.post('/api/login', { email: email.toLowerCase(), password, session_type: 'retail' });
+      const res = await API.post('/api/login', { email: email.toLowerCase(), password, session_type: 'merchant' });
 
       if (!res.data.token) {
         setError(res.data.message || 'Login failed. Please check your credentials.');
-        setLoading(false);
-        return;
-      }
-
-      if (res.data.user?.role !== 'merchant') {
-        setError('This portal is for Merchant accounts only. Personal accounts should use the main login page, and Website Admin accounts should use Business Console login.');
         setLoading(false);
         return;
       }
