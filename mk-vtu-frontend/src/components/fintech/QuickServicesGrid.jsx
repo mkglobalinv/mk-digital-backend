@@ -31,7 +31,7 @@ const MORE_SERVICES = [
 // tile that would just fail server-side anyway -- the backend stays authoritative.
 const AIRTIME_TO_CASH_SERVICE = { id: 'airtime-to-cash', label: 'Airtime to Cash', icon: Banknote, cls: 'srv-teal', route: '/airtime-to-cash' };
 
-const QuickServicesGrid = ({ isReseller = false }) => {
+const QuickServicesGrid = ({ isReseller = false, isMerchant = false }) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [airtimeToCashAvailable, setAirtimeToCashAvailable] = useState(false);
@@ -49,13 +49,19 @@ const QuickServicesGrid = ({ isReseller = false }) => {
   const primaryServices = airtimeToCashAvailable
     ? [...BASE_PRIMARY_SERVICES, AIRTIME_TO_CASH_SERVICE]
     : [...BASE_PRIMARY_SERVICES, ELECTRIC_SERVICE];
-  const moreServices = airtimeToCashAvailable ? [...MORE_SERVICES, ELECTRIC_SERVICE] : MORE_SERVICES;
+  // The "Website" tile (-> /reseller/onboarding) is a reseller-signup upsell that
+  // has no place inside the isolated Merchant portal, so it's dropped entirely
+  // rather than repointed -- there's no merchant equivalent for it.
+  const baseMoreServices = isMerchant ? MORE_SERVICES.filter(svc => svc.id !== 'website') : MORE_SERVICES;
+  const moreServices = airtimeToCashAvailable ? [...baseMoreServices, ELECTRIC_SERVICE] : baseMoreServices;
 
   const handleServiceClick = (svc) => {
-    if (svc.route) {
+    if (svc.id === 'history') {
+      navigate(isMerchant ? '/merchant/transactions' : (isReseller ? '/reseller/transactions' : '/transactions'));
+    } else if (svc.route) {
       navigate(svc.route);
     } else {
-      navigate(isReseller ? '/reseller/purchase' : '/purchase', { state: { defaultTab: svc.id } });
+      navigate(isMerchant ? '/merchant/services' : (isReseller ? '/reseller/purchase' : '/purchase'), { state: { defaultTab: svc.id } });
     }
   };
 

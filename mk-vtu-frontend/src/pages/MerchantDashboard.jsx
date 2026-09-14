@@ -12,8 +12,6 @@ import IdentityServicesGrid from '../components/fintech/IdentityServicesGrid';
 import PromoBanners from '../components/fintech/PromoBanners';
 import TransactionHistory from '../components/fintech/TransactionHistory';
 import BottomSheet from '../components/fintech/BottomSheet';
-import MarketingPopup from '../components/marketing/MarketingPopup';
-import CampaignGrid from '../components/marketing/CampaignGrid';
 import AnnouncementBanner from '../components/marketing/AnnouncementBanner';
 
 // Distinct landing page for the Merchant program: same underlying purchase
@@ -21,7 +19,7 @@ import AnnouncementBanner from '../components/marketing/AnnouncementBanner';
 // see Home.jsx), framed with merchant-specific status up top instead of the
 // generic KYC pill, so a merchant immediately sees their activation state
 // and Basic Reseller pricing badge rather than a plain retail dashboard.
-const MerchantDashboard = ({ token, user, refreshUser, siteInfo }) => {
+const MerchantDashboard = ({ token, user, refreshUser, siteInfo, logout }) => {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
   const [isLoadingTx, setIsLoadingTx] = useState(true);
@@ -82,14 +80,13 @@ const MerchantDashboard = ({ token, user, refreshUser, siteInfo }) => {
 
   return (
     <div className="fintech-dashboard-wrapper">
-      <MarketingPopup user={user} />
       <BiometricSetupPrompt user={user} />
 
       <div className="fintech-glow glow-top-right"></div>
       <div className="fintech-glow glow-bottom-left"></div>
 
       <div className="fintech-content-area animate-fade-in">
-        <FintechHeader user={user} greeting={greeting} unreadCount={unreadCount} />
+        <FintechHeader user={user} greeting={greeting} unreadCount={unreadCount} isMerchant />
 
         <AnnouncementBanner />
 
@@ -144,22 +141,21 @@ const MerchantDashboard = ({ token, user, refreshUser, siteInfo }) => {
           user={user}
           recentlyFundedStatus={recentlyFundedStatus}
           setShowMoreMenu={setShowMoreMenu}
+          isMerchant
         />
 
         <div className="services-card">
-          <QuickServicesGrid />
+          <QuickServicesGrid isMerchant />
           <div className="services-divider" />
-          <IdentityServicesGrid />
+          <IdentityServicesGrid isMerchant />
         </div>
 
-        <CampaignGrid user={user} />
+        <PromoBanners user={user} referralAnalytics={referralAnalytics} siteInfo={siteInfo} isMerchant />
 
-        <PromoBanners user={user} referralAnalytics={referralAnalytics} siteInfo={siteInfo} />
-
-        <TransactionHistory transactions={transactions} isLoading={isLoadingTx} />
+        <TransactionHistory transactions={transactions} isLoading={isLoadingTx} isMerchant />
       </div>
 
-      <BottomSheet show={showMoreMenu} onClose={() => setShowMoreMenu(false)} user={user} />
+      <BottomSheet show={showMoreMenu} onClose={() => setShowMoreMenu(false)} user={user} logout={logout} isMerchant />
     </div>
   );
 };
