@@ -68,7 +68,7 @@ const QuickServicesGrid = ({ isReseller = false, isMerchant = false }) => {
   return (
     <div className="qs-section">
       <div className="section-header">
-        <h3>Quick Services</h3>
+        <h3>{isMerchant ? 'Merchant Services' : 'Quick Services'}</h3>
       </div>
 
       {/* Primary 4 */}

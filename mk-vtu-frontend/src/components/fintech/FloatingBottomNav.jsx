@@ -12,7 +12,7 @@ const FloatingBottomNav = ({ isReseller = false, isMerchant = false }) => {
           className={({ isActive }) => `fintech-nav-item ${isActive ? 'active' : ''}`}
         >
           <div className="nav-icon"><Home size={22} /></div>
-          <span>Home</span>
+          <span>{isMerchant ? 'Dashboard' : 'Home'}</span>
         </NavLink>
 
         <NavLink

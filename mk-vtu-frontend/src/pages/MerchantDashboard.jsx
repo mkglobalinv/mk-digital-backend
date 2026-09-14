@@ -90,6 +90,11 @@ const MerchantDashboard = ({ token, user, refreshUser, siteInfo, logout }) => {
 
         <AnnouncementBanner />
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+          <Store size={18} color="var(--primary)" />
+          <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Merchant Dashboard</h1>
+        </div>
+
         {user && user.isEmailVerified === false && (
           <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '12px', borderRadius: '12px', color: '#ef4444', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <span>Verify email to secure your account.</span>
@@ -105,36 +110,36 @@ const MerchantDashboard = ({ token, user, refreshUser, siteInfo, logout }) => {
           role="button"
           tabIndex={0}
           style={{
-            background: isActivated ? 'var(--success-light)' : 'var(--primary-light)',
-            border: `1px solid ${isActivated ? 'var(--success)' : 'var(--primary)'}`,
+            background: isActivated ? 'var(--success)' : 'var(--primary)',
             borderRadius: 'var(--radius-lg)', padding: '16px', marginBottom: '16px',
-            display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer'
+            display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
           }}
         >
           <div style={{
             width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
-            background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: isActivated ? 'var(--success)' : 'var(--primary)'
+            background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff'
           }}>
             {isActivated ? <CheckCircle2 size={22} /> : <Store size={22} />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: '14px', color: isActivated ? 'var(--success)' : 'var(--primary)' }}>
+            <div style={{ fontWeight: 800, fontSize: '14px', color: '#fff' }}>
               {isActivated ? 'Merchant Pricing Active' : 'Merchant Account'}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-gray)', marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
               {isActivated
                 ? 'Every purchase uses Basic Reseller pricing'
                 : `Fund ₦${minAmount.toLocaleString()}+ to unlock Basic Reseller pricing`}
             </div>
           </div>
           {!isActivated && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--primary)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#fff', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
               <Wallet2 size={14} />
               <span>Fund</span>
             </div>
           )}
-          <ChevronRight size={16} color="var(--text-gray)" style={{ flexShrink: 0 }} />
+          <ChevronRight size={16} color="#fff" style={{ flexShrink: 0 }} />
         </div>
 
         <PremiumWalletCard
