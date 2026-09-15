@@ -46,30 +46,12 @@ const AppDownload = () => {
                     <div style={{ width: '100px', height: '100px', background: 'white', borderRadius: '24px', margin: '0 auto 24px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
                         {appLogo ? <img src={appLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Smartphone size={50} color={primaryColor} />}
                     </div>
-                    <h1 style={{ fontSize: '46.2px', fontWeight: 900, marginBottom: '16px' }}>Download {appName} App</h1>
+                    <h1 style={{ fontSize: '46.2px', fontWeight: 900, marginBottom: '16px' }}>Install {appName} App</h1>
                     <p style={{ fontSize: '22.0px', opacity: 0.9, maxWidth: '600px', margin: '0 auto 32px' }}>
-                        Experience fast, secure, and reliable VTU services right from your Android device.
+                        Experience fast, secure, and reliable VTU services right from your home screen — no app store required.
                     </p>
                     <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        {assets?.apkUrl ? (
-                            <a 
-                                href={assets.apkUrl} 
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ background: 'white', color: primaryColor, padding: '18px 36px', borderRadius: '16px', fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                            >
-                                <Download size={24} /> Get APK for Android
-                            </a>
-                        ) : (
-                            <button 
-                                disabled
-                                style={{ background: 'white', opacity: 0.6, cursor: 'not-allowed', color: primaryColor, padding: '18px 36px', borderRadius: '16px', fontWeight: 800, border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                            >
-                                <Download size={24} /> APK Not Yet Available
-                            </button>
-                        )}
-                        
-                        <button 
+                        <button
                             onClick={async () => {
                                 const promptEvent = window.deferredPrompt;
                                 if (promptEvent) {
@@ -80,12 +62,12 @@ const AppDownload = () => {
                                         window.dispatchEvent(new Event('appinstalled'));
                                     }
                                 } else {
-                                    window.dispatchEvent(new CustomEvent('toast:show', { detail: { message: "App is already installed or your browser does not support it.", type: "info" } }));
+                                    window.dispatchEvent(new CustomEvent('toast:show', { detail: { message: "Your browser doesn't support one-tap install here. On iPhone, use Share → Add to Home Screen; on Android/desktop Chrome, look for the install icon in the address bar.", type: "info" } }));
                                 }
                             }}
-                            style={{ background: 'transparent', border: '2px solid white', color: 'white', padding: '18px 36px', borderRadius: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                            style={{ background: 'white', color: primaryColor, padding: '18px 36px', borderRadius: '16px', fontWeight: 800, border: 'none', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
                         >
-                            <Smartphone size={24} /> Install Web App
+                            <Download size={24} /> Install App
                         </button>
                     </div>
                 </div>
