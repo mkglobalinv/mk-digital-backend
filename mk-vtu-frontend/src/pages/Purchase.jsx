@@ -54,15 +54,18 @@ const getValidityDays = (validity) => {
 const getValidityBucket = (validity) => {
   const days = getValidityDays(validity);
   if (days === null) return 'monthly';
-  if (days <= 1) return 'daily';
-  if (days <= 7) return 'weekly';
+  if (days <= 3) return 'daily';
+  if (days <= 14) return 'weekly';
   return 'monthly';
 };
 
-// Single source of truth for which of the 4 tabs a given plan belongs to --
-// used identically for the chip list, the plan grid, and the empty-state
-// message so they can never disagree with each other.
-const getPlanTabBucket = (plan) => (isSmeCategory(plan.category) ? 'sme' : getValidityBucket(plan.validity));
+const planBelongsToBucket = (plan, bucket) => {
+  if (!plan) return false;
+  if (bucket === 'sme') return isSmeCategory(plan.category);
+  return getValidityBucket(plan.validity) === bucket;
+};
+
+const getPlanTabBucket = (plan, bucket) => planBelongsToBucket(plan, bucket);
 
 const TAB_BUCKET_LABELS = { sme: 'SME', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
 const TAB_BUCKET_ORDER = ['sme', 'daily', 'weekly', 'monthly'];
@@ -303,7 +306,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
   useEffect(() => {
     if (!isInternational && activeTab === 'data' && network && dataPlans.length > 0) {
       const visiblePlans = getVisibleCandidatePlans(dataPlans, publicCategories, network, dataOption);
-      const bucketHasPlans = (bucket) => visiblePlans.some(p => getPlanTabBucket(p) === bucket);
+      const bucketHasPlans = (bucket) => visiblePlans.some(p => planBelongsToBucket(p, bucket));
       if (!bucketHasPlans(dataCategory)) {
         const firstNonEmpty = TAB_BUCKET_ORDER.find(bucketHasPlans);
         if (firstNonEmpty) setDataCategory(firstNonEmpty);
@@ -650,7 +653,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                         return TAB_BUCKET_ORDER
                           .map(bucket => ({
                             bucket,
-                            plans: candidatePlans.filter(p => getPlanTabBucket(p) === bucket)
+                            plans: candidatePlans.filter(p => planBelongsToBucket(p, bucket))
                           }))
                           .filter(({ plans }) => plans.length > 0)
                           .map(({ bucket, plans }) => {
@@ -792,7 +795,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                             if (config && config.status === 'DISABLED') return false;
                             return true;
                           })
-                          .filter(p => getPlanTabBucket(p) === dataCategory)
+                          .filter(p => planBelongsToBucket(p, dataCategory))
                           .filter(p => dataOption === 'smart' ? (p.provider === 'peyflex' || p.provider === 'connectbridge' || p.provider === 'smeplug') : p.provider === 'clubkonnect')
                           .map(plan => {
                          const sizeLabel = plan.plan_size || (plan.name || '').match(/(\d+(?:\.\d+)?\s*(?:MB|GB|TB))/i)?.[0] || plan.name;
@@ -827,7 +830,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
                        })}
                      </div>
                  )}
-                 {!fetchingPlans && dataPlans.filter(p => getPlanTabBucket(p) === dataCategory).length === 0 && network && (
+                 {!fetchingPlans && dataPlans.filter(p => planBelongsToBucket(p, dataCategory)).length === 0 && network && (
                    <div style={{ textAlign: 'center', padding: '28px 20px', color: '#888', fontSize: '14px' }}>
                      {dataPlans.length === 0
                        ? 'No plans available for this network. Try syncing from admin.'
