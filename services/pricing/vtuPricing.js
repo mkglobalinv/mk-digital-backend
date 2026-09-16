@@ -8,7 +8,7 @@ import PricingSettings from "../../models/PricingSettings.js";
 // Helper to escape dots in Mongoose Map keys
 const safeKey = (k) => k ? String(k).replace(/\./g, '_dot_') : k;
 
-export const calculateVtuPrice = async (userId, serviceType, network, planId, amount = 0) => {
+export const calculateVtuPrice = async (userId, serviceType, network, planId, amount = 0, provider = null) => {
     const user = await User.findById(userId);
     if (!user) throw new Error("User not found");
 
@@ -79,7 +79,16 @@ export const calculateVtuPrice = async (userId, serviceType, network, planId, am
 
     // 3. Calculate base (cost) and selling price by tier
     if (serviceType === 'data') {
-        const plan = await DataPlan.findOne({ api_plan_id: planId, network: network?.toUpperCase(), status: true });
+        // Different providers can (and do) reuse the same numeric api_plan_id
+        // for a completely different plan on the same network -- DataPlan's
+        // own unique index is {api_plan_id, provider, network}, not
+        // {api_plan_id, network}. Without filtering by provider too, this can
+        // silently resolve to another provider's plan/price (e.g. an admin's
+        // SmePlug price edit never taking effect because a Peyflex plan
+        // sharing the same id wins the lookup instead).
+        const planQuery = { api_plan_id: planId, network: network?.toUpperCase(), status: true };
+        if (provider) planQuery.provider = String(provider).toLowerCase();
+        const plan = await DataPlan.findOne(planQuery);
         if (!plan) throw new Error("Invalid data plan");
 
         const rule = await PricingRule.findOne({ network: plan.network.toUpperCase(), category: plan.category });

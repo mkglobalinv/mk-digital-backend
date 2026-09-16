@@ -492,6 +492,14 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
             countryCode: isInternational ? countryCode : 'NG',
             operatorId: isInternational ? operatorId : null,
             category: purchaseCategory,
+            // Different providers can share the same plan_code+network (e.g.
+            // SmePlug and Peyflex both use small sequential ids), so the
+            // backend needs the exact provider of the card the customer
+            // picked to price/fulfil the right plan -- not whichever provider
+            // happens to match plan_code+network first. Deliberately NOT
+            // named `provider`: that field already means something else here
+            // (selects the "premium"/connectbridge fulfilment path below).
+            plan_provider: selectedPlanForPurchase?.provider,
             option: dataOption // Backend uses smart (Peyflex) or value (ClubKonnect)
         };
 

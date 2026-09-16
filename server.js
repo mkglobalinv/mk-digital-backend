@@ -1668,7 +1668,7 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
     console.log(`======================================================\n`);
 
     // Standardize input fields
-    const { phone, mobile_number, network, plan_id, plan_code, dataPlan, countryCode, operatorId, network_id, option, provider, category } = req.body;
+    const { phone, mobile_number, network, plan_id, plan_code, dataPlan, countryCode, operatorId, network_id, option, provider, plan_provider, category } = req.body;
     // Note: 'amount' is explicitly ignored here for data as requested
     const finalPhone = phone || mobile_number;
     const finalPlanCode = plan_id || plan_code || dataPlan; 
@@ -1711,7 +1711,7 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
     let transaction = null;
     let resellerTransaction = null;
     try {
-        const { basePrice, sellingPrice, reseller } = await calculateVtuPrice(req.user.id, 'data', network, finalPlanCode);
+        const { basePrice, sellingPrice, reseller } = await calculateVtuPrice(req.user.id, 'data', network, finalPlanCode, 0, plan_provider);
         const derivedPrice = sellingPrice;
 
         // Balance Check for Customer
@@ -1736,7 +1736,14 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
         }
 
         // Detailed Diagnostics Logging for Value Plan verification
-        const dbPlanInfo = await DataPlan.findOne({ api_plan_id: finalPlanCode, network: network.toUpperCase() });
+        // Same provider disambiguation as calculateVtuPrice above -- different
+        // providers can share an api_plan_id+network pair (DataPlan's unique
+        // index is {api_plan_id, provider, network}), so this must resolve to
+        // the exact plan the customer was shown, not whichever provider's
+        // matching plan Mongoose happens to find first.
+        const dbPlanQuery = { api_plan_id: finalPlanCode, network: network.toUpperCase() };
+        if (plan_provider) dbPlanQuery.provider = String(plan_provider).toLowerCase();
+        const dbPlanInfo = await DataPlan.findOne(dbPlanQuery);
         if (!dbPlanInfo) {
             await User.findByIdAndUpdate(req.user.id, { isProcessingTx: false });
             return res.status(400).json({ message: "Invalid data plan" });
