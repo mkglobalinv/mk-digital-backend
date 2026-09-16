@@ -108,7 +108,13 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('');
   const [dataPlan, setDataPlan] = useState('');
-  const [dataPlanNetworkId, setDataPlanNetworkId] = useState(''); 
+  // Different providers can share the same plan_code on the same network
+  // (e.g. SmePlug and Peyflex both use small sequential ids), so plan_code
+  // alone doesn't uniquely identify which card was actually clicked --
+  // tracked alongside it so submission resolves the exact plan shown, not
+  // just the first one in the list matching that code.
+  const [dataPlanProvider, setDataPlanProvider] = useState('');
+  const [dataPlanNetworkId, setDataPlanNetworkId] = useState('');
   const [fetchingPlans, setFetchingPlans] = useState(false);
   const [dataCategory, setDataCategory] = useState('sme'); // 'sme', 'daily', 'weekly', 'monthly'
   const [dataPlans, setDataPlans] = useState([]);
@@ -284,6 +290,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
   useEffect(() => {
     if (!isInternational && activeTab === 'data' && network) {
       setDataPlan(''); // Reset plan selection on network change
+      setDataPlanProvider('');
       setDataCategory('sme'); // Reset category selection on network change
       setAmount('');
       fetchDataPlans();
@@ -293,6 +300,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
   // Re-filter plans when category changes (no extra fetch needed)
   useEffect(() => {
     setDataPlan('');
+    setDataPlanProvider('');
     setAmount('');
   }, [dataCategory]);
 
@@ -342,6 +350,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
       // Auto-reset selection if current selection not in new list
       if (dataPlan && !plans.find(p => String(p.plan_code) === String(dataPlan))) {
         setDataPlan('');
+        setDataPlanProvider('');
         setAmount('');
       }
     } catch (err) {
@@ -353,11 +362,14 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
   };
 
 
-  const handlePlanChange = (val) => {
+  const handlePlanChange = (val, explicitProvider) => {
     const planCode = typeof val === 'string' || typeof val === 'number' ? val : val.target.value;
     console.log(`[Data] Plan Selected: ${planCode}`);
 
-    const selected = dataPlans.find(p => String(p.plan_code) === String(planCode));
+    // Different providers can share the same plan_code on this network --
+    // when the caller knows exactly which card was clicked (explicitProvider),
+    // match that specific one instead of just the first plan_code match.
+    const selected = dataPlans.find(p => String(p.plan_code) === String(planCode) && (!explicitProvider || p.provider === explicitProvider));
     if (selected) {
       // Check maintenance status
       const catName = selected.category || 'Direct';
@@ -371,11 +383,13 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
         const msg = catConfig.maintenance_message || "This category is currently under maintenance. Please try another.";
         setStatus({ type: 'failed', msg });
         setDataPlan('');
+        setDataPlanProvider('');
         setAmount('');
         return;
       }
-      
+
       setDataPlan(planCode);
+      setDataPlanProvider(selected.provider || '');
       console.log(`[Data] Auto-filling amount: ${selected.price}`);
       setAmount(selected.price);
       setDataPlanNetworkId(selected.network_id || '');
@@ -386,6 +400,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
         setTransactionPin('');
       }
     } else {
+      setDataPlanProvider('');
       setAmount('');
       setDataPlanNetworkId('');
     }
@@ -477,7 +492,12 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
         // display tab (`dataCategory`), which is a display-only grouping and
         // would otherwise silently break Peyflex's category-based routing
         // (see services/providers/peyflex.js's MTN identifier selection).
-        const selectedPlanForPurchase = dataPlans.find(p => String(p.plan_code) === String(dataPlan));
+        // Match the exact card the customer clicked (dataPlanProvider is set
+        // alongside dataPlan in handlePlanChange) -- plan_code alone isn't
+        // unique across providers, so falling back to it without dataPlanProvider
+        // (e.g. a restored "buy again" autofill) can only ever be as ambiguous
+        // as before, never worse.
+        const selectedPlanForPurchase = dataPlans.find(p => String(p.plan_code) === String(dataPlan) && (!dataPlanProvider || p.provider === dataPlanProvider));
         const purchaseCategory = selectedPlanForPurchase?.category || dataCategory;
 
         console.log(`[Data] Initiating purchase: ${network} | ${dataPlan} | ${phone} | Category: ${purchaseCategory}`);
@@ -687,6 +707,7 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
                                   }
                                   setDataCategory(bucket);
                                   setDataPlan('');
+                                  setDataPlanProvider('');
                                   setAmount('');
                                 }}
                               >
@@ -817,9 +838,9 @@ const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) =>
 
                          return (
                            <div
-                             key={plan.plan_code}
-                             className={`data-plan-card ${String(dataPlan) === String(plan.plan_code) ? 'selected' : ''} ${isMaintenance ? 'disabled-card' : ''}`}
-                             onClick={() => !isMaintenance && handlePlanChange(plan.plan_code)}
+                             key={`${plan.provider}-${plan.plan_code}`}
+                             className={`data-plan-card ${String(dataPlan) === String(plan.plan_code) && dataPlanProvider === plan.provider ? 'selected' : ''} ${isMaintenance ? 'disabled-card' : ''}`}
+                             onClick={() => !isMaintenance && handlePlanChange(plan.plan_code, plan.provider)}
                              style={isMaintenance ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
                            >
                              {/* TOP: Data size */}
