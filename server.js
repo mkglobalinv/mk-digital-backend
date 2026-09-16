@@ -488,6 +488,34 @@ const connectDB = async () => {
             } catch (e) {
                 console.warn("[Migration] Could not backfill legacy data-purchase descriptions on startup:", e.message);
             }
+
+            // TEMPORARY DIAGNOSTIC (2026-09-16): admin reports editing SmePlug
+            // MTN Data Gifting prices (Retail/Basic/VIP/Premium) and not seeing
+            // it reflected on the storefront, even after two fixes for provider
+            // disambiguation. Dumping the live DB state directly, since there's
+            // no way to inspect it from here otherwise: every smeplug MTN
+            // GiftingXtra plan's actual stored price fields, whether any OTHER
+            // provider shares one of its plan_ids on MTN (the original
+            // hypothesis), and whether a ProviderCategory doc is hiding/
+            // disabling "MTN GiftingXtra"/smeplug from the storefront entirely
+            // (an alternate hypothesis -- if this gates plans out, the fixes
+            // so far wouldn't matter because the customer never sees a SmePlug
+            // card at all). Remove once the real cause is found.
+            try {
+                const smeplugPlans = await DataPlan.find({ provider: 'smeplug', network: 'MTN', category: 'GiftingXtra' }).lean();
+                console.log(`[PriceDebug] ${smeplugPlans.length} smeplug MTN GiftingXtra plan(s) in DB:`);
+                for (const p of smeplugPlans) {
+                    console.log(`[PriceDebug]   id=${p.api_plan_id} name="${p.plan_name}" status=${p.status} retail(selling_price)=${p.selling_price} basic(reseller_price)=${p.reseller_price} vip_price=${p.vip_price} premium_price=${p.premium_price}`);
+                    const collisions = await DataPlan.find({ api_plan_id: p.api_plan_id, network: 'MTN', provider: { $ne: 'smeplug' } }).select('provider selling_price status').lean();
+                    if (collisions.length > 0) {
+                        console.log(`[PriceDebug]     COLLISION: plan_id "${p.api_plan_id}" also exists for: ${collisions.map(c => `${c.provider}(selling_price=${c.selling_price}, status=${c.status})`).join(', ')}`);
+                    }
+                }
+                const catConfig = await ProviderCategory.findOne({ category_name: { $regex: /^MTN GiftingXtra$/i }, provider_name: 'smeplug' }).lean();
+                console.log(`[PriceDebug] ProviderCategory for "MTN GiftingXtra"/smeplug: ${catConfig ? JSON.stringify({ visibility: catConfig.visibility, status: catConfig.status }) : 'none (defaults to visible)'}`);
+            } catch (e) {
+                console.warn("[PriceDebug] Could not run SmePlug pricing diagnostic:", e.message);
+            }
             break;
         } catch (err) {
             console.error("MongoDB Connection Error ❌:", err.message);
