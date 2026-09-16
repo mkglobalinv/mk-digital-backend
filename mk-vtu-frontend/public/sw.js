@@ -1,8 +1,11 @@
-const CACHE_NAME = 'app-cache-v7';
+const CACHE_NAME = 'app-cache-v8';
+// manifest.json is now generated per-request by the server (branded per
+// reseller tenant, see server.js) -- pre-caching it here would permanently
+// pin whichever tenant's manifest happened to load at install time, so it's
+// deliberately left out and always falls through to a live network fetch.
 const STATIC_ASSETS = [
   '/index.html',
-  '/offline.html',
-  '/manifest.json'
+  '/offline.html'
 ];
 
 self.addEventListener('install', event => {

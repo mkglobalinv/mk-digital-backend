@@ -258,6 +258,57 @@ app.get("/api/health", healthHandler);
 app.use(whiteLabelMiddleware);
 app.use(maintenanceMiddleware);
 
+// --- PER-TENANT PWA MANIFEST ---
+// index.html always links a fixed "/manifest.json" path, but the PWA install
+// prompt/home-screen icon must reflect each reseller's OWN brand, not the
+// main platform's -- otherwise every white-label site's "Install App" prompt
+// installs something literally named after 9jasub. whiteLabelMiddleware has
+// already resolved req.reseller (or left it unset on the main platform) by
+// this point, so this route is registered BEFORE the static dist/ serving
+// further down (which would otherwise always win against the static
+// public/manifest.json file bundled into that build) and answers with a
+// manifest built from that reseller's branding instead.
+const guessImageMimeType = (url) => {
+    const ext = (url || '').split('.').pop()?.toLowerCase().split('?')[0];
+    if (ext === 'png') return 'image/png';
+    if (ext === 'svg') return 'image/svg+xml';
+    if (ext === 'webp') return 'image/webp';
+    return 'image/jpeg';
+};
+app.get("/manifest.json", (req, res) => {
+    const reseller = req.reseller;
+    const siteName = reseller?.branding?.siteName || "Premium VTU";
+    const shortName = siteName.length > 12 ? siteName.slice(0, 12) : siteName;
+    const themeColor = reseller?.branding?.primaryColor || "#3B82F6";
+    const logo = reseller?.branding?.logo;
+
+    const icons = logo ? [
+        { src: logo, sizes: "192x192", type: guessImageMimeType(logo), purpose: "any" },
+        { src: logo, sizes: "512x512", type: guessImageMimeType(logo), purpose: "any" },
+        { src: logo, sizes: "192x192", type: guessImageMimeType(logo), purpose: "maskable" }
+    ] : [
+        { src: "/favicon.jpg", sizes: "192x192", type: "image/jpeg", purpose: "any" },
+        { src: "/favicon.jpg", sizes: "512x512", type: "image/jpeg", purpose: "any" },
+        { src: "/favicon.jpg", sizes: "192x192", type: "image/jpeg", purpose: "maskable" },
+        { src: "/logo192.jpg", sizes: "192x192", type: "image/jpeg", purpose: "any" },
+        { src: "/logo512.jpg", sizes: "512x512", type: "image/jpeg", purpose: "any" }
+    ];
+
+    res.setHeader("Content-Type", "application/manifest+json");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.json({
+        name: siteName,
+        short_name: shortName,
+        description: `${siteName} — fast, secure VTU services`,
+        start_url: "/",
+        display: "standalone",
+        orientation: "portrait",
+        background_color: reseller?.branding?.backgroundColor || "#0a0a0a",
+        theme_color: themeColor,
+        icons
+    });
+});
+
 // --- DIGITAL ASSET LINKS FOR WEBAUTHN (ANDROID WEBVIEW) ---
 app.get("/.well-known/assetlinks.json", (req, res) => {
     res.setHeader("Content-Type", "application/json");
