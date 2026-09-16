@@ -15,7 +15,6 @@ import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import AppViewer from "./pages/AppViewer";
 import Wallet from "./pages/Wallet";
-import AppDownload from "./pages/AppDownload";
 import Services from "./pages/Services";
 import Support from "./pages/Support";
 import Purchase from "./pages/Purchase";
@@ -788,7 +787,7 @@ function App() {
     <ThemeProvider>
       <ToastProvider>
         <BrandingProvider siteInfo={siteInfo}>
-        {location.pathname === '/' && isWhiteLabelSite(siteInfo) && (
+        {!location.pathname.startsWith('/admin') && !location.pathname.startsWith('/super-admin') && (
           <PWAInstallPrompt
               deferredPrompt={deferredPrompt}
               setDeferredPrompt={setDeferredPrompt}
@@ -1097,8 +1096,6 @@ function App() {
                 <Route path="/merchant/notifications" element={token ? (user?.role === 'merchant' ? <Notifications token={token} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
                 <Route path="/merchant/identity/:serviceId" element={token ? (user?.role === 'merchant' ? <IdentityPurchase user={user} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
                 <Route path="/merchant/referrals" element={token ? (user?.role === 'merchant' ? <ReferralCenter user={user} siteInfo={siteInfo} /> : <Navigate to="/home" replace />) : <Navigate to="/login" />} />
-                <Route path="/app" element={<AppDownload />} />
-
                 {/* A merchant has its own distinct dashboard (MerchantDashboard.jsx,
                     same underlying purchase features as Home but framed with
                     activation status + Basic Reseller pricing) instead of the plain
