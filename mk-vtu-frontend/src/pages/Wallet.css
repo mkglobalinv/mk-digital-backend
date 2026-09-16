@@ -871,6 +871,53 @@
   padding: 20px;
 }
 
+/* Account Name Notice Card */
+.account-name-notice-card {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.notice-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 6px;
+}
+
+.notice-card-header .notice-icon {
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.notice-card-body {
+  font-size: 13px;
+  color: #1e3a8a;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.funding-steps-list {
+  margin: 0 0 16px 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+.funding-steps-list li {
+  margin-bottom: 6px;
+}
+
+.funding-steps-list li:last-child {
+  margin-bottom: 0;
+}
+
 .funding-notice-header {
   display: flex;
   align-items: center;
@@ -961,3 +1008,4 @@
     gap: 6px;
   }
 }
+
