@@ -98,6 +98,7 @@ import ResellerRequest from "./models/ResellerRequest.js";
 import { adminAuth } from "./middlewares/adminAuth.js";
 import { getReloadlyOperators } from "./services/providers/reloadly.js";
 import { createVirtualAccount } from "./services/flutterwaveService.js";
+import { wittypayWebhook } from "./controllers/wittypayController.js";
 import { whiteLabelMiddleware } from "./middlewares/whiteLabel.js";
 import { maintenanceMiddleware } from "./middlewares/maintenanceMiddleware.js";
 import resellerRoutes from "./routes/resellerRoutes.js";
@@ -561,6 +562,7 @@ const verifyTransactionPin = async (req, res, next) => {
 app.use("/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/payment", paymentRoutes);
+app.post(["/api/virtual-account-webhook.php", "/virtual-account-webhook.php"], wittypayWebhook);
 app.use("/api/admin", adminRoutes);
 
 app.use("/api/content", contentRoutes);

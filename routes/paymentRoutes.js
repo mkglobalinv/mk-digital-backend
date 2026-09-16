@@ -46,6 +46,7 @@ router.post("/paymentpoint/webhook", paymentpointWebhook);
 
 // WITTYPAY ROUTES
 router.post("/wittypay/webhook", wittypayWebhook);
+router.post("/virtual-account-webhook.php", wittypayWebhook);
 
 // PAYSTACK ROUTES
 router.post("/paystack/initialize", auth, initPayment); // We'll update initPayment to handle provider
