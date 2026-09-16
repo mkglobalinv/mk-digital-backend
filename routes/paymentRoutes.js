@@ -2,6 +2,7 @@ import express from "express";
 import { initPayment, monnifyWebhook, verifyPaystack } from "../controllers/paymentController.js";
 import { flutterwaveWebhook, verifyPayment } from "../controllers/flutterwaveController.js";
 import { paymentpointWebhook } from "../controllers/paymentpointController.js";
+import { wittypayWebhook } from "../controllers/wittypayController.js";
 import jwt from "jsonwebtoken";
 
 const router = express.Router();
@@ -22,13 +23,16 @@ const auth = (req, res, next) => {
 
 router.post("/initialize", auth, initPayment);
 
-// INTELLIGENT ROUTING: If Flutterwave/PaymentPoint incorrectly hit the Monnify webhook URL, route it properly.
+// INTELLIGENT ROUTING: If Flutterwave/PaymentPoint/Wittypay hit the general webhook URL, route it properly.
 router.post("/webhook", (req, res, next) => {
     if (req.headers["verif-hash"]) {
         return flutterwaveWebhook(req, res);
     }
     if (req.headers["paymentpoint-signature"]) {
         return paymentpointWebhook(req, res);
+    }
+    if (req.headers["x-wittypay-signature"] || req.headers["wittypay-signature"]) {
+        return wittypayWebhook(req, res);
     }
     return monnifyWebhook(req, res);
 });
@@ -39,6 +43,10 @@ router.post("/flutterwave/webhook", flutterwaveWebhook);
 
 // PAYMENTPOINT ROUTES
 router.post("/paymentpoint/webhook", paymentpointWebhook);
+
+// WITTYPAY ROUTES
+router.post("/wittypay/webhook", wittypayWebhook);
+router.post("/virtual-account-webhook.php", wittypayWebhook);
 
 // PAYSTACK ROUTES
 router.post("/paystack/initialize", auth, initPayment); // We'll update initPayment to handle provider

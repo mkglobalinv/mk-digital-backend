@@ -1,25 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Landmark, Loader2, Save, ShieldCheck, Info } from 'lucide-react';
+import { CheckCircle2, Landmark, Loader2, Save, ShieldCheck, Info, ArrowUp, ArrowDown } from 'lucide-react';
 import API from '../../api';
 import './DataPlanPricing.css';
 import './OgdamsSmePricing.css';
 import './VirtualAccountGateway.css';
 
-// Admin control for which gateway is used to generate customer wallet
-// virtual accounts (temporary + permanent). Backed by a single Setting doc,
-// key 'virtualAccountProvider' -- read live on every request by
-// services/accountService.js's getVirtualAccountProviderConfig(). Customer
-// UX (temporary-by-default, permanent after BVN/NIN verification) is
-// untouched by this page; it only decides which provider is tried first,
-// and whether the other one is used automatically if the first one fails.
-const PROVIDERS = [
-    { id: 'paymentpoint', name: 'PaymentPoint', description: 'Reserved (static-capable) virtual accounts. No BVN/NIN required.' },
-    { id: 'flutterwave', name: 'Flutterwave', description: 'Established gateway. Requires BVN/NIN for permanent accounts.' }
+const DEFAULT_PROVIDERS = [
+    { id: 'wittypay', name: 'Wittypay', description: 'Temporary virtual accounts with automated payment webhook settlement.' },
+    { id: 'flutterwave', name: 'Flutterwave', description: 'Established gateway. Requires BVN/NIN for permanent accounts.' },
+    { id: 'paymentpoint', name: 'PaymentPoint', description: 'Reserved (static-capable) virtual accounts. No BVN/NIN required.' }
 ];
 
+const DEFAULT_PRIORITY = ['wittypay', 'flutterwave', 'paymentpoint'];
+const DEFAULT_ENABLED = { wittypay: true, flutterwave: true, paymentpoint: true };
+
 const VirtualAccountGateway = () => {
-    const [primary, setPrimary] = useState('paymentpoint');
-    const [fallbackEnabled, setFallbackEnabled] = useState(true);
+    const [priority, setPriority] = useState(DEFAULT_PRIORITY);
+    const [enabled, setEnabled] = useState(DEFAULT_ENABLED);
     const [updatedAt, setUpdatedAt] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -29,9 +26,35 @@ const VirtualAccountGateway = () => {
         setLoading(true);
         try {
             const res = await API.get('/api/admin/virtual-account-provider');
-            setPrimary(res.data.primary);
-            setFallbackEnabled(res.data.fallbackEnabled);
-            setUpdatedAt(res.data.updatedAt);
+            const data = res.data || {};
+
+            let loadedPriority = Array.isArray(data.priority) && data.priority.length > 0
+                ? data.priority.filter(p => DEFAULT_PRIORITY.includes(p))
+                : null;
+
+            if (!loadedPriority || loadedPriority.length === 0) {
+                if (data.primary && DEFAULT_PRIORITY.includes(data.primary)) {
+                    const others = DEFAULT_PRIORITY.filter(p => p !== data.primary);
+                    loadedPriority = [data.primary, ...others];
+                } else {
+                    loadedPriority = [...DEFAULT_PRIORITY];
+                }
+            }
+
+            // Ensure all providers exist in priority array
+            DEFAULT_PRIORITY.forEach(p => {
+                if (!loadedPriority.includes(p)) loadedPriority.push(p);
+            });
+
+            const loadedEnabled = {
+                wittypay: data.enabled?.wittypay !== undefined ? Boolean(data.enabled.wittypay) : true,
+                flutterwave: data.enabled?.flutterwave !== undefined ? Boolean(data.enabled.flutterwave) : (data.primary === 'flutterwave' || data.fallbackEnabled !== false),
+                paymentpoint: data.enabled?.paymentpoint !== undefined ? Boolean(data.enabled.paymentpoint) : (data.primary === 'paymentpoint' || data.fallbackEnabled !== false)
+            };
+
+            setPriority(loadedPriority);
+            setEnabled(loadedEnabled);
+            setUpdatedAt(data.updatedAt || null);
             setDirty(false);
         } catch (err) {
             alert('Failed to load virtual account provider settings: ' + (err.response?.data?.message || err.message));
@@ -42,28 +65,49 @@ const VirtualAccountGateway = () => {
 
     useEffect(() => { fetchConfig(); }, []);
 
-    const fallbackProviderName = PROVIDERS.find((p) => p.id !== primary)?.name;
+    const activeProviders = priority.filter(id => enabled[id] !== false);
 
-    const handleSelectPrimary = (id) => {
-        if (id === primary) return;
-        setPrimary(id);
+    const handleToggleEnabled = (id, e) => {
+        e.stopPropagation();
+        setEnabled(prev => ({ ...prev, [id]: !prev[id] }));
         setDirty(true);
     };
 
-    const handleToggleFallback = () => {
-        setFallbackEnabled((prev) => !prev);
+    const handleMovePriority = (id, direction, e) => {
+        e.stopPropagation();
+        const index = priority.indexOf(id);
+        if (index === -1) return;
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= priority.length) return;
+
+        const newPriority = [...priority];
+        const [moved] = newPriority.splice(index, 1);
+        newPriority.splice(newIndex, 0, moved);
+
+        setPriority(newPriority);
+        setDirty(true);
+    };
+
+    const handleSetPrimary = (id) => {
+        if (priority[0] === id) return;
+        const newPriority = [id, ...priority.filter(p => p !== id)];
+        setPriority(newPriority);
         setDirty(true);
     };
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await API.post('/api/admin/virtual-account-provider', { primary, fallbackEnabled });
-            setPrimary(res.data.primary);
-            setFallbackEnabled(res.data.fallbackEnabled);
-            setUpdatedAt(res.data.updatedAt);
+            const payload = {
+                primary: activeProviders[0] || priority[0],
+                fallbackEnabled: activeProviders.length > 1,
+                priority,
+                enabled
+            };
+            const res = await API.post('/api/admin/virtual-account-provider', payload);
+            setUpdatedAt(res.data.updatedAt || new Date().toISOString());
             setDirty(false);
-            alert('Virtual account gateway settings saved.');
+            alert('Virtual account gateway settings saved successfully.');
         } catch (err) {
             alert('Failed to save: ' + (err.response?.data?.message || err.message));
         } finally {
@@ -78,7 +122,7 @@ const VirtualAccountGateway = () => {
             <div className="page-header">
                 <div>
                     <h2>Virtual Account Gateway</h2>
-                    <p>Choose which provider generates customer wallet-funding accounts.</p>
+                    <p>Configure wallet funding providers, priorities, and automatic failover.</p>
                 </div>
                 <button className="sync-btn" onClick={handleSave} disabled={saving || !dirty}>
                     {saving ? <Loader2 size={18} className="spin" /> : <Save size={18} />}
@@ -89,51 +133,85 @@ const VirtualAccountGateway = () => {
             <div className="ogdams-sme-note">
                 <Info size={16} />
                 <span>
-                    <b>Primary</b> is the provider tried first for every temporary and permanent virtual account request
-                    (Wallet page "Fund Wallet" and BVN/NIN "Upgrade" flows). If it fails and <b>automatic fallback</b> is on,
-                    the other provider is used immediately instead -- the customer never sees the failure. This only changes
-                    which gateway issues the account; the customer-facing flow itself is unchanged.
+                    Automatic fallback uses the next enabled provider according to the configured priority order.
+                    If the primary provider fails during account creation, the next available provider is tried automatically.
                 </span>
             </div>
 
             <div className="vag-provider-grid">
-                {PROVIDERS.map((provider) => {
-                    const isSelected = primary === provider.id;
+                {DEFAULT_PROVIDERS.map((provider) => {
+                    const isEnabled = enabled[provider.id] !== false;
+                    const activeIndex = activeProviders.indexOf(provider.id);
+                    const isPrimary = activeIndex === 0;
+                    const priorityIndex = priority.indexOf(provider.id);
+
                     return (
-                        <button
+                        <div
                             key={provider.id}
-                            type="button"
-                            className={`vag-provider-card ${isSelected ? 'selected' : ''}`}
-                            onClick={() => handleSelectPrimary(provider.id)}
+                            className={`vag-provider-card ${isPrimary ? 'selected' : ''} ${!isEnabled ? 'disabled' : ''}`}
+                            onClick={() => handleSetPrimary(provider.id)}
                         >
                             <div className="vag-provider-card-top">
                                 <span className="vag-provider-icon"><Landmark size={20} /></span>
-                                {isSelected && <span className="vag-provider-check"><CheckCircle2 size={18} /></span>}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    {priorityIndex > 0 && (
+                                        <button
+                                            type="button"
+                                            className="vag-priority-btn"
+                                            title="Move Up Priority"
+                                            onClick={(e) => handleMovePriority(provider.id, 'up', e)}
+                                        >
+                                            <ArrowUp size={14} />
+                                        </button>
+                                    )}
+                                    {priorityIndex < priority.length - 1 && (
+                                        <button
+                                            type="button"
+                                            className="vag-priority-btn"
+                                            title="Move Down Priority"
+                                            onClick={(e) => handleMovePriority(provider.id, 'down', e)}
+                                        >
+                                            <ArrowDown size={14} />
+                                        </button>
+                                    )}
+                                    {isPrimary && <span className="vag-provider-check"><CheckCircle2 size={18} /></span>}
+                                </div>
                             </div>
+
                             <h3>{provider.name}</h3>
                             <p>{provider.description}</p>
-                            <span className={`vag-provider-role ${isSelected ? 'primary' : ''}`}>
-                                {isSelected ? 'PRIMARY' : 'FALLBACK CANDIDATE'}
-                            </span>
-                        </button>
+
+                            <div className="vag-card-footer">
+                                <span className={`vag-provider-role ${!isEnabled ? 'disabled' : (isPrimary ? 'primary' : 'fallback')}`}>
+                                    {!isEnabled ? 'DISABLED' : (isPrimary ? 'PRIMARY' : 'FALLBACK CANDIDATE')}
+                                </span>
+                                {isEnabled && (
+                                    <span className="vag-priority-badge">Priority {activeIndex + 1}</span>
+                                )}
+                                <div className="vag-toggle-wrap" onClick={(e) => e.stopPropagation()}>
+                                    <label className="switch">
+                                        <input
+                                            type="checkbox"
+                                            checked={isEnabled}
+                                            onChange={(e) => handleToggleEnabled(provider.id, e)}
+                                        />
+                                        <span className="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     );
                 })}
             </div>
 
             <div className="ogdams-sme-rule-card">
-                <h3><ShieldCheck size={18} /> Automatic Fallback</h3>
+                <h3><ShieldCheck size={18} /> Active Failover Sequence</h3>
                 <p className="ogdams-sme-rule-desc">
-                    When enabled, if <b>{PROVIDERS.find((p) => p.id === primary)?.name}</b> is unavailable or returns an
-                    error, <b>{fallbackProviderName}</b> is used automatically so account generation still succeeds. When
-                    disabled, a failure on the primary provider is returned to the customer as-is.
+                    Current active provider order: <b>{activeProviders.length > 0 ? activeProviders.map(id => DEFAULT_PROVIDERS.find(p => p.id === id)?.name).join(' → ') : 'None (All Providers Disabled)'}</b>
                 </p>
-                <label className="switch">
-                    <input type="checkbox" checked={fallbackEnabled} onChange={handleToggleFallback} />
-                    <span className="slider round"></span>
-                </label>
-                <span style={{ marginLeft: 10, fontWeight: 600, color: fallbackEnabled ? '#10b981' : '#6b7280' }}>
-                    {fallbackEnabled ? `Fallback to ${fallbackProviderName} enabled` : 'Fallback disabled'}
-                </span>
+                <p className="ogdams-sme-rule-desc" style={{ marginTop: 6, fontSize: 13, color: '#6b7280' }}>
+                    Click any provider card to set it as Primary (Priority 1), or use the toggle switches to enable/disable specific providers.
+                </p>
             </div>
 
             {updatedAt && (

@@ -323,24 +323,35 @@ const Wallet = ({ token, user }) => {
                  </div>
                  <div className="account-detail-row">
                     <p className="detail-label">Account Holder:</p>
-                    <p className="detail-value">{localUser?.name} ✓</p>
+                    <p className="detail-value">{localUser?.account_name || `${localUser?.name} ✓`}</p>
                  </div>
               </div>
 
+              {/* ACCOUNT NAME NOTICE CARD */}
+              <div className="account-name-notice-card">
+                 <div className="notice-card-header">
+                    <Info size={16} className="notice-icon" />
+                    <span>Account Name Notice</span>
+                 </div>
+                 <p className="notice-card-body">
+                    When you make this transfer, your bank may display <strong>9JASUB</strong> as the account name. This is normal and safe. 9JASUB powers your wallet funding service.
+                 </p>
+              </div>
+
+              {/* HOW TO FUND YOUR WALLET */}
               <div className="funding-notice">
-                 <p className="funding-notice-header"><Info size={16} /> Payment Instructions</p>
+                 <p className="funding-notice-header"><Info size={16} /> How to Fund Your Wallet</p>
 
                  <div className="funding-notice-amount">
                     <p className="funding-notice-amount-label">Transfer exactly</p>
                     <p className="funding-notice-amount-value">₦{(localUser?.temporaryAmount || 0).toLocaleString()}</p>
                  </div>
 
-                 <div className="funding-risk-grid">
-                    <div className="funding-risk-item"><AlertTriangle size={14} color="#f59e0b" /> Funding failure</div>
-                    <div className="funding-risk-item"><Hourglass size={14} color="#f59e0b" /> Delayed credit</div>
-                    <div className="funding-risk-item"><ShieldAlert size={14} color="#f59e0b" /> Manual review</div>
-                    <div className="funding-risk-item"><RotateCcw size={14} color="#f59e0b" /> Provider reversal</div>
-                 </div>
+                 <ol className="funding-steps-list">
+                    <li>Transfer exactly the expected amount to the account details above.</li>
+                    <li>Your bank may display <strong>9JASUB</strong> as the account name. This is normal and safe.</li>
+                    <li>Your wallet will be credited automatically once the payment is received.</li>
+                 </ol>
 
                  <div className="funding-notice-footer">
                     <p><Copy size={14} /> Tap the copy icon above to copy the account number exactly.</p>

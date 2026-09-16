@@ -79,8 +79,65 @@
     color: #065f46;
 }
 
+.vag-provider-role.fallback {
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+.vag-provider-role.disabled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.vag-provider-card.disabled {
+    opacity: 0.7;
+    background: #f9fafb;
+    border-color: #e5e7eb;
+}
+
+.vag-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1fr solid #f3f4f6;
+    flex-wrap: wrap;
+}
+
+.vag-priority-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.vag-priority-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.vag-priority-btn:hover {
+    background: #f3f4f6;
+    color: #111827;
+    border-color: #9ca3af;
+}
+
 .vag-updated-at {
     margin-top: 16px;
     font-size: 13px;
     color: #9ca3af;
 }
+
