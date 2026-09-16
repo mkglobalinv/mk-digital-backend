@@ -31,10 +31,19 @@ export const calculateVtuPrice = async (userId, serviceType, network, planId, am
     }
 
     const buyer = reseller || user;
-    const isReseller = buyer.role === 'reseller_admin';
+    // A merchant ("Reseller 2") buying for themselves counts as an isReseller
+    // exactly like a role='reseller_admin' owner buying for themselves --
+    // same self-purchase branches below (plan.reseller_price for data, ~99%/
+    // 99.5% of face value for airtime/cable/electricity/epin), same "basic"
+    // tier only (a merchant is never premium/vip, see isPremiumTier below,
+    // which still requires role === 'reseller_admin'). Not activated
+    // (merchantActivatedAt unset) until their first qualifying wallet
+    // top-up -- see services/walletService.js's creditBalance -- so they
+    // pay retail prices like any other user until then.
+    const isReseller = buyer.role === 'reseller_admin' || (buyer.role === 'merchant' && !!buyer.merchantActivatedAt);
     const rType = buyer.resellerType || "basic";
     const isPremiumTier = buyer.role === 'reseller_admin' && (rType === 'premium' || buyer.resellerTier === 'premium' || buyer.resellerTier === 'vip' || buyer.canOverridePricing);
-    const isBasicReseller = buyer.role === 'reseller_admin' && !isPremiumTier;
+    const isBasicReseller = isReseller && !isPremiumTier;
 
     // 2. Fetch Admin Override for this reseller (if any)
     let adminOverride = null;
@@ -348,7 +357,9 @@ export const calculateBulkDataPrices = async (userId, plans, networkFilter = nul
     }
 
     const buyer = reseller || user;
-    const isReseller = buyer.role === 'reseller_admin';
+    // See calculateVtuPrice above for why merchant + merchantActivatedAt is
+    // included here identically.
+    const isReseller = buyer.role === 'reseller_admin' || (buyer.role === 'merchant' && !!buyer.merchantActivatedAt);
     const rType = buyer.resellerType || "basic";
     const isPremiumTier = buyer.role === 'reseller_admin' && (rType === 'premium' || buyer.resellerTier === 'premium' || buyer.resellerTier === 'vip' || buyer.canOverridePricing);
 

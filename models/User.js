@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   accountType: { type: String, enum: ["none", "temporary", "permanent"], default: "none" },
   accountExpiryDate: { type: Date },
   temporaryAmount: { type: Number },
-  role: { type: String, enum: ["user", "admin", "superadmin", "reseller_admin"], default: "user" },
+  role: { type: String, enum: ["user", "admin", "superadmin", "reseller_admin", "merchant"], default: "user" },
   activationRewardGiven: { type: Boolean, default: false },
   isSuspended: { type: Boolean, default: false },
   isProcessingTx: { type: Boolean, default: false },
@@ -175,6 +175,14 @@ const userSchema = new mongoose.Schema({
   customBannerEnabled: { type: Boolean, default: false },
   canOverridePricing: { type: Boolean, default: false }, // Explicit permission — true for premium/vip, false for basic
   resellerType: { type: String, enum: ["basic", "premium"], default: "basic" },
+  // Merchant program ("Reseller 2"): a lighter-weight self-service tier --
+  // no website/branding/domain/sub-customers, just Basic Reseller pricing
+  // on the same shared portal (see services/pricing/vtuPricing.js's
+  // isReseller checks and config/merchant.js). null/unset until the user's
+  // first single wallet top-up of at least MERCHANT_MIN_ACTIVATION_AMOUNT
+  // lands (see services/walletService.js's creditBalance) -- permanent
+  // once set, even if their balance later drops.
+  merchantActivatedAt: { type: Date, default: null },
   assignedPrices: { type: Map, of: Number, default: {} },
   customPrices: { type: Map, of: Number, default: {} },
   
@@ -248,8 +256,18 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Compound index to allow same email on different reseller portals
-userSchema.index({ email: 1, tenantOwnerId: 1 }, { unique: true, partialFilterExpression: { archived: false } });
+// Compound index to allow same email on different reseller portals, AND
+// (as of the Merchant program) the same email to have one account per role
+// on the SAME portal -- specifically so a reseller_admin (website owner) or
+// admin can also hold a fully separate 'merchant' identity under their own
+// email, without touching their existing account. A plain retail 'user'
+// becoming a merchant still upgrades their single existing document in
+// place (see controllers/merchantController.js's registerMerchant) rather
+// than creating a second row, so this widening only ever actually produces
+// two rows for the reseller/admin case. findByTenant's business-preference
+// argument is what lets /api/login disambiguate which of the two to sign
+// into when this happens.
+userSchema.index({ email: 1, tenantOwnerId: 1, role: 1 }, { unique: true, partialFilterExpression: { archived: false } });
 // Keep legacy referredBy index for referral/commission queries (not for auth)
 userSchema.index({ referredBy: 1 });
 
@@ -318,10 +336,33 @@ userSchema.post('save', async function(doc) {
  *
  * @param {string} email
  * @param {ObjectId|string|null} resellerId — null means Main Platform
+ * @param {boolean} preferBusiness — when an email resolves to more than one
+ *   main-platform account (the Merchant program's admin/reseller-plus-
+ *   merchant case — see the schema index above), which one to return: the
+ *   admin/superadmin/reseller_admin account when true, otherwise the
+ *   merchant/plain-user one. Callers that don't pass it get the non-business
+ *   account, matching every pre-existing call site's behavior for the
+ *   overwhelmingly common case where an email only has one account.
+ *   NOTE: real admin sign-in never goes through here -- it uses its own
+ *   /api/admin/login (adminLogin controller), which looks up by role
+ *   directly. This "admin always wins" tie-break existed only as a no-op
+ *   safety net back when at most one main-platform document could ever
+ *   share an email; now that a second (merchant) document can, it must
+ *   respect preferBusiness like reseller_admin does, or it silently
+ *   hijacks a merchant's own login into their admin sibling account.
  */
-userSchema.statics.findByTenant = async function(email, resellerId) {
+userSchema.statics.findByTenant = async function(email, resellerId, preferBusiness = false) {
   const users = await this.find({ email: email.toLowerCase() });
   if (!users || users.length === 0) return null;
+
+  if (users.length > 1) {
+    // Diagnostic: this branch only matters for the Merchant program's
+    // dual-account case, and printing it only when >1 document actually
+    // exists for the email keeps it from spamming logs for the near-
+    // universal single-account case.
+    console.log(`[findByTenant] Multiple accounts for ${email.toLowerCase()} (resellerId=${resellerId || 'null'}, preferBusiness=${preferBusiness}):`,
+      users.map(u => ({ id: u._id.toString(), role: u.role, tenantOwnerId: u.tenantOwnerId ? u.tenantOwnerId.toString() : null, resellerActivationStatus: u.resellerActivationStatus, whiteLabelStatus: u.whiteLabelStatus, apiLevel: u.apiLevel, merchantActivatedAt: u.merchantActivatedAt })));
+  }
 
   if (resellerId) {
     // Reseller portal: return the user that belongs to this tenant OR is the owner themselves
@@ -331,10 +372,20 @@ userSchema.statics.findByTenant = async function(email, resellerId) {
     ) || null;
   } else {
     // Main platform: return a user that has no tenant owner (registered on main platform)
-    // Admins/superadmins are always accessible on main platform
-    return users.find(u => u.role === 'admin' || u.role === 'superadmin') ||
-           users.find(u => !u.tenantOwnerId) ||
-           null;
+    const mainPlatformUsers = users.filter(u => !u.tenantOwnerId);
+    const isBusinessRole = (u) => u.role === 'admin' || u.role === 'superadmin' || u.role === 'reseller_admin';
+    let picked;
+    if (preferBusiness) {
+      picked = mainPlatformUsers.find(u => u.role === 'admin' || u.role === 'superadmin') ||
+               mainPlatformUsers.find(u => u.role === 'reseller_admin') ||
+               mainPlatformUsers[0] || null;
+    } else {
+      picked = mainPlatformUsers.find(u => !isBusinessRole(u)) || mainPlatformUsers[0] || null;
+    }
+    if (users.length > 1) {
+      console.log(`[findByTenant] Picked: ${picked ? `${picked._id.toString()} (role=${picked.role})` : 'null'}`);
+    }
+    return picked;
   }
 };
 

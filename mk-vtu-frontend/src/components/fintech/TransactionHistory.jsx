@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, Clock, XCircle, Search } from 'lucide-react';
 import './FintechComponents.css';
 
-const TransactionHistory = ({ transactions = [], isLoading, isReseller = false }) => {
+const TransactionHistory = ({ transactions = [], isLoading, isReseller = false, isMerchant = false }) => {
   const navigate = useNavigate();
+  const transactionsPath = isMerchant ? '/merchant/transactions' : (isReseller ? '/reseller/transactions' : '/transactions');
+  const walletPath = isMerchant ? '/merchant/fund' : (isReseller ? '/reseller/wallet' : '/wallet');
   const [initialLoaded, setInitialLoaded] = useState(false);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ const TransactionHistory = ({ transactions = [], isLoading, isReseller = false }
     <>
       <div className="section-header" style={{ marginTop: '24px' }}>
         <h3>Recent Activity</h3>
-        <span onClick={() => navigate(isReseller ? '/reseller/transactions' : '/transactions')}>View All</span>
+        <span onClick={() => navigate(transactionsPath)}>View All</span>
       </div>
 
       <div className="activity-list animate-fade-in">
@@ -60,7 +62,7 @@ const TransactionHistory = ({ transactions = [], isLoading, isReseller = false }
             <div className="empty-activity-icon"><Search size={24} /></div>
             <h4>No recent transactions</h4>
             <p>Your latest activity will appear here.</p>
-            <button className="fintech-outline-btn empty-activity-btn" onClick={() => navigate(isReseller ? '/reseller/wallet' : '/wallet')}>Fund Wallet</button>
+            <button className="fintech-outline-btn empty-activity-btn" onClick={() => navigate(walletPath)}>Fund Wallet</button>
           </div>
         )}
       </div>

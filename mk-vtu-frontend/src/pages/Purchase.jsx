@@ -96,7 +96,7 @@ const getVisibleCandidatePlans = (dataPlans, publicCategories, network, dataOpti
     });
 };
 
-const Purchase = ({ token, user, refreshUser, siteInfo }) => {
+const Purchase = ({ token, user, refreshUser, siteInfo, isMerchant = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { startProcessing, updateStatus, clearBanner } = useTransactionBanner();
@@ -1094,7 +1094,12 @@ const Purchase = ({ token, user, refreshUser, siteInfo }) => {
            ))}
         </div>
 
-        {isActiveReseller(user) ? (
+        {/* Merchant is an isolated portal -- neither the reseller console link
+            nor the "Start Your Brand" -> /reseller/onboarding upsell belongs
+            inside it, so both branches of this banner are skipped entirely
+            for a merchant session rather than falling through to the retail
+            default (the third branch below, which is exactly that upsell). */}
+        {isMerchant ? null : isActiveReseller(user) ? (
           <div className="reseller-mini-banner" onClick={() => navigate('/reseller')} style={{
               background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
               borderRadius: '12px', padding: '10px 16px', marginBottom: '20px',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, Lock, HelpCircle, Shield, Trash2, ChevronRight, UserCircle2, Bell, Settings, X, Send, Fingerprint, Terminal } from 'lucide-react';
+import { LogOut, Lock, HelpCircle, Shield, Trash2, ChevronRight, UserCircle2, Bell, Settings, X, Send, Fingerprint, Terminal, Store } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../api';
 import { isBiometricAvailable, registerBiometric } from '../services/biometricService';
@@ -196,6 +196,25 @@ const Profile = ({ logout, user, token, siteInfo }) => {
              </div>
            )}
         </div>
+
+        {(user?.role === 'user' || user?.role === 'merchant') && (
+          <div className="menu-group">
+             <h3 className="menu-group-title">Business</h3>
+             <button className="premium-menu-item" onClick={() => navigate('/merchant/onboarding')}>
+               <div className="menu-left">
+                 <div className="menu-icon-wrapper green"><Store size={18} /></div>
+                 <span className="menu-text">{user?.role === 'merchant' ? 'Merchant Account' : 'Become a Merchant'}</span>
+               </div>
+               {user?.role === 'merchant' ? (
+                 <span className={`menu-status ${user?.merchantActivatedAt ? 'success' : 'pending'}`}>
+                   {user?.merchantActivatedAt ? 'Active' : 'Fund to Activate'}
+                 </span>
+               ) : (
+                 <ChevronRight size={18} className="menu-arrow" />
+               )}
+             </button>
+          </div>
+        )}
 
         <div className="menu-group">
            <h3 className="menu-group-title">Preferences</h3>

@@ -260,13 +260,13 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
 
                     {/* Secondary shortcut */}
                     <a
-                        href="https://9jasub.com/website/dashboard"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => {
-                            // Set cookie so dashboard shows a one-time welcome toast
-                            const domain = window.location.hostname.includes('9jasub.com') ? '; domain=.9jasub.com' : '';
-                            document.cookie = `showWelcome=true${domain}; path=/; max-age=300`;
+                        href="/merchant/dashboard"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            if (setToken && localStorage.getItem('token')) {
+                              setToken(localStorage.getItem('token'));
+                            }
+                            navigate('/merchant/dashboard');
                         }}
                         style={{
                             textDecoration: 'none',
@@ -284,7 +284,7 @@ const BusinessSignup = ({ setToken, siteInfo }) => {
                             transition: 'background-color 0.2s, color 0.2s'
                         }}
                     >
-                        Or access your website portal online →
+                        Or access your Merchant Dashboard →
                     </a>
                 </div>
             </div>

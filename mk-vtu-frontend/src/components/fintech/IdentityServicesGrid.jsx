@@ -28,7 +28,7 @@ const IDENTITY_SERVICES = [
   { api_plan_id: 'court-affidavit',          label: 'Court Affidavit',   icon: Landmark, color: '#2563EB', bg: 'rgba(37,99,235,0.08)', border: 'rgba(37,99,235,0.2)' },
 ];
 
-const IdentityServicesGrid = ({ isReseller = false }) => {
+const IdentityServicesGrid = ({ isReseller = false, isMerchant = false }) => {
   const navigate = useNavigate();
   const siteInfo = useBranding();
   const activatedManualServices = siteInfo?.activatedManualServices || [];
@@ -64,7 +64,9 @@ const IdentityServicesGrid = ({ isReseller = false }) => {
       navigate('/court-affidavit');
       return;
     }
-    if (isReseller) {
+    if (isMerchant) {
+      navigate(`/merchant/identity/${api_plan_id}`);
+    } else if (isReseller) {
       navigate(`/reseller/identity/${api_plan_id}`);
     } else {
       navigate(`/identity/${api_plan_id}`);

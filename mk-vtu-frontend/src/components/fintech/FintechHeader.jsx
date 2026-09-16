@@ -1,12 +1,14 @@
 import React from 'react';
-import { Bell, Moon, Sun } from 'lucide-react';
+import { Bell, Moon, Sun, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import './FintechComponents.css';
 
-const FintechHeader = ({ user, greeting: propGreeting, unreadCount = 0 }) => {
+const FintechHeader = ({ user, greeting: propGreeting, unreadCount = 0, isMerchant = false }) => {
   const navigate = useNavigate();
   const { isLightMode, toggleTheme } = useTheme();
+  const profilePath = isMerchant ? '/merchant/profile' : '/profile';
+  const notificationsPath = isMerchant ? '/merchant/notifications' : '/notifications';
 
   const greeting = propGreeting || (() => {
     const hr = new Date().getHours();
@@ -22,18 +24,28 @@ const FintechHeader = ({ user, greeting: propGreeting, unreadCount = 0 }) => {
 
   return (
     <header className="fintech-top-nav">
-      <div className="nav-profile-group" onClick={() => navigate('/profile')}>
+      <div className="nav-profile-group" onClick={() => navigate(profilePath)}>
         <div className="nav-avatar">{getUserInitials()}</div>
         <div className="nav-greeting">
           <span className="greeting-text">{greeting},</span>
           <span className="user-name">{user?.name?.split(' ')[0] || user?.username || 'Member'}</span>
         </div>
+        {isMerchant && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '8px',
+            padding: '3px 8px', borderRadius: '999px', background: 'var(--primary)', color: '#fff',
+            fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.4px', textTransform: 'uppercase'
+          }}>
+            <Store size={11} />
+            Merchant
+          </span>
+        )}
       </div>
       <div className="nav-actions">
         <button className="icon-btn" onClick={toggleTheme} style={{ marginRight: '4px' }}>
           {isLightMode ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#94A3B8" />}
         </button>
-        <button className="icon-btn" onClick={() => navigate('/notifications')}>
+        <button className="icon-btn" onClick={() => navigate(notificationsPath)}>
           <Bell size={16} />
           {unreadCount > 0 && <span className="badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
         </button>

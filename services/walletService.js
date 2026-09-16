@@ -1,9 +1,11 @@
 import User from "../models/User.js";
 import SystemSetting from "../models/SystemSetting.js";
 import Transaction from "../models/Transaction.js";
+import Notification from "../models/Notification.js";
 import { getSupabaseClient } from "./supabaseClient.js";
 import socketService from "./socketService.js";
 import { insertLedgerEntry, calculateLedgerBalances } from "./supabaseLedger.js";
+import { MERCHANT_MIN_ACTIVATION_AMOUNT } from "../config/merchant.js";
 import mongoose from "mongoose";
 
 /**
@@ -73,6 +75,29 @@ export const creditBalance = async (userId, amount, reference = `SYS-CRED-${Date
         );
         
         if (!updatedUser) throw new Error("User update failed");
+
+        // Merchant program ("Reseller 2") activation: the FIRST single top-up
+        // of at least MERCHANT_MIN_ACTIVATION_AMOUNT permanently unlocks
+        // Basic Reseller pricing for a merchant's own purchases (see
+        // services/pricing/vtuPricing.js's isReseller checks) -- checked
+        // here, the single choke point every deposit path (Flutterwave,
+        // PaymentPoint, admin manual credit, ...) already funnels through,
+        // so no individual webhook controller needs to know about it.
+        if (updatedUser.role === 'merchant' && !updatedUser.merchantActivatedAt && numericAmount >= MERCHANT_MIN_ACTIVATION_AMOUNT) {
+            const activatedAt = new Date();
+            await User.findByIdAndUpdate(userId, { merchantActivatedAt: activatedAt }, { session });
+            updatedUser.merchantActivatedAt = activatedAt;
+            try {
+                await Notification.create({
+                    userId,
+                    title: "Merchant Pricing Activated!",
+                    message: `Your ₦${numericAmount.toLocaleString()} top-up activated Merchant (Basic Reseller) pricing on your account. Enjoy discounted rates on every purchase.`,
+                    type: "system"
+                });
+            } catch (e) {
+                console.warn("[Merchant Activation] Notification failed:", e.message);
+            }
+        }
 
         const balanceAfter = (updatedUser.balance1 || 0) + (updatedUser.balance2 || 0);
         const balanceBefore = balanceAfter - numericAmount;

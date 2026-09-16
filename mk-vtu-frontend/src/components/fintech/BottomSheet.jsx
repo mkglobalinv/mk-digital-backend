@@ -3,10 +3,15 @@ import { X, ArrowDownLeft, ArrowUpRight, Wifi, Smartphone, Tv, Zap, RefreshCw, L
 import { useNavigate } from 'react-router-dom';
 import './FintechComponents.css';
 
-const BottomSheet = ({ show, onClose, user, logout, isReseller = false }) => {
+const BottomSheet = ({ show, onClose, user, logout, isReseller = false, isMerchant = false }) => {
   const navigate = useNavigate();
 
   if (!show) return null;
+
+  const walletPath = isMerchant ? '/merchant/fund' : (isReseller ? '/reseller/wallet' : '/wallet');
+  const transactionsPath = isMerchant ? '/merchant/transactions' : (isReseller ? '/reseller/transactions' : '/transactions');
+  const purchasePath = isMerchant ? '/merchant/services' : (isReseller ? '/reseller/purchase' : '/purchase');
+  const profilePath = isMerchant ? '/merchant/profile' : '/profile';
 
   return (
     <>
@@ -20,34 +25,34 @@ const BottomSheet = ({ show, onClose, user, logout, isReseller = false }) => {
         
         <div className="sheet-content">
           <div className="sheet-grid">
-            <div className="sheet-item" onClick={() => { navigate(isReseller ? '/reseller/wallet' : '/wallet'); onClose(); }}>
+            <div className="sheet-item" onClick={() => { navigate(walletPath); onClose(); }}>
               <div className="sheet-icon" style={{ color: '#10B981', background: 'rgba(16, 185, 129, 0.1)' }}><ArrowDownLeft size={24} /></div>
               <span>Fund Wallet</span>
             </div>
-            <div className="sheet-item" onClick={() => { navigate(isReseller ? '/reseller/wallet' : '/wallet'); onClose(); }}>
+            <div className="sheet-item" onClick={() => { navigate(walletPath); onClose(); }}>
               <div className="sheet-icon" style={{ color: '#3B82F6', background: 'rgba(59, 130, 246, 0.1)' }}><ArrowUpRight size={24} /></div>
               <span>Transfer</span>
             </div>
-            <div className="sheet-item" onClick={() => { navigate(isReseller ? '/reseller/transactions' : '/transactions'); onClose(); }}>
+            <div className="sheet-item" onClick={() => { navigate(transactionsPath); onClose(); }}>
               <div className="sheet-icon" style={{ color: '#F4B400', background: 'rgba(244, 180, 0, 0.1)' }}><List size={24} /></div>
               <span>History</span>
             </div>
-            <div className="sheet-item" onClick={() => { navigate('/profile'); onClose(); }}>
+            <div className="sheet-item" onClick={() => { navigate(profilePath); onClose(); }}>
               <div className="sheet-icon" style={{ color: '#8B5CF6', background: 'rgba(139, 92, 246, 0.1)' }}><Settings size={24} /></div>
               <span>Settings</span>
             </div>
           </div>
           
           <div className="sheet-list">
-            <div className="sheet-list-item" onClick={() => { navigate(isReseller ? '/reseller/purchase' : '/purchase', { state: { defaultTab: 'data' } }); onClose(); }}>
+            <div className="sheet-list-item" onClick={() => { navigate(purchasePath, { state: { defaultTab: 'data' } }); onClose(); }}>
               <div className="list-icon"><Wifi size={18} /></div>
               <span>Buy Data</span>
             </div>
-            <div className="sheet-list-item" onClick={() => { navigate(isReseller ? '/reseller/purchase' : '/purchase', { state: { defaultTab: 'airtime' } }); onClose(); }}>
+            <div className="sheet-list-item" onClick={() => { navigate(purchasePath, { state: { defaultTab: 'airtime' } }); onClose(); }}>
               <div className="list-icon"><Smartphone size={18} /></div>
               <span>Buy Airtime</span>
             </div>
-            <div className="sheet-list-item" onClick={() => { navigate('/profile'); onClose(); }}>
+            <div className="sheet-list-item" onClick={() => { navigate(profilePath); onClose(); }}>
               <div className="list-icon"><CreditCard size={18} /></div>
               <span>Bank Accounts</span>
             </div>

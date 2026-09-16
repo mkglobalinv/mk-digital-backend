@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, LogIn, Eye, EyeOff, Fingerprint, Building2, UserCircle2, ArrowRight, ShieldCheck, ShieldAlert, Loader2, Globe, Layout, Smartphone } from 'lucide-react';
+import { Mail, Lock, LogIn, Eye, EyeOff, Fingerprint, Building2, UserCircle2, ArrowRight, ShieldCheck, ShieldAlert, Loader2, Globe, Layout, Smartphone, Store } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../api';
 import './Auth.css'; // Shared premium UI
@@ -8,6 +8,7 @@ import BrandLogo from '../components/BrandLogo';
 import logoDefault from '../assets/9jasub.jpg';
 import { isBiometricAvailable, authenticateBiometric, isNativeBiometric } from '../services/biometricService';
 import { isWhiteLabelSite } from '../utils/whiteLabelHelper';
+import { isMerchantUser } from '../utils/merchantHelper';
 
 const Login = ({ setToken, siteInfo }) => {
   const [email, setEmail] = useState(() => {
@@ -110,13 +111,10 @@ const Login = ({ setToken, siteInfo }) => {
         if (loggedUser && loggedUser.emergencyId) {
           localStorage.setItem('emergencyId', loggedUser.emergencyId);
         }
-        const isReseller = loggedUser && (loggedUser.role === 'reseller_admin' || loggedUser.resellerActivationStatus === 'active' || loggedUser.whiteLabelStatus === 'active' || loggedUser.apiLevel === 'reseller');
+        const isMerchant = isMerchantUser(loggedUser);
 
-        if (isReseller) {
-          // Business user tried retail login — show popup instead of redirecting silently
-          setBizInfo({ siteName: loggedUser.onboardingData?.siteName || "your Website", subdomain: loggedUser.subdomain || loggedUser.admin_subdomain });
-          setShowBizDetectedPopup(true);
-          setLoading(false);
+        if (isMerchant) {
+          navigate('/merchant/dashboard');
         } else {
           navigate('/home');
         }
@@ -349,6 +347,30 @@ const Login = ({ setToken, siteInfo }) => {
                   </button>
                 </div>
               </div>
+
+              {/* Merchant ("Reseller 2") */}
+              <div
+                className="account-type-card business compact"
+                onClick={() => navigate('/merchant/signup')}
+                id="btn-merchant-account"
+              >
+                <div className="account-type-icon">
+                  <Store size={18} />
+                </div>
+                <div className="account-type-card-text" style={{ paddingRight: 0 }}>
+                  <div className="biz-header">
+                    <h3>🏪 Become a Merchant</h3>
+                  </div>
+                  <p className="biz-desc">Buy at Basic Reseller prices on the same app. No website, no setup fee.</p>
+                  <div className="biz-bullets">
+                    <span className="free-trial-text">✓ No Setup Fee</span>
+                    <span>✓ Fund ₦2,000 to Activate</span>
+                  </div>
+                  <button className="biz-create-btn glow-btn primary-cta-btn">
+                    🏪 Become a Merchant
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="trust-badges">
@@ -468,10 +490,35 @@ const Login = ({ setToken, siteInfo }) => {
                     <h4>🚀 Own Your VTU Website & App</h4>
                     <p>Free Trial • Ready in 5 Minutes</p>
                   </div>
-                  <button 
+                  <button
                     type="button"
                     className="quick-access-btn solid-primary"
                     onClick={() => navigate('/business/signup')}
+                  >
+                    Create
+                  </button>
+                </div>
+              )}
+
+              {!siteInfo && (
+                <div className="quick-access-item">
+                  <div className="quick-access-content">
+                    <h4>🏪 Become a Merchant</h4>
+                    <p>
+                      Basic Reseller Prices • Fund ₦2,000 to Activate
+                      {' • '}
+                      <span
+                        onClick={() => navigate('/merchant/login')}
+                        style={{ color: '#818cf8', cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Already a merchant? Sign in
+                      </span>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="quick-access-btn solid-primary"
+                    onClick={() => navigate('/merchant/signup')}
                   >
                     Create
                   </button>

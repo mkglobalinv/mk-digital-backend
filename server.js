@@ -102,6 +102,7 @@ import { wittypayWebhook } from "./controllers/wittypayController.js";
 import { whiteLabelMiddleware } from "./middlewares/whiteLabel.js";
 import { maintenanceMiddleware } from "./middlewares/maintenanceMiddleware.js";
 import resellerRoutes from "./routes/resellerRoutes.js";
+import merchantRoutes from "./routes/merchantRoutes.js";
 import { smartFetchDataPlans, smartBuyAirtime, smartBuyData } from "./services/switcher.js";
 import { startResellerMaintenanceWorker } from "./services/resellerService.js";
 import { checkProviderAvailability } from "./services/providerMonitoringService.js";
@@ -414,6 +415,43 @@ const connectDB = async () => {
                 console.log("PricingRule indexes synced ✅");
             } catch (e) {
                 console.warn("Could not sync PricingRule indexes on startup:", e.message);
+            }
+
+            // User's unique index moved from {email, tenantOwnerId} to
+            // {email, tenantOwnerId, role} (Merchant program -- lets a
+            // reseller_admin/admin also hold a separate merchant identity
+            // under the same email). Same reasoning as PricingRule above:
+            // an existing deployment still has the old 2-field unique index
+            // enforced, which would block that second account from ever
+            // being created. Safe to run every startup.
+            try {
+                await User.syncIndexes();
+                console.log("User indexes synced ✅");
+            } catch (e) {
+                console.warn("Could not sync User indexes on startup:", e.message);
+            }
+
+            // ONE-TIME MIGRATION (2026-09-14): retroactively clean up
+            // merchant accounts created before registerMerchant started
+            // resetting resellerActivationStatus/whiteLabelStatus/apiLevel
+            // on upgrade -- an account that had ever touched the "Start
+            // Your Brand" reseller trial before becoming a merchant could
+            // still carry those fields set to values isBusinessAccount()/
+            // isActiveReseller() treat as "this is a reseller", wrongly
+            // routing Home to the reseller dashboard. Idempotent (matches
+            // nothing once already clean). Remove once confirmed via logs.
+            try {
+                const result = await User.updateMany(
+                    { role: "merchant", $or: [
+                        { resellerActivationStatus: { $ne: "none" } },
+                        { whiteLabelStatus: { $nin: ["pending", null] } },
+                        { apiLevel: { $nin: ["normal", null] } }
+                    ] },
+                    { $set: { resellerActivationStatus: "none", whiteLabelStatus: "pending", apiLevel: "normal" } }
+                );
+                console.log(`[Migration] Cleaned stale reseller fields on ${result.modifiedCount} merchant account(s) ✅`);
+            } catch (e) {
+                console.warn("[Migration] Could not clean merchant accounts on startup:", e.message);
             }
             break;
         } catch (err) {
@@ -816,6 +854,7 @@ app.post("/api/reseller/submit-onboarding", auth, async (req, res) => {
 });
 
 app.use("/api/reseller", resellerRoutes);
+app.use("/api/merchant", merchantRoutes);
 
 // Multi-Tenant Diagnostics (Internal Debug)
 app.get("/api/diagnostics/tenant", (req, res) => {
@@ -971,8 +1010,8 @@ app.post("/api/login", async (req, res) => {
     const resellerId = req.reseller?._id || null;
     sessionType = resellerId ? 'retail' : sessionType;
 
-    let user = await User.findByTenant(email, resellerId);
-    
+    let user = await User.findByTenant(email, resellerId, sessionType === 'business');
+
     if (!user && resellerId) {
         // Fallback for allowing reseller owners to log into their own site
         const potentialOwner = await User.findById(resellerId);
@@ -1010,9 +1049,23 @@ app.post("/api/login", async (req, res) => {
 
     if (sessionType === 'business' && !isBiz) {
         console.log(`[Login] Blocked: Retail user logging in via Business flow (${email})`);
-        return res.status(403).json({ 
-            message: "This portal is for Business Console accounts only. Personal accounts should use the main login page.", 
-            isRetail: true 
+        return res.status(403).json({
+            message: "This portal is for Business Console accounts only. Personal accounts should use the main login page.",
+            isRetail: true
+        });
+    }
+
+    // Merchant program ("Reseller 2") login -- /merchant/login sends this
+    // session_type specifically so it can enforce role === 'merchant'
+    // server-side, not just hide the result client-side. Without this, any
+    // valid retail/reseller/admin credentials would still authenticate
+    // successfully here (findByTenant with preferBusiness=false resolves
+    // the same way 'retail' does), just not get stored by the frontend.
+    if (sessionType === 'merchant' && user.role !== 'merchant') {
+        console.log(`[Login] Blocked: Non-merchant logging in via Merchant flow (${email})`);
+        return res.status(403).json({
+            message: "This portal is for Merchant accounts only. Personal accounts should use the main login page.",
+            isRetail: true
         });
     }
 
@@ -1141,6 +1194,16 @@ app.post(["/user/generate-permanent-va", "/api/user/generate-permanent-va"], aut
 // (Keep internal helper import logic handled at top)
 
 app.get("/api/user/me", auth, async (req, res) => {
+  // This is the endpoint every balance/role-dependent UI (Wallet, Home,
+  // merchant status) polls to detect changes -- Express's default ETag
+  // behavior lets the browser conditionally-GET it and get back a 304 (no
+  // body) whenever it happens to compute the same weak hash, which meant
+  // a real wallet-sync socket push could update the global user state, but
+  // the NEXT plain poll of this route could still silently short-circuit
+  // to a stale cached copy instead of the fresh document -- exactly what
+  // looked like "balance doesn't update until I reload the page". This
+  // must never be conditionally cached.
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   const userDoc = await User.findById(req.user.id).select("-password");
   if (userDoc && req.reseller) {
       const isOwner = req.reseller._id.toString() === userDoc._id.toString();
