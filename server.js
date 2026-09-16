@@ -275,7 +275,7 @@ app.get("/.well-known/assetlinks.json", (req, res) => {
 app.get("/manifest.json", async (req, res) => {
     try {
         const reseller = req.reseller;
-        const appName = reseller?.appSettings?.appName || reseller?.branding?.siteName || reseller?.name || "MKSubData";
+        const appName = reseller?.appSettings?.appName || reseller?.branding?.siteName || reseller?.name || "9JASUB";
         const cleanBrand = appName.toLowerCase().replace(/[^a-z0-9]/g, '');
         const primaryColor = reseller?.appSettings?.appColors?.primary || reseller?.branding?.primaryColor || "#3B82F6";
         const bgColor = reseller?.appSettings?.appColors?.secondary || reseller?.branding?.backgroundColor || "#0a0a0a";

@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import AndroidAppBanner from "@/components/AndroidAppBanner";
+import PwaInstallBanner from "@/components/PwaInstallBanner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MetaPixel from "@/components/MetaPixel";
 
@@ -20,6 +20,19 @@ export const metadata: Metadata = {
     description: "Start your own VTU business for ₦5,000. Buy cheap data, airtime, and pay bills instantly with 9JASUB.",
     url: "https://9jasub.com",
   },
+  // manifest.json is served dynamically by server.js (per-tenant branding for
+  // reseller subdomains, 9JASUB branding here on the main marketing domain) --
+  // this is what lets the browser treat this page as installable, which
+  // PwaInstallBanner below depends on.
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#059669",
 };
 
 export default function RootLayout({
@@ -34,8 +47,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
-        {/* Android sticky app download banner — only renders on Android devices */}
-        <AndroidAppBanner />
+        {/* PWA install prompt — only renders once the browser fires beforeinstallprompt */}
+        <PwaInstallBanner />
         <GoogleAnalytics />
         <MetaPixel />
       </body>
