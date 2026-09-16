@@ -184,27 +184,26 @@ export const createVirtualAccount = async (userData) => {
 
 /**
  * Helper to construct the temporary account customer_name sent to Wittypay.
- * Format: {TENANT_CODE}-{CUSTOMER_CODE}
+ * Takes the first 3 alphanumeric characters of the customer's FIRST name.
  * Wittypay automatically prepends "9JASUB-" and appends "(WITTYPAY)" to yield:
- * 9JASUB-{TENANT_CODE}-{CUSTOMER_CODE}(WITTYPAY)
+ * 9JASUB-{CUSTOMER_CODE}(WITTYPAY)
  *
- * @param {string} tenantBrandName - e.g. "MIDATA", "ABC DIGITAL", "MK GLOBAL", "9JASUB"
+ * @param {string} tenantBrandName - Unused / Ignored (tenant name MUST NOT be included)
  * @param {string} customerName - e.g. "MUKTAR UMAR IBRAHIM", "AHMAD BELLO USMAN"
- * @returns {string} - e.g. "MID-MUK", "ABC-AHM", "MKG-ALI"
+ * @returns {string} - e.g. "MUK", "AHM", "MOH", "ALI", "ED"
  */
 export const buildWittypayTemporaryCustomerName = (tenantBrandName, customerName) => {
-  // 1. Clean and extract TENANT_CODE (first 3 alphanumeric chars of tenant brand)
-  const rawBrand = String(tenantBrandName || "9JASUB").trim();
-  const cleanBrand = rawBrand.replace(/[^a-zA-Z0-9]/g, "");
-  const tenantCode = (cleanBrand.length > 0 ? cleanBrand.slice(0, 3) : "9JA").toUpperCase();
+  // Support both (customerName) and (tenantBrandName, customerName) call patterns
+  const targetName = (customerName !== undefined && customerName !== null && String(customerName).trim() !== "")
+    ? customerName
+    : tenantBrandName;
 
-  // 2. Clean and extract CUSTOMER_CODE (first 3 alphanumeric chars of customer's FIRST name)
-  const rawCustomer = String(customerName || "Customer").trim();
+  const rawCustomer = String(targetName || "Customer").trim();
   const firstName = rawCustomer.split(/\s+/)[0] || "Customer";
   const cleanFirstName = firstName.replace(/[^a-zA-Z0-9]/g, "");
-  const customerCode = (cleanFirstName.length > 0 ? cleanFirstName.slice(0, 3) : "CUS").toUpperCase();
-
-  return `${tenantCode}-${customerCode}`;
+  
+  if (cleanFirstName.length === 0) return "CUS";
+  return cleanFirstName.slice(0, 3).toUpperCase();
 };
 
 /**
@@ -216,7 +215,7 @@ export const createTemporaryPayment = async (paymentData) => {
   }
 
   let formattedCustomerName;
-  if (paymentData.customer_name && /^[A-Z0-9]{1,3}-[A-Z0-9]{1,3}$/i.test(String(paymentData.customer_name).trim())) {
+  if (paymentData.customer_name && /^[A-Z0-9]{2,3}$/i.test(String(paymentData.customer_name).trim())) {
     formattedCustomerName = String(paymentData.customer_name).trim().toUpperCase();
   } else {
     const brand = paymentData.brandName || paymentData.tenantBrand || paymentData.title || "9JASUB";

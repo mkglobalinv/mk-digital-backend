@@ -3,46 +3,46 @@ import { buildWittypayTemporaryCustomerName } from "../services/wittypayService.
 const runTests = () => {
   const testCases = [
     {
-      name: "1. Standard Tenant & Customer Name",
+      name: "1. Standard Tenant & Customer Name (MUKTAR)",
       tenantBrand: "MIDATA",
       customerName: "MUKTAR UMAR IBRAHIM",
-      expected: "MID-MUK"
+      expected: "MUK"
     },
     {
-      name: "2. Tenant with Space (ABC DIGITAL)",
+      name: "2. Customer (AHMAD BELLO USMAN)",
       tenantBrand: "ABC DIGITAL",
       customerName: "AHMAD BELLO USMAN",
-      expected: "ABC-AHM"
+      expected: "AHM"
     },
     {
-      name: "3. Tenant with Space (MK GLOBAL)",
+      name: "3. Customer (ALI MUSA)",
       tenantBrand: "MK GLOBAL",
       customerName: "ALI MUSA",
-      expected: "MKG-ALI"
+      expected: "ALI"
     },
     {
-      name: "4. Standard Brand & Customer (JASUB)",
+      name: "4. Customer (MOHAMMED ALI)",
       tenantBrand: "JASUB",
       customerName: "MOHAMMED ALI",
-      expected: "JAS-MOH"
+      expected: "MOH"
     },
     {
       name: "5. Lowercase Input Handling",
       tenantBrand: "midata",
       customerName: "muktar umar",
-      expected: "MID-MUK"
+      expected: "MUK"
     },
     {
       name: "6. Leading & Trailing Spaces Handling",
       tenantBrand: "  Midata  ",
       customerName: "  Muktar  ",
-      expected: "MID-MUK"
+      expected: "MUK"
     },
     {
-      name: "7. Short Names (< 3 Chars) Handling",
+      name: "7. Short Name (< 3 Chars) Handling (Ed)",
       tenantBrand: "Jo",
       customerName: "Ed",
-      expected: "JO-ED"
+      expected: "ED"
     }
   ];
 

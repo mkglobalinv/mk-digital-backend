@@ -158,12 +158,12 @@ const runSwitcherTests = () => {
     );
   }
 
-  // Test I: Wittypay naming helper formatting (MIDATA + MUKTAR UMAR IBRAHIM)
+  // Test I: Wittypay naming helper formatting (MIDATA + MUKTAR UMAR IBRAHIM -> MUK)
   {
     const name = buildWittypayTemporaryCustomerName("MIDATA", "MUKTAR UMAR IBRAHIM");
     assert(
       "Test I: Naming Helper Formatting (MIDATA + MUKTAR UMAR IBRAHIM)",
-      name === "MID-MUK",
+      name === "MUK",
       `Formatted customer_name sent to Wittypay: "${name}"`
     );
   }
