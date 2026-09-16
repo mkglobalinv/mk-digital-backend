@@ -1576,26 +1576,78 @@ export const updateSetting = async (req, res) => {
 export const getVirtualAccountProviderSettings = async (req, res) => {
     try {
         const setting = await Setting.findOne({ key: 'virtualAccountProvider' });
-        const primary = setting?.value?.primary === 'flutterwave' ? 'flutterwave' : 'paymentpoint';
-        const fallbackEnabled = setting?.value?.fallbackEnabled !== false;
-        res.json({ primary, fallbackEnabled, updatedAt: setting?.updatedAt || null });
+        const val = setting?.value || {};
+        
+        const allowedProviders = ['wittypay', 'flutterwave', 'paymentpoint'];
+        const priority = Array.isArray(val.priority) && val.priority.length > 0 
+            ? val.priority.filter(p => allowedProviders.includes(p))
+            : ['wittypay', 'flutterwave', 'paymentpoint'];
+
+        const enabled = {
+            wittypay: val.enabled?.wittypay !== false,
+            flutterwave: val.enabled?.flutterwave !== false,
+            paymentpoint: val.enabled?.paymentpoint !== false
+        };
+
+        const primary = allowedProviders.includes(val.primary) 
+            ? val.primary 
+            : priority[0];
+
+        const fallbackEnabled = val.fallbackEnabled !== false;
+
+        res.json({
+            primary,
+            fallbackEnabled,
+            priority,
+            enabled,
+            updatedAt: setting?.updatedAt || null
+        });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 export const updateVirtualAccountProviderSettings = async (req, res) => {
-    const { primary, fallbackEnabled } = req.body;
-    if (!['paymentpoint', 'flutterwave'].includes(primary)) {
-        return res.status(400).json({ message: "primary must be 'paymentpoint' or 'flutterwave'" });
+    const { primary, fallbackEnabled, priority, enabled } = req.body;
+    const allowedProviders = ['wittypay', 'flutterwave', 'paymentpoint'];
+    
+    let updatedPriority = Array.isArray(priority) 
+        ? priority.filter(p => allowedProviders.includes(p)) 
+        : null;
+
+    if (!updatedPriority || updatedPriority.length === 0) {
+        if (primary && allowedProviders.includes(primary)) {
+            const others = allowedProviders.filter(p => p !== primary);
+            updatedPriority = [primary, ...others];
+        } else {
+            updatedPriority = ['wittypay', 'flutterwave', 'paymentpoint'];
+        }
     }
+
+    const updatedEnabled = {
+        wittypay: enabled?.wittypay !== undefined ? Boolean(enabled.wittypay) : true,
+        flutterwave: enabled?.flutterwave !== undefined ? Boolean(enabled.flutterwave) : true,
+        paymentpoint: enabled?.paymentpoint !== undefined ? Boolean(enabled.paymentpoint) : true
+    };
+
     try {
-        const value = { primary, fallbackEnabled: fallbackEnabled !== false };
+        const value = {
+            primary: updatedPriority[0],
+            fallbackEnabled: fallbackEnabled !== false,
+            priority: updatedPriority,
+            enabled: updatedEnabled
+        };
         const setting = await Setting.findOneAndUpdate(
             { key: 'virtualAccountProvider' },
             { value, updatedBy: req.user._id },
             { upsert: true, new: true }
         );
         await AdminLog.create({ adminId: req.user._id, action: 'UPDATE_VIRTUAL_ACCOUNT_PROVIDER', details: value });
-        res.json({ primary: setting.value.primary, fallbackEnabled: setting.value.fallbackEnabled, updatedAt: setting.updatedAt });
+        res.json({
+            primary: setting.value.primary,
+            fallbackEnabled: setting.value.fallbackEnabled,
+            priority: setting.value.priority,
+            enabled: setting.value.enabled,
+            updatedAt: setting.updatedAt
+        });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

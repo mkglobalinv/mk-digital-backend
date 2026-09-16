@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import Setting from "../models/Setting.js";
 import { createVirtualAccount as createFlutterwaveVirtualAccount } from "./flutterwaveService.js";
 import { createVirtualAccount as createPaymentPointVirtualAccount } from "./paymentpointService.js";
+import { createVirtualAccount as createWittypayVirtualAccount } from "./wittypayService.js";
 
 // PaymentPoint's business account is currently unable to provision ANY
 // reserved bank account (confirmed via production testing: every bank code,
@@ -13,70 +14,112 @@ import { createVirtualAccount as createPaymentPointVirtualAccount } from "./paym
 // support confirms their business account is fixed, switch this back (or
 // just use the admin dashboard's "Virtual Account Gateway" page, which
 // overrides this default without needing a redeploy).
-const DEFAULT_VA_PROVIDER_CONFIG = { primary: "flutterwave", fallbackEnabled: false };
+const VA_PROVIDERS = {
+    wittypay: { name: "Wittypay", fn: createWittypayVirtualAccount },
+    paymentpoint: { name: "PaymentPoint", fn: createPaymentPointVirtualAccount },
+    flutterwave: { name: "Flutterwave", fn: createFlutterwaveVirtualAccount }
+};
+
+const DEFAULT_VA_PROVIDER_CONFIG = {
+    priority: ["wittypay", "flutterwave", "paymentpoint"],
+    enabled: {
+        wittypay: true,
+        flutterwave: true,
+        paymentpoint: true
+    }
+};
 
 /**
  * Reads the admin-controlled virtual account provider switch (Setting doc,
  * key 'virtualAccountProvider' -- managed from the admin dashboard's
- * "Virtual Account Gateway" page). Defaults to Flutterwave-only (see above)
- * if no setting has been saved yet.
+ * "Virtual Account Gateway" page). Defaults to Wittypay -> Flutterwave -> PaymentPoint.
  */
 export const getVirtualAccountProviderConfig = async () => {
-    // readyState 1 = connected. Skip the query (rather than let Mongoose
-    // buffer/time out) when there's no live DB connection, e.g. in unit
-    // tests that exercise this fallback logic without a MongoDB instance.
     if (mongoose.connection.readyState !== 1) return DEFAULT_VA_PROVIDER_CONFIG;
     try {
         const setting = await Setting.findOne({ key: "virtualAccountProvider" });
-        if (!setting?.value?.primary) return DEFAULT_VA_PROVIDER_CONFIG;
-        return {
-            primary: setting.value.primary === "flutterwave" ? "flutterwave" : "paymentpoint",
-            fallbackEnabled: setting.value.fallbackEnabled !== false
-        };
+        if (!setting?.value) return DEFAULT_VA_PROVIDER_CONFIG;
+
+        const val = setting.value;
+
+        // Custom multi-provider schema support
+        let priority = Array.isArray(val.priority) && val.priority.length > 0 
+            ? val.priority.filter(p => VA_PROVIDERS[p])
+            : null;
+        
+        let enabled = typeof val.enabled === "object" && val.enabled !== null
+            ? val.enabled
+            : null;
+
+        // Backward compatibility with legacy { primary: "flutterwave", fallbackEnabled: boolean }
+        if (!priority && val.primary) {
+            const primary = VA_PROVIDERS[val.primary] ? val.primary : "wittypay";
+            const others = Object.keys(VA_PROVIDERS).filter(p => p !== primary);
+            priority = [primary, ...others];
+            
+            if (val.fallbackEnabled === false) {
+                enabled = { [primary]: true };
+                others.forEach(p => { enabled[p] = false; });
+            }
+        }
+
+        if (!priority || priority.length === 0) {
+            priority = [...DEFAULT_VA_PROVIDER_CONFIG.priority];
+        }
+
+        if (!enabled) {
+            enabled = { ...DEFAULT_VA_PROVIDER_CONFIG.enabled };
+        }
+
+        return { priority, enabled };
     } catch (err) {
         console.warn(`[AccountService] Failed to read virtual account provider setting, using default: ${err.message}`);
         return DEFAULT_VA_PROVIDER_CONFIG;
     }
 };
 
-const VA_PROVIDERS = {
-    paymentpoint: { name: "PaymentPoint", fn: createPaymentPointVirtualAccount },
-    flutterwave: { name: "Flutterwave", fn: createFlutterwaveVirtualAccount }
-};
-
 /**
- * Calls the admin-selected primary virtual account provider, falling back to
- * the other one on failure (unless fallback has been switched off). Both
- * providers' createVirtualAccount functions already return/normalize to the
- * same { status, data: { account_number, bank_name, order_ref, expiry_date } }
- * shape, so the caller below needs no provider-specific branching.
+ * Calls enabled virtual account providers in priority order (Wittypay -> Flutterwave -> PaymentPoint).
+ * Failover occurs ONLY if creation fails. Once account creation succeeds, failover STOPS immediately.
+ * If all providers are disabled, returns a clear error without calling any provider.
  */
 export const createVirtualAccountWithFallback = async (vaData) => {
-    const { primary, fallbackEnabled } = await getVirtualAccountProviderConfig();
-    const primaryProvider = VA_PROVIDERS[primary];
-    const fallbackProvider = VA_PROVIDERS[primary === "flutterwave" ? "paymentpoint" : "flutterwave"];
+    const { priority, enabled } = await getVirtualAccountProviderConfig();
 
-    try {
-        const primaryResponse = await primaryProvider.fn(vaData);
-        if (primaryResponse?.status === "success") {
-            console.log(`[AccountService] Virtual account issued via ${primaryProvider.name} (primary) for ${vaData.email}`);
-            return primaryResponse;
+    // Filter active enabled providers in priority order
+    const activeProviders = priority.filter(pKey => VA_PROVIDERS[pKey] && enabled[pKey] !== false);
+
+    if (activeProviders.length === 0) {
+        console.warn("[AccountService] All virtual account providers are currently disabled.");
+        return { status: "error", message: "No payment provider enabled" };
+    }
+
+    let lastErrorMessage = "Payment provider service unavailable.";
+
+    for (let i = 0; i < activeProviders.length; i++) {
+        const pKey = activeProviders[i];
+        const provider = VA_PROVIDERS[pKey];
+        const isPrimary = (i === 0);
+        console.log(`[AccountService] Attempting virtual account creation via ${provider.name} (${pKey}, step ${i + 1}/${activeProviders.length})...`);
+        try {
+            const response = await provider.fn(vaData);
+            if (response?.status === "success" && response?.data) {
+                console.log(`[AccountService] Virtual account successfully issued via ${provider.name} (${isPrimary ? "primary" : "fallback"}) for ${vaData.email}`);
+                return {
+                    ...response,
+                    provider: pKey
+                };
+            }
+            lastErrorMessage = response?.message || `${provider.name} creation returned non-success`;
+            console.warn(`[AccountService] ${provider.name} VA creation failed: ${lastErrorMessage}`);
+        } catch (err) {
+            lastErrorMessage = err.message;
+            console.warn(`[AccountService] ${provider.name} VA creation threw an error: ${err.message}`);
         }
-        console.warn(`[AccountService] ${primaryProvider.name} VA creation failed. Reason: ${primaryResponse?.message}`);
-    } catch (err) {
-        console.warn(`[AccountService] ${primaryProvider.name} VA creation threw an error: ${err.message}`);
     }
 
-    if (!fallbackEnabled) {
-        console.warn(`[AccountService] Fallback is disabled; not attempting ${fallbackProvider.name}.`);
-        return { status: "error", message: `${primaryProvider.name} is currently unavailable.` };
-    }
-
-    const fallbackResponse = await fallbackProvider.fn(vaData);
-    if (fallbackResponse?.status === "success") {
-        console.log(`[AccountService] Virtual account issued via ${fallbackProvider.name} (fallback) for ${vaData.email}`);
-    }
-    return fallbackResponse;
+    console.warn(`[AccountService] All enabled payment providers failed. Last error: ${lastErrorMessage}`);
+    return { status: "error", message: lastErrorMessage || "All enabled payment providers are currently unavailable." };
 };
 
 /**
