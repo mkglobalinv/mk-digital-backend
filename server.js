@@ -456,6 +456,38 @@ const connectDB = async () => {
             } catch (e) {
                 console.warn("[Migration] Could not clean merchant accounts on startup:", e.message);
             }
+
+            // ONE-TIME MIGRATION (2026-09-16): the data-purchase description
+            // used to be built from the raw provider plan code (e.g. "Data:
+            // 6"), which is meaningless in transaction history -- every plan
+            // on a given network showed up as a different opaque number
+            // instead of its actual size. Backfill existing rows to the same
+            // "<NETWORK> <size> Data - <category> (<validity>)" format the
+            // purchase route now writes going forward, by matching the old
+            // plan code (still preserved in api_response.planCode) back to
+            // its DataPlan record. Idempotent (only matches the old "Data: X"
+            // shape). Remove once confirmed via logs.
+            try {
+                const legacyDataTx = await Transaction.find({
+                    description: { $regex: /^Data: \S+$/ },
+                    "api_response.planCode": { $exists: true }
+                }).select("_id network description api_response").lean();
+
+                let backfilled = 0;
+                for (const tx of legacyDataTx) {
+                    const planCode = tx.api_response?.planCode;
+                    if (!planCode || !tx.network) continue;
+                    const plan = await DataPlan.findOne({ api_plan_id: planCode, network: tx.network.toUpperCase() }).lean();
+                    if (!plan) continue;
+                    const sizeLabel = plan.plan_size || plan.plan_name;
+                    const description = `${tx.network} ${sizeLabel} Data - ${plan.category || 'Direct'} (${plan.validity || '30 Days'})`;
+                    await Transaction.updateOne({ _id: tx._id }, { $set: { description } });
+                    backfilled += 1;
+                }
+                console.log(`[Migration] Backfilled ${backfilled}/${legacyDataTx.length} legacy data-purchase transaction description(s) ✅`);
+            } catch (e) {
+                console.warn("[Migration] Could not backfill legacy data-purchase descriptions on startup:", e.message);
+            }
             break;
         } catch (err) {
             console.error("MongoDB Connection Error ❌:", err.message);
@@ -1748,7 +1780,8 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
         
         // 1. Generate reference and description
         const reference = `DATA-PND-${Date.now()}`;
-        const description = `Data: ${finalPlanCode}`;
+        const sizeLabel = displayedPlanSize !== 'Unknown' ? displayedPlanSize : displayedPlanName;
+        const description = `${network} ${sizeLabel} Data - ${dbPlanInfo.category || 'Direct'} (${dbPlanInfo.validity || '30 Days'})`;
 
         // 2. Deduct from Customer
         const deducted = await deductBalance(req.user.id, derivedPrice, reference, description, true);
