@@ -37,7 +37,7 @@ class NotificationService {
                 </div>
                 <p style="color: #64748b; font-size: 14px;">If you did not request this verification, please ignore this email or secure your account.</p>
                 <p style="font-size: 12px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 30px;">
-                    MKSubData Secure Portal • Systems Security Telemetry
+                    9JASUB Secure Portal • Systems Security Telemetry
                 </p>
             </div>
         `;
@@ -64,7 +64,7 @@ class NotificationService {
                 </div>
                 ${isSuspicious ? '<p style="color: #ef4444; font-weight: bold;">If this action was not initiated by you, please block your wallet and contact support immediately!</p>' : ''}
                 <p style="font-size: 12px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 30px;">
-                    MKSubData Security Telemetry
+                    9JASUB Security Telemetry
                 </p>
             </div>
         `;
@@ -97,7 +97,7 @@ class NotificationService {
                     <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleString()}</p>
                 </div>
                 <p style="font-size: 12px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 30px;">
-                    MKSubData Financial Systems
+                    9JASUB Financial Systems
                 </p>
             </div>
         `;
@@ -113,10 +113,10 @@ class NotificationService {
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 25px; border: 1px solid #ef4444; border-radius: 12px; background-color: #ffffff;">
                 <h2 style="color: #ef4444; text-align: center; margin-top: 0;">⚠️ Transaction PIN Reset Request</h2>
                 <p>Hello,</p>
-                <p>A request was received to reset your transaction PIN on MKSubData.</p>
+                <p>A request was received to reset your transaction PIN on 9JASUB.</p>
                 <p style="font-weight: bold; color: #1e293b;">If you did not make this request, please contact administrator immediately to secure your account credentials.</p>
                 <p style="font-size: 12px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 30px;">
-                    MKSubData Security Telemetry
+                    9JASUB Security Telemetry
                 </p>
             </div>
         `;

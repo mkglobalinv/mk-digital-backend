@@ -1045,7 +1045,7 @@ export const saveAppSettings = async (req, res) => {
         const newSettings = req.body.appSettings || {};
         
         const cleanName = (newSettings.appName || user.branding?.siteName || 'app').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const packageName = newSettings.packageName || `com.mksubdata.${cleanName || 'app'}`;
+        const packageName = newSettings.packageName || `com.ninejasub.${cleanName || 'app'}`;
 
         const job = await jobQueue.enqueueJob(
             user._id, 
@@ -1108,7 +1108,7 @@ export const triggerAssetRegeneration = async (req, res) => {
         }
         
         const cleanName = user.appSettings.appName.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const packageName = user.appSettings.packageName || `com.mksubdata.${cleanName || 'app'}`;
+        const packageName = user.appSettings.packageName || `com.ninejasub.${cleanName || 'app'}`;
 
         const job = await jobQueue.enqueueJob(
             user._id,

@@ -127,7 +127,7 @@ const checkTransactionSpikes = async () => {
             </ul>
             <p style="color: #b91c1c; font-weight: bold; margin-top: 15px;">Immediate investigation recommended.</p>
             <p style="font-size: 12px; color: #6b7280; text-align: center; border-top: 1px solid #fee2e2; padding-top: 15px; margin-top: 20px;">
-              MKSubData Ecosystem Telemetry • ${now.toLocaleString()}
+              9JASUB Ecosystem Telemetry • ${now.toLocaleString()}
             </p>
           </div>
         `;
@@ -228,7 +228,7 @@ const pollProvider = async (providerName) => {
             <p style="color: #b91c1c; font-weight: bold; margin-top: 15px;">Transactions have been temporarily disabled through this provider.</p>
             <p style="font-weight: bold;">Please fund the wallet immediately.</p>
             <p style="font-size: 12px; color: #6b7280; text-align: center; border-top: 1px solid #fee2e2; padding-top: 15px; margin-top: 20px;">
-              MKSubData Ecosystem Telemetry • ${now.toLocaleString()}
+              9JASUB Ecosystem Telemetry • ${now.toLocaleString()}
             </p>
           </div>
         `;
@@ -256,7 +256,7 @@ const pollProvider = async (providerName) => {
               </div>
               <p>Customers are still allowed to attempt transactions. Please fund immediately to prevent failures.</p>
               <p style="font-size: 12px; color: #6b7280; text-align: center; border-top: 1px solid #fee2e2; padding-top: 15px; margin-top: 20px;">
-                MKSubData Ecosystem Telemetry • ${now.toLocaleString()}
+                9JASUB Ecosystem Telemetry • ${now.toLocaleString()}
               </p>
             </div>
           `;
@@ -280,7 +280,7 @@ const pollProvider = async (providerName) => {
               </div>
               <p>Please fund immediately to avoid failed transactions or customer complaints.</p>
               <p style="font-size: 12px; color: #6b7280; text-align: center; border-top: 1px solid #fef3c7; padding-top: 15px; margin-top: 20px;">
-                MKSubData Ecosystem Telemetry • Time: ${now.toLocaleString()}
+                9JASUB Ecosystem Telemetry • Time: ${now.toLocaleString()}
               </p>
             </div>
           `;
@@ -342,7 +342,7 @@ const pollProvider = async (providerName) => {
             </div>
             <p style="color: #b91c1c; font-weight: bold; margin-top: 15px;">Customers may experience failures temporarily.</p>
             <p style="font-size: 12px; color: #6b7280; text-align: center; border-top: 1px solid #fee2e2; padding-top: 15px; margin-top: 20px;">
-              MKSubData Ecosystem Telemetry • ${now.toLocaleString()}
+              9JASUB Ecosystem Telemetry • ${now.toLocaleString()}
             </p>
           </div>
         `;
@@ -464,7 +464,7 @@ export const activateHardBlock = async (providerName, reason) => {
           </div>
           <p style="color: #b91c1c; font-weight: bold;">Please resolve the issue or fund the account, then re-enable the provider in the Admin Dashboard.</p>
           <p style="font-size: 12px; color: #6b7280; text-align: center; border-top: 1px solid #fee2e2; padding-top: 15px; margin-top: 20px;">
-            MKSubData Ecosystem Telemetry • ${now.toLocaleString()}
+            9JASUB Ecosystem Telemetry • ${now.toLocaleString()}
           </p>
         </div>
       `;

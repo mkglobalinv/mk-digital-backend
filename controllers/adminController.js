@@ -4005,7 +4005,7 @@ export const executeEmailDiagnosticTest = async (req, res) => {
         const emailSent = await sendEmail(
             testRecipient,
             "🟢 Operations Center: SMTP Email Diagnostic Verification",
-            `<h3>Email Service Verification Successful</h3><p>This message confirms SMTP email configurations are operational on the MKSubData platform.</p><p>Time: ${new Date().toLocaleString()}</p>`
+            `<h3>Email Service Verification Successful</h3><p>This message confirms SMTP email configurations are operational on the 9JASUB platform.</p><p>Time: ${new Date().toLocaleString()}</p>`
         );
 
         if (!emailSent) {
