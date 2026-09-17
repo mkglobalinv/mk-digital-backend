@@ -111,35 +111,36 @@ const MerchantDashboard = ({ token, user, refreshUser, siteInfo, logout }) => {
           tabIndex={0}
           style={{
             background: isActivated ? 'var(--success)' : 'var(--primary)',
-            borderRadius: 'var(--radius-lg)', padding: '16px', marginBottom: '16px',
-            display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
+            border: '1px solid rgba(255,255,255,0.25)',
+            borderRadius: 'var(--radius-lg)', padding: '11px', marginBottom: '16px',
+            display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
           }}
         >
           <div style={{
-            width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
+            width: '31px', height: '31px', borderRadius: '50%', flexShrink: 0,
             background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#fff'
           }}>
-            {isActivated ? <CheckCircle2 size={22} /> : <Store size={22} />}
+            {isActivated ? <CheckCircle2 size={15} /> : <Store size={15} />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: '14px', color: '#fff' }}>
+            <div style={{ fontWeight: 800, fontSize: '10px', color: '#fff' }}>
               {isActivated ? 'Merchant Pricing Active' : 'Merchant Account'}
             </div>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
+            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
               {isActivated
                 ? 'Every purchase uses Basic Reseller pricing'
                 : `Fund ₦${minAmount.toLocaleString()}+ to unlock Basic Reseller pricing`}
             </div>
           </div>
           {!isActivated && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#fff', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
-              <Wallet2 size={14} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#fff', fontSize: '9px', fontWeight: 700, flexShrink: 0 }}>
+              <Wallet2 size={10} />
               <span>Fund</span>
             </div>
           )}
-          <ChevronRight size={16} color="#fff" style={{ flexShrink: 0 }} />
+          <ChevronRight size={11} color="#fff" style={{ flexShrink: 0 }} />
         </div>
 
         <PremiumWalletCard
