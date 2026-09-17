@@ -59,7 +59,7 @@
 
 /* --- 2. Premium Wallet Card --- */
 .fintech-wallet-card {
-  background: var(--bg-surface);
+  background: #53BDA5; /* Sea Green */
   border-radius: 20px;
   padding: 20px;
   border: 1px solid rgba(244, 180, 0, 0.3);
@@ -70,31 +70,29 @@
 .fintech-wallet-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(244, 180, 0, 0.02) 100%); pointer-events: none; }
 
 .wallet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; position: relative; z-index: 1; }
-.wallet-label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-gray); font-weight: 600; }
-.wallet-badge { background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 2px 8px; border-radius: 12px; font-size: 9px; font-weight: 800; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(16, 185, 129, 0.2); }
+.wallet-label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(11,43,36,0.7); font-weight: 600; }
+.wallet-badge { background: rgba(11, 43, 36, 0.12); color: #0B2B24; padding: 2px 8px; border-radius: 12px; font-size: 9px; font-weight: 800; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(11, 43, 36, 0.2); }
 .wallet-balance-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; position: relative; z-index: 1; }
 .wallet-balance {
-  /* A two-tone gradient-clipped fill reads fine on a long headline, but on
-     a short string like "N0.00" the gradient stops land one per character
-     instead of blending, so each digit shows up as its own flat, clashing
-     color. A solid white reads cleanly against this card's dark background
-     and matches the balance color already used on the other wallet card
-     (components/fintech/PremiumWalletCard.jsx). */
+  /* Dark text (not white/gray) -- this card's background is now a
+     mid-brightness solid color (#53BDA5, Sea Green), and white/gray text
+     that worked on the old near-black background would read as low
+     contrast and washed out here. */
   font-size: 15px; /* 30% down again, from 22px */
   font-weight: 800;
   letter-spacing: -1px;
-  color: #FFFFFF;
+  color: #0B2B24;
 }
 .wallet-balance.blurred { filter: blur(10px); user-select: none; }
-.eye-btn { background: transparent; border: none; color: var(--text-gray); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;}
+.eye-btn { background: transparent; border: none; color: rgba(11,43,36,0.7); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;}
 
-.wallet-actions { display: flex; justify-content: space-between; position: relative; z-index: 1; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+.wallet-actions { display: flex; justify-content: space-between; position: relative; z-index: 1; padding-top: 16px; border-top: 1px solid rgba(11,43,36,0.12); }
 .action-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: all var(--transition-fast); }
-.action-icon-wrap { width: 44px; height: 44px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: all var(--transition-fast); }
-.action-item:hover .action-icon-wrap { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+.action-icon-wrap { width: 44px; height: 44px; border-radius: 14px; background: rgba(11,43,36,0.08); border: 1px solid rgba(11,43,36,0.12); display: flex; align-items: center; justify-content: center; color: #0B2B24; transition: all var(--transition-fast); }
+.action-item:hover .action-icon-wrap { background: rgba(11,43,36,0.16); transform: translateY(-2px); }
 .action-item.primary .action-icon-wrap { background: var(--secondary); border-color: var(--secondary); color: var(--bg-color); box-shadow: 0 4px 12px rgba(244, 180, 0, 0.2); }
 .action-item.primary:hover .action-icon-wrap { background: #e0a600; }
-.action-item span { font-size: 11px; font-weight: 600; color: var(--text-gray); }
+.action-item span { font-size: 11px; font-weight: 600; color: rgba(11,43,36,0.7); }
 
 /* --- 3. Compact Promos (Slim Banners) --- */
 .slim-banners-container {
