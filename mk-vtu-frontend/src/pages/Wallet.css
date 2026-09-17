@@ -55,9 +55,18 @@
   padding: 0;
   flex-shrink: 0;
   transition: background 0.2s ease;
+  animation: refreshBlink 1.8s ease-in-out infinite;
 }
 .balance-refresh-btn:hover { background: rgba(255, 255, 255, 0.3); }
-.balance-refresh-btn:disabled { cursor: default; opacity: 0.85; }
+.balance-refresh-btn:disabled { cursor: default; opacity: 0.85; animation: none; }
+
+/* Draws the eye to the refresh button so customers whose funding hasn't
+   reflected yet notice there's a way to force-check, instead of assuming
+   the payment failed. */
+@keyframes refreshBlink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45); }
+  50% { opacity: 0.5; box-shadow: 0 0 0 5px rgba(255, 255, 255, 0); }
+}
 
 .balance-info h2 {
   font-size: 32px;
