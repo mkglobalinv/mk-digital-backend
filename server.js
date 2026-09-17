@@ -489,32 +489,77 @@ const connectDB = async () => {
                 console.warn("[Migration] Could not backfill legacy data-purchase descriptions on startup:", e.message);
             }
 
-            // TEMPORARY DIAGNOSTIC (2026-09-16): admin reports editing SmePlug
-            // MTN Data Gifting prices (Retail/Basic/VIP/Premium) and not seeing
-            // it reflected on the storefront, even after two fixes for provider
-            // disambiguation. Dumping the live DB state directly, since there's
-            // no way to inspect it from here otherwise: every smeplug MTN
-            // GiftingXtra plan's actual stored price fields, whether any OTHER
-            // provider shares one of its plan_ids on MTN (the original
-            // hypothesis), and whether a ProviderCategory doc is hiding/
-            // disabling "MTN GiftingXtra"/smeplug from the storefront entirely
-            // (an alternate hypothesis -- if this gates plans out, the fixes
-            // so far wouldn't matter because the customer never sees a SmePlug
-            // card at all). Remove once the real cause is found.
+            // ONE-TIME CLEANUP (2026-09-17): every existing Retailer (role
+            // "user"), Reseller (role "reseller_admin") and Merchant (role
+            // "merchant") account is test data -- reset their wallet balances
+            // to zero, per explicit user request. Only the real balance
+            // fields on User (models/User.js) are touched: balance1 (main
+            // wallet), balance2 (cashback/secondary wallet), sandboxBalance
+            // (API sandbox credit), earningsBalance (reseller/merchant
+            // commission wallet) and cashbackBalance (declared on the schema
+            // but not read anywhere in the live codebase -- reset anyway for
+            // completeness, it can only ever be 0 already). Nothing else on
+            // the user document is touched, and no other collection
+            // (Transaction, PricingRule, DataPlan, etc.) is touched.
+            //
+            // Guarded by a persistent marker (a plain document in a
+            // "migrations" collection, not a Mongoose model, since it's a
+            // single one-off flag) so this can NEVER re-run and re-zero a
+            // real balance after a future redeploy/rollback -- unlike every
+            // other migration in this file, this one is NOT naturally
+            // idempotent (a $0 balance is a normal, legitimate state, not
+            // "still needs fixing"). Every affected user's pre-reset balances
+            // are snapshotted to a "balance_reset_backup_20260917" collection
+            // before anything is modified, and that backup is required to
+            // succeed before the reset runs. Remove this block (not the
+            // marker/backup collections) once confirmed complete via logs.
             try {
-                const smeplugPlans = await DataPlan.find({ provider: 'smeplug', network: 'MTN', category: 'GiftingXtra' }).lean();
-                console.log(`[PriceDebug] ${smeplugPlans.length} smeplug MTN GiftingXtra plan(s) in DB:`);
-                for (const p of smeplugPlans) {
-                    console.log(`[PriceDebug]   id=${p.api_plan_id} name="${p.plan_name}" status=${p.status} retail(selling_price)=${p.selling_price} basic(reseller_price)=${p.reseller_price} vip_price=${p.vip_price} premium_price=${p.premium_price}`);
-                    const collisions = await DataPlan.find({ api_plan_id: p.api_plan_id, network: 'MTN', provider: { $ne: 'smeplug' } }).select('provider selling_price status').lean();
-                    if (collisions.length > 0) {
-                        console.log(`[PriceDebug]     COLLISION: plan_id "${p.api_plan_id}" also exists for: ${collisions.map(c => `${c.provider}(selling_price=${c.selling_price}, status=${c.status})`).join(', ')}`);
+                const db = mongoose.connection.db;
+                const marker = await db.collection('migrations').findOne({ _id: 'balance_reset_20260917' });
+                if (!marker) {
+                    const targetRoles = ['user', 'reseller_admin', 'merchant'];
+                    const usersToReset = await User.find({ role: { $in: targetRoles } })
+                        .select('_id email role balance1 balance2 sandboxBalance earningsBalance cashbackBalance')
+                        .lean();
+
+                    if (usersToReset.length > 0) {
+                        await db.collection('balance_reset_backup_20260917').insertMany(
+                            usersToReset.map((u) => ({ ...u, backedUpAt: new Date() }))
+                        );
                     }
+                    console.log(`[BalanceReset] Backed up ${usersToReset.length} user balance snapshot(s) to "balance_reset_backup_20260917" ✅`);
+
+                    const result = await User.updateMany(
+                        { role: { $in: targetRoles } },
+                        { $set: { balance1: 0, balance2: 0, sandboxBalance: 0, earningsBalance: 0, cashbackBalance: 0 } }
+                    );
+
+                    const remaining = await User.countDocuments({
+                        role: { $in: targetRoles },
+                        $or: [
+                            { balance1: { $ne: 0 } },
+                            { balance2: { $ne: 0 } },
+                            { sandboxBalance: { $ne: 0 } },
+                            { earningsBalance: { $ne: 0 } },
+                            { cashbackBalance: { $ne: 0 } }
+                        ]
+                    });
+
+                    await db.collection('migrations').insertOne({
+                        _id: 'balance_reset_20260917',
+                        completedAt: new Date(),
+                        targetRoles,
+                        matched: result.matchedCount,
+                        modified: result.modifiedCount,
+                        backedUpCount: usersToReset.length,
+                        remainingNonZero: remaining
+                    });
+
+                    console.log(`[BalanceReset] Reset balance1/balance2/sandboxBalance/earningsBalance/cashbackBalance to 0 for ${result.modifiedCount}/${result.matchedCount} user(s) across roles [${targetRoles.join(', ')}] ✅`);
+                    console.log(`[BalanceReset] Verification: ${remaining} user(s) still show a non-zero balance field after reset (expected 0) ${remaining === 0 ? '✅' : '⚠️ NEEDS ATTENTION'}`);
                 }
-                const catConfig = await ProviderCategory.findOne({ category_name: { $regex: /^MTN GiftingXtra$/i }, provider_name: 'smeplug' }).lean();
-                console.log(`[PriceDebug] ProviderCategory for "MTN GiftingXtra"/smeplug: ${catConfig ? JSON.stringify({ visibility: catConfig.visibility, status: catConfig.status }) : 'none (defaults to visible)'}`);
             } catch (e) {
-                console.warn("[PriceDebug] Could not run SmePlug pricing diagnostic:", e.message);
+                console.error("[BalanceReset] Failed -- see message below; balances may be unmodified or only partially modified:", e.message);
             }
             break;
         } catch (err) {
