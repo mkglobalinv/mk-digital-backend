@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, ArrowUpCircle, History, X, ShieldCheck, Clock, CheckCircle2, ChevronRight, Info, PlusCircle, AlertTriangle, ShieldAlert, Hourglass, RotateCcw } from 'lucide-react';
+import { Copy, ArrowUpCircle, History, X, ShieldCheck, Clock, CheckCircle2, ChevronRight, Info, PlusCircle, AlertTriangle, ShieldAlert, Hourglass, RotateCcw, RefreshCw } from 'lucide-react';
 import API from '../api';
 import './Wallet.css';
 
-const Wallet = ({ token, user }) => {
+const Wallet = ({ token, user, refreshUser }) => {
   const [showFundModal, setShowFundModal] = useState(false);
   const [fundAmount, setFundAmount] = useState('');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -14,6 +14,7 @@ const Wallet = ({ token, user }) => {
   const [isGeneratingTemp, setIsGeneratingTemp] = useState(false);
   const [isGeneratingPerm, setIsGeneratingPerm] = useState(false);
   const [fundingSuccessData, setFundingSuccessData] = useState(null);
+  const [refreshingBalance, setRefreshingBalance] = useState(false);
   
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -91,6 +92,21 @@ const Wallet = ({ token, user }) => {
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // Funding confirmation can lag a few seconds behind the actual wallet
+  // credit (webhook processing, provider settlement delay), so a customer
+  // who just funded may see a stale balance until something re-fetches
+  // /api/user/me -- previously only a full page reload did that. Lets them
+  // force it themselves instead of waiting or reloading.
+  const handleRefreshBalance = async () => {
+    if (refreshingBalance) return;
+    setRefreshingBalance(true);
+    try {
+      await refreshUser?.();
+    } finally {
+      setRefreshingBalance(false);
+    }
   };
 
   const fetchWithdrawals = async () => {
@@ -225,7 +241,19 @@ const Wallet = ({ token, user }) => {
       {/* SIMPLIFIED WALLET BALANCE SECTION */}
       <div className="fintech-balance-card">
         <div className="balance-info">
-          <p>Total Balance</p>
+          <div className="balance-info-header">
+            <p>Total Balance</p>
+            <button
+              type="button"
+              className="balance-refresh-btn"
+              onClick={handleRefreshBalance}
+              disabled={refreshingBalance}
+              aria-label="Refresh balance"
+              title="Refresh balance"
+            >
+              <RefreshCw size={13} className={refreshingBalance ? 'spin' : ''} />
+            </button>
+          </div>
           <h2>₦{(localUser?.totalBalance || 0).toLocaleString()}</h2>
         </div>
         <div className="balance-stats-row">
