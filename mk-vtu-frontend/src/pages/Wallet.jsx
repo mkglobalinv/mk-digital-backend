@@ -248,8 +248,8 @@ const Wallet = ({ token, user, refreshUser }) => {
               className="balance-refresh-btn"
               onClick={handleRefreshBalance}
               disabled={refreshingBalance}
-              aria-label="Refresh balance"
-              title="Refresh balance"
+              aria-label="Balance not updated? Tap to refresh"
+              title="Money not showing? Tap to refresh"
             >
               <RefreshCw size={13} className={refreshingBalance ? 'spin' : ''} />
             </button>

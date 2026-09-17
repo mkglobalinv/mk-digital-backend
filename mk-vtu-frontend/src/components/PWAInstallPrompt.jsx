@@ -88,7 +88,10 @@ const PWAInstallPrompt = ({ deferredPrompt, setDeferredPrompt, hasBottomNav }) =
       left: '24px',
       right: '24px',
       margin: '0 auto',
-      zIndex: 99999,
+      // Kept below the app's modal overlays (fintech-modal-overlay, bottom-sheet-overlay,
+      // etc. all sit at z-index 900+) so a modal like "Fund Your Wallet" renders on top of
+      // this instead of the banner floating over the modal's own action button.
+      zIndex: 500,
       maxWidth: '400px',
       animation: 'fadeInUp 0.5s ease-out'
     }}>
