@@ -73,13 +73,17 @@
 .wallet-label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-gray); font-weight: 600; }
 .wallet-badge { background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 2px 8px; border-radius: 12px; font-size: 9px; font-weight: 800; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(16, 185, 129, 0.2); }
 .wallet-balance-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; position: relative; z-index: 1; }
-.wallet-balance { 
-  font-size: 32px; 
-  font-weight: 800; 
-  letter-spacing: -1px; 
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.wallet-balance {
+  /* A two-tone gradient-clipped fill reads fine on a long headline, but on
+     a short string like "N0.00" the gradient stops land one per character
+     instead of blending, so each digit shows up as its own flat, clashing
+     color. A solid white reads cleanly against this card's dark background
+     and matches the balance color already used on the other wallet card
+     (components/fintech/PremiumWalletCard.jsx). */
+  font-size: 22px; /* 30% down from 32px */
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #FFFFFF;
 }
 .wallet-balance.blurred { filter: blur(10px); user-select: none; }
 .eye-btn { background: transparent; border: none; color: var(--text-gray); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;}
