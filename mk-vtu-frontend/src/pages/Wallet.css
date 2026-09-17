@@ -570,6 +570,13 @@
   color: var(--text-dark);
 }
 
+/* Both rules below are nested two classes deep (not just one) so they
+   reliably beat index.css's global "input[type=number]" reset, which is
+   one specificity point higher than a single bare class selector -- with
+   only one class, that global rule was silently winning and collapsing
+   padding-left back down to its own value, putting the ₦ symbol directly
+   on top of the typed amount. */
+.fintech-input-group .input-with-icon input,
 .fintech-input-group input {
   width: 100%;
   padding: 18px 20px;
@@ -583,7 +590,7 @@
   outline: none;
 }
 
-.input-with-icon input {
+.fintech-input-group .input-with-icon input {
   padding-left: 56px;
   font-size: 24px;
 }
