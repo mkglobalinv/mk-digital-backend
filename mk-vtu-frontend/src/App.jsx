@@ -543,7 +543,12 @@ function App() {
 
   const fetchUserInfo = () => {
     if (token) {
-      API.get(`/api/user/me?_t=${Date.now()}`)
+      // Returned (not just fired) so callers that need to know when a
+      // refresh actually lands -- e.g. a manual "refresh balance" button --
+      // can await it instead of guessing with a fixed timeout. Existing
+      // fire-and-forget callers are unaffected since they never look at
+      // the return value.
+      return API.get(`/api/user/me?_t=${Date.now()}`)
         .then(res => { 
             setUser(res.data); 
             if (res.data && res.data.emergencyId) {
