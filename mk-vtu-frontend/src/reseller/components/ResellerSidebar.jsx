@@ -86,7 +86,7 @@ const ResellerSidebar = ({ user, logout, isOpen, onClose }) => {
                         <div className="res-nav-label">{group.label}</div>
                         {group.items.map(item => {
                             const isLocked = item.premium && user?.resellerTier !== 'premium';
-                            const targetPath = isLocked ? '/merchant/premium' : item.path.replace('/reseller', '/merchant').replace('/website', '/merchant');
+                            const targetPath = isLocked ? '/website/premium' : item.path.replace('/reseller', '/website');
                             return (
                                 <NavLink 
                                     key={item.id} 

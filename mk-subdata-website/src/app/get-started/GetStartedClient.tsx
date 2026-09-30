@@ -18,15 +18,16 @@ export default function GetStartedClient() {
   };
 
   useEffect(() => {
+    // Only redirect visitors who are already logged in (skip straight to the
+    // app instead of re-registering). Anyone else should see the account-type
+    // picker below every time they land here -- previously this also bounced
+    // straight to /login for any returning visitor, because the VTU app sets
+    // hasCompletedFirstEntry on every single page load (not just after
+    // finishing signup), so a single earlier visit to the app permanently
+    // hid this picker on every future "Get Started" click.
     const token = localStorage.getItem('token');
-    const hasCompletedFirstEntry = localStorage.getItem('hasCompletedFirstEntry');
-
     if (token) {
       window.location.replace('/home');
-    } else if (hasCompletedFirstEntry === 'true') {
-      window.location.replace('/login');
-    } else {
-      localStorage.setItem('hasCompletedFirstEntry', 'true');
     }
   }, []);
 
