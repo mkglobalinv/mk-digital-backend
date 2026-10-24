@@ -92,13 +92,20 @@ export const smartBuyAirtime = async (network, amount, phone, countryCode = 'NG'
     }
 };
 
-export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, countryCode = 'NG', operatorId = null, networkId = null, option = 'smart', category = null) => {
+export const smartBuyData = async (network, dataPlan, phone, userPaymentAmount, countryCode = 'NG', operatorId = null, networkId = null, option = 'smart', category = null, planProvider = null) => {
     const startTime = Date.now();
     const transactionId = 'TXN-' + Date.now();
-    console.log(`[Switcher] [${transactionId}] Purchasing Data | Plan: ${dataPlan} | Category: ${category}`);
+    console.log(`[Switcher] [${transactionId}] Purchasing Data | Plan: ${dataPlan} | Category: ${category} | PlanProvider: ${planProvider}`);
     
     try {
-        const planRecord = await DataPlan.findOne({ api_plan_id: String(dataPlan) });
+        // Different providers can share an api_plan_id (DataPlan's unique index
+        // is {api_plan_id, provider, network}), so narrow by network and the
+        // provider the purchase route resolved -- otherwise a SmePlug plan id
+        // like "11" can resolve to another provider's plan and be sent there.
+        const planQuery = { api_plan_id: String(dataPlan) };
+        if (network) planQuery.network = String(network).toUpperCase();
+        if (planProvider) planQuery.provider = String(planProvider).toLowerCase();
+        const planRecord = await DataPlan.findOne(planQuery);
         if (!planRecord) return { status: "failed", message: `Data plan ${dataPlan} not found.` };
         
         // Ensure provider doesn't fallback to legacy decommissioned provider

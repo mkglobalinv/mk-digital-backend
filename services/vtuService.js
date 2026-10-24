@@ -40,8 +40,8 @@ export const buyEducation = async (examType, phone, quantity = 1, option = 'smar
 // ========================
 // DATA BUNDLE
 // ========================
-export const buyData = async (network, dataPlan, phone, amount, countryCode = 'NG', operatorId = null, networkId = null, option = 'smart', category = null) => {
-    return await smartBuyData(network, dataPlan, phone, amount, countryCode, operatorId, networkId, option, category);
+export const buyData = async (network, dataPlan, phone, amount, countryCode = 'NG', operatorId = null, networkId = null, option = 'smart', category = null, planProvider = null) => {
+    return await smartBuyData(network, dataPlan, phone, amount, countryCode, operatorId, networkId, option, category, planProvider);
 };
 
 // ========================
