@@ -78,6 +78,7 @@ const lazyWithRetry = (componentImport) =>
   });
 
 const AdminDashboard = lazyWithRetry(() => import("./admin/pages/AdminDashboard"));
+const ControlCenter = lazyWithRetry(() => import("./admin/pages/ControlCenter"));
 const UserManager = lazyWithRetry(() => import("./admin/pages/UserManager"));
 const BannerManager = lazyWithRetry(() => import("./admin/pages/BannerManager"));
 const ServiceManager = lazyWithRetry(() => import("./admin/pages/ServiceManager"));
@@ -1170,6 +1171,7 @@ function App() {
                           <AdminErrorBoundary>
                             <Routes>
                           <Route path="dashboard" element={<AdminDashboard token={adminToken} />} />
+                          <Route path="control-center" element={<ControlCenter />} />
                           <Route path="users/retail" element={<UserManager token={adminToken} type="retail" />} />
                           <Route path="users/reseller-customers" element={<UserManager token={adminToken} type="reseller-customers" />} />
                           <Route path="users/developers" element={<UserManager token={adminToken} type="developers" />} />

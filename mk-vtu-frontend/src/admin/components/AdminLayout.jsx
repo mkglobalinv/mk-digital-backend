@@ -52,6 +52,7 @@ const AdminLayout = ({ children, admin, logout }) => {
       title: 'CORE OPERATIONS',
       items: [
         { name: 'Admin Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={18} /> },
+        { name: 'Control Center', path: '/admin/control-center', icon: <Megaphone size={18} />, badge: 'NEW' },
         { name: 'Profit Analytics', path: '/admin/profit', icon: <TrendingUp size={18} /> },
         { name: 'Referral Analytics', path: '/admin/referrals', icon: <Share2 size={18} />, badge: 'NEW' },
         { name: 'Withdrawal Requests', path: '/admin/withdrawals', icon: <Banknote size={18} /> },
