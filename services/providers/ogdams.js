@@ -276,6 +276,12 @@ export async function getOgdamsBalances() {
     return { success: true, balances: result.data?.data?.msg || {} };
 }
 
+function extractOgdamsList(body) {
+    if (Array.isArray(body)) return body;
+    const msg = body?.data?.msg;
+    return Array.isArray(msg) ? msg : [];
+}
+
 /**
  * GET /get/data/plans -- v1 shape (networkId, planId, name, price, validity).
  * v2-v4 are documented to exist with different grouping/extra fields but
@@ -284,7 +290,10 @@ export async function getOgdamsBalances() {
 export async function getOgdamsDataPlans() {
     const result = await ogdamsGet("/get/data/plans");
     if (!result.success) return result;
-    const plans = result.data?.data?.msg || [];
+    // Live responses (seen in production logs) return the plan list as a bare
+    // top-level array, not inside the documented {status, code, data: {msg}}
+    // envelope (which Ogdams still uses for errors). Accept both.
+    const plans = extractOgdamsList(result.data);
     const normalized = plans.map((p) => ({
         network: NETWORK_ID_TO_NAME[p.networkId] || String(p.networkId),
         planId: String(p.planId),
@@ -337,7 +346,7 @@ export async function diagnoseOgdamsDataPlanVersions() {
             continue;
         }
         console.log(`[Ogdams] Diagnose ${label} (${path}) raw response:`, JSON.stringify(result.data));
-        const msg = result.data?.data?.msg;
+        const msg = Array.isArray(result.data) ? result.data : result.data?.data?.msg;
         const itemCount = Array.isArray(msg) ? msg.length : (msg && typeof msg === "object" ? Object.keys(msg).length : null);
         results.push({ version: label, path, success: true, httpStatus: result.httpStatus, itemCount, isArray: Array.isArray(msg) });
     }
