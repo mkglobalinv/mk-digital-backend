@@ -126,7 +126,7 @@ import PriceOverride from "../models/PriceOverride.js";
 import AdminPricingOverride from "../models/AdminPricingOverride.js";
 import SystemSetting from "../models/SystemSetting.js";
 import { smartFetchDataPlans } from "../services/switcher.js";
-import { MTN_DATA_GIFTING_PLAN_IDS as OGDAMS_MTN_DATA_GIFTING_PLAN_IDS, diagnoseOgdamsDataPlanVersions } from "../services/providers/ogdams.js";
+import { MTN_DATA_GIFTING_PLAN_IDS as OGDAMS_MTN_DATA_GIFTING_PLAN_IDS, diagnoseOgdamsDataPlanVersions, explainEmptyOgdamsSync } from "../services/providers/ogdams.js";
 import { MTN_DATA_GIFTING_PLAN_IDS as SMEPLUG_MTN_DATA_GIFTING_PLAN_IDS } from "../services/providers/smeplug.js";
 import fs from "fs";
 import ApiLog from "../models/ApiLog.js";
@@ -829,14 +829,16 @@ async function syncOgdamsMtnPlans() {
         if (result) result.created ? added++ : updated++;
     }
     const combined = await combineOgdamsCatalog();
-    return { added, updated, combined };
+    const warning = (plans || []).length === 0 ? await explainEmptyOgdamsSync() : null;
+    if (warning) console.warn(`[Ogdams] Sync produced no plans: ${warning}`);
+    return { added, updated, combined, warning };
 }
 
 router.post("/data-plans/ogdams-sme/sync", async (req, res) => {
     try {
         console.log("[Admin] Starting Ogdams-only MTN SME sync...");
-        const { added, updated, combined } = await syncOgdamsMtnPlans();
-        res.json({ message: "Ogdams sync complete", added, updated, combined });
+        const { added, updated, combined, warning } = await syncOgdamsMtnPlans();
+        res.json({ message: "Ogdams sync complete", added, updated, combined, warning });
     } catch (err) {
         console.error("Ogdams Sync Error:", err);
         res.status(500).json({ message: "Error syncing Ogdams plans: " + err.message });
