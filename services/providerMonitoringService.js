@@ -529,6 +529,12 @@ export const resetProviderFailures = async (providerName) => {
     if (provider.apiStatus === 'disconnected' && !provider.manualDisabled) {
       provider.apiStatus = 'critical'; // Keep flagged but unblock the counter reset
     }
+    // Also lift an automatic hard block (activateHardBlock). Providers without a
+    // balance poller (smeplug, ogdams) are never re-evaluated, so without this
+    // they would stay blocked forever; polled ones get re-checked on next poll.
+    if (!provider.manualDisabled) {
+      provider.isAvailable = true;
+    }
     await provider.save();
     console.log(`[Monitoring] Admin reset failure counter for ${providerName}`);
     return { success: true, providerName, failureCount: 0 };

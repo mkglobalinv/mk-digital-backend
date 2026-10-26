@@ -4113,7 +4113,12 @@ export const updateProviderStatus = async (req, res) => {
         const provider = await ProviderStatus.findById(id);
         if (!provider) return res.status(404).json({ success: false, message: 'Provider not found' });
         if (isUnderMaintenance !== undefined) provider.isUnderMaintenance = isUnderMaintenance;
-        if (manualDisabled !== undefined) provider.manualDisabled = manualDisabled;
+        if (manualDisabled !== undefined) {
+            provider.manualDisabled = manualDisabled;
+            // Keep availability in sync, as toggleProvider does; otherwise
+            // re-enabling never lifts an automatic hard block.
+            provider.isAvailable = !manualDisabled;
+        }
         await provider.save();
         res.status(200).json({ success: true, data: provider });
     } catch (err) {
