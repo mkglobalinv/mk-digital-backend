@@ -71,7 +71,7 @@ class QueueService {
                     await tx.save();
                     return;
                 }
-                result = await buyData(tx.network, apiReq.planCode, tx.phone, tx.cost_price || tx.amount, tx.countryCode || 'NG', apiReq.operatorId, apiReq.network_id, tx.provider_used || 'smart', apiReq.category);
+                result = await buyData(tx.network, apiReq.planCode, tx.phone, tx.cost_price || tx.amount, tx.countryCode || 'NG', apiReq.operatorId, apiReq.network_id, tx.provider_used || 'smart', apiReq.category, apiReq.planProvider);
             } else if (tx.description.includes('Airtime')) {
                 if (!apiReq.inputAmount && !tx.amount) {
                     tx.status = 'needs_verification';
