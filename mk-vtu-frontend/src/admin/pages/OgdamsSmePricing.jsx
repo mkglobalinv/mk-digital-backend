@@ -108,7 +108,8 @@ const OgdamsSmePricing = ({ token }) => {
             });
             setRule(res.data.rule);
             const combinedMsg = syncResult.combined ? `, Combined: ${syncResult.combined}` : '';
-            alert(`Synced (Added: ${syncResult.added}, Updated: ${syncResult.updated}${combinedMsg}) and pricing rule applied to all Ogdams plans.`);
+            const warningMsg = syncResult.warning ? `\n\nNo plans came back from Ogdams: ${syncResult.warning}` : '';
+            alert(`Synced (Added: ${syncResult.added}, Updated: ${syncResult.updated}${combinedMsg}) and pricing rule applied to all Ogdams plans.${warningMsg}`);
             fetchPlans();
         } catch (err) {
             alert('Failed to sync/save pricing rule: ' + (err.response?.data?.message || err.message));
@@ -123,7 +124,8 @@ const OgdamsSmePricing = ({ token }) => {
         try {
             const res = await syncOgdams();
             const combinedMsg = res.combined ? `, Combined (duplicates deactivated): ${res.combined}` : '';
-            alert(`Sync complete! Added: ${res.added}, Updated: ${res.updated}${combinedMsg}`);
+            const warningMsg = res.warning ? `\n\nNo plans came back from Ogdams: ${res.warning}` : '';
+            alert(`Sync complete! Added: ${res.added}, Updated: ${res.updated}${combinedMsg}${warningMsg}`);
             fetchPlans();
         } catch (err) {
             alert('Sync failed: ' + (err.response?.data?.message || err.message));

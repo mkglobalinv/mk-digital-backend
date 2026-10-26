@@ -80,21 +80,36 @@ export function validateOgdamsConfig() {
 }
 
 /**
- * Idempotent upsert so the existing admin provider list/monitoring (GET/PUT
- * /api/admin/providers, models/ProviderStatus.js) has an 'ogdams' document to
- * show, without ever overwriting one that already exists (an admin's
- * manualDisabled/priority choices are never clobbered by a restart).
- * priority:3 by default -- lowest priority among peyflex(1)/clubkonnect(2)/
- * ogdams(3) -- consistent with "Do NOT automatically make Ogdams the primary
- * provider until testing is complete."
+ * Called on every startup. Upserts the 'ogdams' ProviderStatus document the
+ * admin provider list/monitoring shows (priority:3 on insert; an admin's
+ * priority choice is never clobbered), then syncs its availability to the env
+ * config. Ogdams has no balance poller, so without this sync a document
+ * created while OGDAMS_ENABLED was unset, or one hit by an automatic hard
+ * block, stayed unavailable forever and every Ogdams purchase failed with
+ * "Provider (ogdams) ... is currently offline". An admin's manual disable
+ * (manualDisabled) is never overridden; a genuine provider problem simply
+ * re-blocks it on the next failed purchase.
  */
 export async function ensureOgdamsProviderStatus() {
     try {
         await ProviderStatus.findOneAndUpdate(
             { providerName: "ogdams" },
-            { $setOnInsert: { providerName: "ogdams", priority: 3, apiStatus: OGDAMS_ENABLED ? "online" : "offline", isAvailable: OGDAMS_ENABLED } },
+            { $setOnInsert: { providerName: "ogdams", priority: 3 } },
             { upsert: true, setDefaultsOnInsert: true }
         );
+
+        const usable = OGDAMS_ENABLED && Boolean(OGDAMS_API_KEY);
+        const update = usable
+            ? { isAvailable: true, apiStatus: "online", isUnderMaintenance: false, failureCount: 0 }
+            : { isAvailable: false, apiStatus: "offline" };
+        const filter = usable ? { providerName: "ogdams", manualDisabled: { $ne: true } } : { providerName: "ogdams" };
+        const result = await ProviderStatus.updateOne(filter, { $set: update });
+
+        if (usable && result.matchedCount === 0) {
+            console.warn("[Ogdams] Provider is manually disabled in admin; leaving it unavailable.");
+        } else {
+            console.log(`[Ogdams] Provider status synced on startup: ${usable ? "AVAILABLE" : `UNAVAILABLE (OGDAMS_ENABLED=${OGDAMS_ENABLED}, API key ${OGDAMS_API_KEY ? "set" : "missing"})`}`);
+        }
     } catch (err) {
         console.error("[Ogdams] Failed to ensure ProviderStatus document:", err.message);
     }
@@ -365,6 +380,33 @@ export async function getOgdamsMtnGiftingPlans() {
     if (!result.success) return result;
     const plans = result.plans.filter((p) => p.network === "MTN" && Object.prototype.hasOwnProperty.call(MTN_DATA_GIFTING_PLAN_IDS, p.planId));
     return { success: true, plans };
+}
+
+/**
+ * Admin-facing explanation for a plan sync that produced no plans. The sync
+ * path (smartFetchDataPlans) deliberately swallows failures and returns [],
+ * so on its own the admin only ever sees "Added: 0, Updated: 0" with no clue
+ * whether Ogdams is disabled, rejected the key/IP, returned no plans at all,
+ * or returned plans none of which are in MTN_DATA_GIFTING_PLAN_IDS.
+ */
+export async function explainEmptyOgdamsSync() {
+    if (!OGDAMS_ENABLED) return "Ogdams is disabled: set OGDAMS_ENABLED=true in the server environment and restart.";
+    if (!OGDAMS_API_KEY) return "OGDAMS_API_KEY is not set in the server environment.";
+    const result = await getOgdamsDataPlans();
+    if (!result.success) {
+        if (result.errorCode === "PROVIDER_AUTH_ERROR") {
+            return "Ogdams rejected the request (401): check OGDAMS_API_KEY, and whitelist this server's IP in Ogdams -> Security -> Whitelist IP (the Diagnose button shows the IP).";
+        }
+        return `Ogdams plan request failed (${result.errorCode || "error"}${result.httpStatus ? `, HTTP ${result.httpStatus}` : ""}). Server logs have Ogdams' error body.`;
+    }
+    const mtnPlanIds = result.plans.filter((p) => p.network === "MTN").map((p) => p.planId);
+    if (result.plans.length === 0) {
+        return "Ogdams returned no plans at all for this account. Whitelist this server's IP in Ogdams (Diagnose shows it) and ask Ogdams support to activate data plans on the account.";
+    }
+    if (mtnPlanIds.length === 0) {
+        return `Ogdams returned ${result.plans.length} plan(s), but none for MTN.`;
+    }
+    return `Ogdams returned MTN plan IDs [${mtnPlanIds.join(", ")}], but none match the confirmed Gifting IDs [${Object.keys(MTN_DATA_GIFTING_PLAN_IDS).join(", ")}]. Ask Ogdams support for the current Gifting plan IDs.`;
 }
 
 /**
