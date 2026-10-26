@@ -49,6 +49,24 @@ describe('Ogdams plan sync diagnostics and startup status', () => {
         expect(reason).toContain('20000');
     });
 
+    test('reads the plan list Ogdams actually returns: a bare array, not the documented envelope', async () => {
+        // Shape copied from the production Diagnose log for this account.
+        nock(BASE_URL).get('/get/data/plans').reply(200, [
+            { networkId: 1, planId: 20000, name: '75MB [GIFTING]', price: '75.00', validity: '1 Day' },
+            { networkId: 1, planId: 20002, name: '1GB [GIFTING]', price: '500.00', validity: '1 Day' },
+            { networkId: 1, planId: 9025, name: '1GB [AWOOF]', price: '200.00', validity: '1 Day' },
+            { networkId: 4, planId: 73, name: '250MB [GIFTING]', price: '200.00', validity: '30 Days' }
+        ]);
+
+        const result = await ogdams.getOgdamsMtnGiftingPlans();
+
+        expect(result.success).toBe(true);
+        expect(result.plans).toEqual([
+            { network: 'MTN', planId: '20000', name: '75MB [GIFTING]', price: 75, validity: '1 Day' },
+            { network: 'MTN', planId: '20002', name: '1GB [GIFTING]', price: 500, validity: '1 Day' }
+        ]);
+    });
+
     test('startup re-enables a stuck ogdams status without overriding a manual disable', async () => {
         const originals = { findOneAndUpdate: ProviderStatus.findOneAndUpdate, updateOne: ProviderStatus.updateOne };
         let updateCall;
