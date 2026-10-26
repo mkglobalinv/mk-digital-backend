@@ -69,18 +69,36 @@ export function validateSmeplugConfig() {
 }
 
 /**
- * Idempotent upsert so the existing admin provider list/monitoring (GET/PUT
- * /api/admin/providers, models/ProviderStatus.js) has a 'smeplug' document to
- * show, without ever overwriting one that already exists. priority:3, same
- * "not automatically primary" posture used for Ogdams.
+ * Called on every startup. Upserts the 'smeplug' ProviderStatus document the
+ * admin provider list/monitoring shows (priority:3, same "not automatically
+ * primary" posture used for Ogdams), then syncs its availability to the env
+ * config. SmePlug has no balance poller, so without this sync a document
+ * created while SMEPLUG_ENABLED was unset, or one hit by an automatic hard
+ * block, stayed unavailable forever and every purchase failed with
+ * "Provider (smeplug) ... is currently offline". An admin's manual disable
+ * (manualDisabled) is never overridden; a genuine provider problem simply
+ * re-blocks it on the next failed purchase.
  */
 export async function ensureSmeplugProviderStatus() {
     try {
         await ProviderStatus.findOneAndUpdate(
             { providerName: "smeplug" },
-            { $setOnInsert: { providerName: "smeplug", priority: 3, apiStatus: SMEPLUG_ENABLED ? "online" : "offline", isAvailable: SMEPLUG_ENABLED } },
+            { $setOnInsert: { providerName: "smeplug", priority: 3 } },
             { upsert: true, setDefaultsOnInsert: true }
         );
+
+        const usable = SMEPLUG_ENABLED && Boolean(SMEPLUG_API_KEY);
+        const update = usable
+            ? { isAvailable: true, apiStatus: "online", isUnderMaintenance: false, failureCount: 0 }
+            : { isAvailable: false, apiStatus: "offline" };
+        const filter = usable ? { providerName: "smeplug", manualDisabled: { $ne: true } } : { providerName: "smeplug" };
+        const result = await ProviderStatus.updateOne(filter, { $set: update });
+
+        if (usable && result.modifiedCount === 0 && result.matchedCount === 0) {
+            console.warn("[SmePlug] Provider is manually disabled in admin; leaving it unavailable.");
+        } else {
+            console.log(`[SmePlug] Provider status synced on startup: ${usable ? "AVAILABLE" : `UNAVAILABLE (SMEPLUG_ENABLED=${SMEPLUG_ENABLED}, API key ${SMEPLUG_API_KEY ? "set" : "missing"})`}`);
+        }
     } catch (err) {
         console.error("[SmePlug] Failed to ensure ProviderStatus document:", err.message);
     }
