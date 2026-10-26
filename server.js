@@ -1710,9 +1710,12 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
 
     let transaction = null;
     let resellerTransaction = null;
+    // Declared outside try so the catch block can refund a debit that went through.
+    let deducted = null;
+    let derivedPrice = 0;
     try {
         const { basePrice, sellingPrice, reseller } = await calculateVtuPrice(req.user.id, 'data', network, finalPlanCode, 0, plan_provider);
-        const derivedPrice = sellingPrice;
+        derivedPrice = sellingPrice;
 
         // Balance Check for Customer
         if (lockedUser.totalBalance < derivedPrice) {
@@ -1791,7 +1794,7 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
         const description = `${network} ${sizeLabel} Data - ${dbPlanInfo.category || 'Direct'} (${dbPlanInfo.validity || '30 Days'})`;
 
         // 2. Deduct from Customer
-        const deducted = await deductBalance(req.user.id, derivedPrice, reference, description, true);
+        deducted = await deductBalance(req.user.id, derivedPrice, reference, description, true);
         if (!deducted) {
             await User.findByIdAndUpdate(req.user.id, { isProcessingTx: false });
             return res.status(400).json({ message: "Insufficient balance" });
@@ -1819,7 +1822,7 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
             // Use the authoritative DB plan category (dbPlanInfo.category), not the raw client-supplied
             // `category`: the Android app does not always send this field, and PeyFlex's data-purchase
             // identifier lookup throws when category is missing, failing the background queue job.
-            api_response: { planCode: finalPlanCode, operatorId, network_id, category: dbPlanInfo.category }
+            api_response: { planCode: finalPlanCode, operatorId, network_id, category: dbPlanInfo.category, planProvider: dbPlanInfo.provider }
         });
 
         // Link reseller transaction to customer transaction
@@ -1838,15 +1841,16 @@ app.post("/api/vtu/data/purchase", auth, verifyTransactionPin, transactionIdempo
     } catch (err) {
         console.error("[Data Error]", err.message);
         
-        // If we reach here, it means we didn't even create a transaction record, so refund everyone
+        // Refund only when the customer was debited but no pending transaction was
+        // created; once it exists, the queue worker owns refunding it on failure.
+        // (No reseller wallet is debited in this handler, so none is refunded.)
         try {
-            if (deducted) {
+            if (deducted && !transaction) {
                 await refundBalance(req.user.id, derivedPrice, {
                     main_wallet_deducted: deducted.mainDeducted,
                     cashback_wallet_deducted: deducted.cashbackDeducted
                 });
             }
-            if (reseller) await refundBalance(reseller._id, basePrice);
         } catch (e) {
             console.error("[Data Refund Error]", e.message);
         }

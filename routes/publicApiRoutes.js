@@ -175,7 +175,7 @@ router.post('/data', transactionIdempotency, async (req, res) => {
             return res.json({ status: 'success', message: 'Sandbox Transaction Successful', reference: internalRef, client_reference: clientRef, isSandbox: true });
         }
 
-        const result = await buyData(network, plan_id, phone, price, 'NG', null, null, 'smart', plan.category);
+        const result = await buyData(network, plan_id, phone, price, 'NG', null, null, 'smart', plan.category, plan.provider);
 
         if (result.status === 'success' || result.status === 'unknown') {
             transaction.status = result.status;
