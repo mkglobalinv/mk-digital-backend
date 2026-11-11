@@ -7,8 +7,10 @@ import {
 } from 'lucide-react';
 import API from '../../api';
 import './ResellerDomain.css';
+import CustomDomainPanel, { useResellerCustomDomain } from '../components/CustomDomainPanel';
 
 const ResellerDomain = ({ user, refreshUser }) => {
+    const customDomain = useResellerCustomDomain();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
@@ -431,7 +433,9 @@ const ResellerDomain = ({ user, refreshUser }) => {
                     </div>
                 </header>
 
-                {!requestData || (step < 4 && !requestData?.status) ? (
+                {customDomain.domain ? (
+                    <CustomDomainPanel domain={customDomain.domain} allowDisconnect={customDomain.allowDisconnect} onRefresh={customDomain.reload} />
+                ) : !requestData || (step < 4 && !requestData?.status) ? (
                     <>
                         <div className="wizard-steps-container">
                             <div className={`wizard-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>

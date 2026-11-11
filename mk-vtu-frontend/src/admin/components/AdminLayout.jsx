@@ -66,6 +66,7 @@ const AdminLayout = ({ children, admin, logout }) => {
       title: 'PARTNER ECOSYSTEM',
       items: [
         { name: 'Reseller Partners', path: '/admin/resellers', icon: <Globe size={18} />, badge: 'VIP' },
+        { name: 'Domains', path: '/admin/domains', icon: <Globe size={18} /> },
         { name: 'Domain Requests', path: '/admin/domain-requests', icon: <Globe size={18} /> },
         { name: 'Retail Customers', path: '/admin/users/retail', icon: <Users size={18} /> },
         { name: 'Reseller Customers', path: '/admin/users/reseller-customers', icon: <Users size={18} /> },

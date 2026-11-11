@@ -5,6 +5,15 @@
  */
 
 import railwayService from './railwayService.js';
+import { runDomainHelper } from './domains/vpsProvisioner.js';
+
+// Self-hosted VPS: domains are provisioned by the services/domains state
+// machine; these methods expose the same interface for callers of this class.
+const vpsService = {
+  async createCustomDomain(domain) { return runDomainHelper('prepare', domain); },
+  async getDomainStatus(domain) { return runDomainHelper('cert-info', domain); },
+  async deleteCustomDomain(domain) { return runDomainHelper('remove', domain); }
+};
 
 class DeploymentProvider {
   constructor(providerName = 'railway') {
@@ -15,6 +24,8 @@ class DeploymentProvider {
     switch (this.providerName.toLowerCase()) {
       case 'railway':
         return railwayService;
+      case 'vps':
+        return vpsService;
       // Add future providers here
       // case 'vercel': return vercelService;
       // case 'cloudflare': return cloudflareService;

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import CustomDomainRequest from '../models/CustomDomainRequest.js';
 import deploymentProvider from './deploymentProvider.js';
 import Notification from '../models/Notification.js';
+import { tick as vpsDomainTick } from './domains/vpsDomainService.js';
 
 class DomainMonitor {
   constructor() {
@@ -31,6 +32,15 @@ class DomainMonitor {
   }
 
   async checkDeployments() {
+    // Self-hosted (VPS) custom domains: DNS verification, SSL issuance and
+    // certificate expiry monitoring. Independent of the Railway flow below.
+    if (process.env.VPS_DOMAINS_ENABLED !== 'false') {
+      try {
+        await vpsDomainTick();
+      } catch (error) {
+        console.error('[DomainMonitor] VPS domain cycle error:', error.message);
+      }
+    }
     try {
       const pendingRequests = await CustomDomainRequest.find({
         status: { $in: ['Website Deployment', 'SSL Activation', 'Domain Verification'] },

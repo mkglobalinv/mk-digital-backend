@@ -1,0 +1,32 @@
+# /etc/9jasub/domainctl.conf -- configuration for /usr/local/sbin/9jasub-domainctl
+# Owned by root, mode 600. Read only by the helper (never by the Node app).
+
+# Directory holding ONLY the generated reseller vhosts (<domain>.conf).
+# nginx must include it from the http {} block: include /etc/nginx/9jasub-domains/*.conf;
+NGINX_DOMAINS_DIR=/etc/nginx/9jasub-domains
+
+# Let's Encrypt HTTP-01 webroot, served for every reseller domain on port 80.
+ACME_WEBROOT=/var/www/9jasub-acme
+
+# The 9jaSub Node app (PM2). Must match PORT in the app's .env.
+UPSTREAM=127.0.0.1:8800
+
+# Let's Encrypt account e-mail (expiry notices from Let's Encrypt go here).
+CERTBOT_EMAIL=ops@9jasub.com
+CERTBOT_BIN=/usr/bin/certbot
+CERT_LIVE_DIR=/etc/letsencrypt/live
+
+# 1 = Let's Encrypt STAGING (untrusted test certificates, generous rate limits).
+# Use 1 for the first end-to-end test on the VPS, then switch to 0.
+ACME_STAGING=0
+
+NGINX_BIN=/usr/sbin/nginx
+RELOAD_CMD="systemctl reload nginx"
+LOCK_FILE=/run/9jasub-domainctl.lock
+
+# 0 if the VPS has no IPv6 (nginx refuses [::] listeners otherwise).
+LISTEN_IPV6=1
+
+# HTTP/2 is per-socket in nginx: 1 also enables it for every OTHER site on
+# port 443. Keep 0 unless all sites on this VPS already use http2.
+LISTEN_HTTP2=0

@@ -1,0 +1,6 @@
+# /etc/sudoers.d/9jasub-domainctl  (install with: visudo -cf <file> && install -m 440 ...)
+# Lets the user that runs the 9jaSub app (PM2) call ONLY the domain helper as
+# root, without a password. The helper validates every argument itself.
+# Replace "deploy" with the app's Unix user (see `pm2 ls` / `ps -o user= -p <pid>`).
+Defaults!/usr/local/sbin/9jasub-domainctl !requiretty
+deploy ALL=(root) NOPASSWD: /usr/local/sbin/9jasub-domainctl

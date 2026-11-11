@@ -34,6 +34,9 @@ server {
         
         # Proper Host and IP Headers
         proxy_set_header Host $host;
+        # Always overwrite: the app selects the reseller from X-Forwarded-Host/Host,
+        # so a client-supplied value must never pass through.
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;

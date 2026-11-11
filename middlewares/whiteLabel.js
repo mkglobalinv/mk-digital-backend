@@ -1,4 +1,37 @@
 import User from '../models/User.js';
+import { platformSubdomainOf } from '../services/domains/domainValidation.js';
+
+/**
+ * Resolves the reseller that owns `cleanHost` (lowercase, www stripped).
+ * A platform subdomain is matched only when the host is exactly
+ * <label>.<platform base domain>; any other host must equal a reseller's
+ * customDomain exactly. Previously the first label of ANY host was tried as a
+ * subdomain, so "acme.attacker.com" pointed at our server rendered reseller
+ * "acme"'s storefront. customDomain is only written once a domain is
+ * verified and has HTTPS (services/domains/vpsDomainService.js).
+ */
+export const findTenantForHost = async (cleanHost) => {
+    const sub = platformSubdomainOf(cleanHost);
+    if (sub) {
+        return User.findOne({ $or: [{ subdomain: sub }, { admin_subdomain: sub }] });
+    }
+    // Older records may have been saved with a www. prefix.
+    const byDomain = await User.findOne({ customDomain: { $in: [cleanHost, `www.${cleanHost}`] } });
+    if (byDomain) return byDomain;
+    // Transitional: custom domains connected before customDomain was stored
+    // (production: midataplus.com) still resolve by their first label, but
+    // only for hosts explicitly listed here. Link them with
+    // scripts/migrations/2026-11-vps-custom-domains.js --link-host, then
+    // remove them from LEGACY_HOST_SUBDOMAIN_FALLBACK.
+    if (getLegacyFallbackHosts().includes(cleanHost)) {
+        console.warn(`[WhiteLabel] ${cleanHost} resolved via LEGACY_HOST_SUBDOMAIN_FALLBACK; link it with the domains migration.`);
+        return User.findOne({ subdomain: cleanHost.split('.')[0] });
+    }
+    return null;
+};
+
+export const getLegacyFallbackHosts = () => (process.env.LEGACY_HOST_SUBDOMAIN_FALLBACK ?? 'midataplus.com')
+    .split(',').map((h) => h.trim().toLowerCase().replace(/^www\./, '')).filter(Boolean);
 
 // In-memory cache for reseller domain lookups
 const resellerCache = new Map();
@@ -49,15 +82,7 @@ export const whiteLabelMiddleware = async (req, res, next) => {
                 console.log(`[WhiteLabel] Domain ${host} (cleanHost: ${cleanHost}) resolved from cache. Reseller: ${reseller ? reseller.subdomain : 'NONE'}`);
             } else {
                 console.log(`[WhiteLabel] Domain ${host} (cleanHost: ${cleanHost}) is not a main domain. Checking for reseller...`);
-                const sub = cleanHost.split('.')[0];
-                reseller = await User.findOne({
-                    $or: [
-                        { customDomain: cleanHost },
-                        { customDomain: host },
-                        { subdomain: sub },
-                        { admin_subdomain: sub }
-                    ]
-                });
+                reseller = await findTenantForHost(cleanHost);
                 
                 console.log(`[WhiteLabel Diagnostic] Reseller Lookup Result for ${host} / ${cleanHost}: ${reseller ? `FOUND (id: ${reseller._id}, subdomain: ${reseller.subdomain}, customDomain: ${reseller.customDomain}, status: ${reseller.whiteLabelStatus})` : 'NOT FOUND'}`);
 

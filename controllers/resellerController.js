@@ -1371,11 +1371,11 @@ export const submitDomainRequest = async (req, res) => {
             });
         }
 
-        // Update main user doc domain string if custom domain mapping
-        if (domainOption === 'custom_domain') {
-            user.customDomain = domainName.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '');
-            await user.save();
-        }
+        // The request alone must not route the domain to this reseller: customDomain
+        // is the tenant-routing key (middlewares/whiteLabel.js) and is only written
+        // after DNS + ownership verification and HTTPS succeed
+        // (services/domains/vpsDomainService.js). An admin sets the domain up from
+        // this request in Admin -> Domains.
 
         res.json({
             status: 'success',

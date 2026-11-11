@@ -119,6 +119,7 @@ import { uploadBuild, uploadBuildMemory, uploadAsset, uploadDomain } from "../mi
 
 import { adminAuth } from "../middlewares/adminAuth.js";
 import { requireOwner } from "../middlewares/requireOwner.js";
+import adminDomainRoutes from "./adminDomainRoutes.js";
 import User from "../models/User.js";
 import Transaction from "../models/Transaction.js";
 import DataPlan from "../models/DataPlan.js";
@@ -145,6 +146,9 @@ router.post("/login/verify-security", adminLoginStep3);
 
 // Protect all following routes with adminAuth middleware
 router.use(adminAuth);
+
+// Custom domains on the self-hosted VPS (DNS verification, SSL, nginx).
+router.use("/domains", requireOwner, adminDomainRoutes);
 
 router.post("/security/setup-questions", setupAdminSecurityQuestions);
 router.post("/security/setup-funding-password", setupAdminFundingPassword);

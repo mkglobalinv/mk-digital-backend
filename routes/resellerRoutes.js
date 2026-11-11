@@ -44,6 +44,7 @@ import {
 } from "../controllers/resellerController.js";
 import { getEmailCampaigns, sendEmailCampaign } from "../controllers/resellerEmailCampaignController.js";
 import { restrictToPremium, restrictToBasicOrPremium } from "../middlewares/tierMiddleware.js";
+import { getCustomDomainStatus, requestCustomDomainDisconnect } from "../controllers/resellerDomainController.js";
 import { restrictToMainDomain } from "../middlewares/whiteLabel.js";
 
 const router = express.Router();
@@ -103,6 +104,8 @@ router.post("/app-request", restrictToBasicOrPremium, submitAppRequest);
 router.get("/app-request", restrictToBasicOrPremium, getAppRequest);
 router.post("/domain-request", restrictToBasicOrPremium, submitDomainRequest);
 router.get("/domain-request", restrictToBasicOrPremium, getDomainRequest);
+router.get("/custom-domain", restrictToBasicOrPremium, getCustomDomainStatus);
+router.post("/custom-domain/disconnect-request", restrictToBasicOrPremium, requestCustomDomainDisconnect);
 
 // Self-service: claim a subdomain if not yet assigned
 router.post("/claim-subdomain", restrictToBasicOrPremium, claimSubdomain);
