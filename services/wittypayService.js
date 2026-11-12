@@ -1,10 +1,11 @@
 import axios from "axios";
+import { onConfigChange } from "./settings/runtimeConfig.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const WITTYPAY_BASE_URL = process.env.WITTYPAY_BASE_URL || "https://wittypay.co/api/merchant/v1";
-const WITTYPAY_SECRET_KEY = process.env.WITTYPAY_SECRET_KEY;
+let WITTYPAY_BASE_URL = process.env.WITTYPAY_BASE_URL || "https://wittypay.co/api/merchant/v1";
+let WITTYPAY_SECRET_KEY = process.env.WITTYPAY_SECRET_KEY;
 
 function authHeaders() {
   return {
@@ -260,3 +261,9 @@ export const createTemporaryPayment = async (paymentData) => {
     };
   }
 };
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange(() => {
+    WITTYPAY_BASE_URL = process.env.WITTYPAY_BASE_URL || "https://wittypay.co/api/merchant/v1";
+    WITTYPAY_SECRET_KEY = process.env.WITTYPAY_SECRET_KEY;
+});

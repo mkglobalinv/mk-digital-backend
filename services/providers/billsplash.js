@@ -1,10 +1,11 @@
 import axios from 'axios';
+import { onConfigChange } from "../settings/runtimeConfig.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configuration — credentials loaded from environment only, never hardcoded.
 // ─────────────────────────────────────────────────────────────────────────────
-const BILLSPLASH_BASE_URL = (process.env.BILLSPLASH_BASE_URL || 'https://billsplash.com/api').replace(/\/$/, '');
-const BILLSPLASH_API_KEY  = process.env.BILLSPLASH_API_KEY;
+let BILLSPLASH_BASE_URL = (process.env.BILLSPLASH_BASE_URL || 'https://billsplash.com/api').replace(/\/$/, '');
+let BILLSPLASH_API_KEY  = process.env.BILLSPLASH_API_KEY;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Axios instance — Bearer token auth, JSON headers, 30 s timeout.
@@ -717,3 +718,10 @@ export const fetchBillsplashBalance = async () => {
 // CAC Registration, NPC Attestation, TIN Application, Newspaper Publication —
 // all advertised on billsplash.com but API endpoints not publicly documented.
 // Implement after official documentation is available.
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange(() => {
+    BILLSPLASH_BASE_URL = (process.env.BILLSPLASH_BASE_URL || 'https://billsplash.com/api').replace(/\/$/, '');
+    BILLSPLASH_API_KEY = process.env.BILLSPLASH_API_KEY;
+    billsplashClient.defaults.baseURL = BILLSPLASH_BASE_URL;
+});

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { onConfigChange } from "./settings/runtimeConfig.js";
 import dotenv from 'dotenv';
 import fs from 'fs';
 import User from '../models/User.js';
@@ -28,7 +29,7 @@ const getBrandingForEmail = async (email) => {
     } catch (e) {
         console.error("Email branding lookup error", e);
     }
-    return { siteName: "9JASUB", primaryColor: "#3B82F6" }; // Fallback
+    return { siteName: process.env.EMAIL_SENDER_NAME || "9JASUB", primaryColor: "#3B82F6" }; // Fallback
 };
 
 // --- 1. Startup Diagnostics ---
@@ -36,9 +37,9 @@ console.log("=== EMAIL SERVICE STARTUP DIAGNOSTICS ===");
 console.log(`Transport: Nodemailer (SMTP)`);
 
 // Resolve email credentials, prefer Brevo-specific env vars if present
-const EMAIL_USER = process.env.EMAIL_USER || process.env.BREVO_USER;
-const EMAIL_PASS = process.env.EMAIL_PASS || process.env.BREVO_PASS;
-const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
+let EMAIL_USER = process.env.EMAIL_USER || process.env.BREVO_USER;
+let EMAIL_PASS = process.env.EMAIL_PASS || process.env.BREVO_PASS;
+let EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
 
 if (!EMAIL_USER || !EMAIL_PASS) {
     console.error('[CRITICAL] Email credentials are missing. Set EMAIL_USER and EMAIL_PASS (or BREVO_USER/BREVO_PASS).');
@@ -51,7 +52,7 @@ if (!EMAIL_FROM) {
 }
 console.log("==========================================");
 
-const transporter = nodemailer.createTransport({
+const buildTransporter = () => nodemailer.createTransport({
     // Default to Brevo SMTP if environment variables are missing
     host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com',
     port: process.env.EMAIL_PORT || 587,
@@ -67,6 +68,19 @@ const transporter = nodemailer.createTransport({
         rejectUnauthorized: false
     }
 });
+let transporter = buildTransporter();
+
+// Rebuild the SMTP transport when Admin -> System Settings changes email settings.
+onConfigChange((changedKeys = []) => {
+    if (!changedKeys.some((k) => k.startsWith('EMAIL_'))) return;
+    EMAIL_USER = process.env.EMAIL_USER || process.env.BREVO_USER;
+    EMAIL_PASS = process.env.EMAIL_PASS || process.env.BREVO_PASS;
+    EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
+    transporter = buildTransporter();
+});
+
+/** Used by the System Settings "Test Connection" button: SMTP login only, no email sent. */
+export const verifyEmailTransport = () => transporter.verify();
 
 // --- Startup Diagnostics & Instrumentation ---
 transporter.verify((error, success) => {

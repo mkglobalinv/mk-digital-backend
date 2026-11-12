@@ -1,4 +1,5 @@
 import axios from "axios";
+import { onConfigChange } from "../settings/runtimeConfig.js";
 import ProviderStatus from "../../models/ProviderStatus.js";
 
 // ============================================================================
@@ -13,9 +14,9 @@ import ProviderStatus from "../../models/ProviderStatus.js";
 // every other provider file in services/providers/ already returns.
 // ============================================================================
 
-const OGDAMS_API_BASE_URL = (process.env.OGDAMS_API_BASE_URL || "https://simhosting.ogdams.ng/api/v1").replace(/\/$/, "");
-const OGDAMS_API_KEY = process.env.OGDAMS_API_KEY;
-const OGDAMS_ENABLED = process.env.OGDAMS_ENABLED === "true";
+let OGDAMS_API_BASE_URL = (process.env.OGDAMS_API_BASE_URL || "https://simhosting.ogdams.ng/api/v1").replace(/\/$/, "");
+let OGDAMS_API_KEY = process.env.OGDAMS_API_KEY;
+let OGDAMS_ENABLED = process.env.OGDAMS_ENABLED === "true";
 
 // Documented: Network IDs 1=MTN, 2=Airtel, 3=Glo, 4=T2Mobile (formerly 9mobile,
 // API may still return "9mobile" for this network). Internal network strings
@@ -475,3 +476,12 @@ export const OGDAMS_ERROR_CODES = Object.freeze([
 ]);
 
 export { networkNameToId, maskPhone as maskOgdamsPhone };
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange((changedKeys) => {
+    OGDAMS_API_BASE_URL = (process.env.OGDAMS_API_BASE_URL || "https://simhosting.ogdams.ng/api/v1").replace(/\/$/, "");
+    OGDAMS_API_KEY = process.env.OGDAMS_API_KEY;
+    OGDAMS_ENABLED = process.env.OGDAMS_ENABLED === "true";
+    ogdamsClient.defaults.baseURL = OGDAMS_API_BASE_URL;
+    if (changedKeys.some((k) => k.startsWith("OGDAMS_"))) ensureOgdamsProviderStatus();
+});

@@ -1,11 +1,12 @@
 import axios from "axios";
+import { onConfigChange } from "./settings/runtimeConfig.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const MONNIFY_BASE_URL = process.env.MONNIFY_BASE_URL || "https://sandbox.monnify.com";
-const MONNIFY_API_KEY = process.env.MONNIFY_API_KEY;
-const MONNIFY_SECRET_KEY = process.env.MONNIFY_SECRET_KEY;
+let MONNIFY_BASE_URL = process.env.MONNIFY_BASE_URL || "https://sandbox.monnify.com";
+let MONNIFY_API_KEY = process.env.MONNIFY_API_KEY;
+let MONNIFY_SECRET_KEY = process.env.MONNIFY_SECRET_KEY;
 
 /**
  * Get Bearer Token from Monnify
@@ -84,3 +85,10 @@ export const verifyMonnifyTransaction = async (transactionReference) => {
     throw new Error("Failed to verify Monnify transaction");
   }
 };
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange(() => {
+    MONNIFY_BASE_URL = process.env.MONNIFY_BASE_URL || "https://sandbox.monnify.com";
+    MONNIFY_API_KEY = process.env.MONNIFY_API_KEY;
+    MONNIFY_SECRET_KEY = process.env.MONNIFY_SECRET_KEY;
+});

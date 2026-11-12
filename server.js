@@ -141,6 +141,7 @@ import storage from './services/storageAdapter.js';
 import socketService from './services/socketService.js';
 import reconciliationService from './services/reconciliationService.js';
 import domainMonitor from './services/domainMonitor.js';
+import { loadSettingsIntoRuntime } from "./services/settings/settingsService.js";
 
 const app = express();
 app.set('trust proxy', true);
@@ -2712,6 +2713,14 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
     try {
         await connectDB();
+
+        // Integration credentials saved in Admin -> System Settings override .env.
+        // Loaded before workers start and before the server accepts requests.
+        try {
+            await loadSettingsIntoRuntime();
+        } catch (settingsErr) {
+            console.error("[Settings] Could not load dashboard settings; using .env values:", settingsErr.message);
+        }
         
         // Clean up old default maintenance messages persistently in database
         try {

@@ -120,6 +120,8 @@ import { uploadBuild, uploadBuildMemory, uploadAsset, uploadDomain } from "../mi
 import { adminAuth } from "../middlewares/adminAuth.js";
 import { requireOwner } from "../middlewares/requireOwner.js";
 import adminDomainRoutes from "./adminDomainRoutes.js";
+import adminSettingsRoutes from "./adminSettingsRoutes.js";
+import { requireSuperAdmin } from "../middlewares/requireSuperAdmin.js";
 import User from "../models/User.js";
 import Transaction from "../models/Transaction.js";
 import DataPlan from "../models/DataPlan.js";
@@ -149,6 +151,9 @@ router.use(adminAuth);
 
 // Custom domains on the self-hosted VPS (DNS verification, SSL, nginx).
 router.use("/domains", requireOwner, adminDomainRoutes);
+
+// System Settings -> Integrations & API Configuration (super admin / owner only).
+router.use("/integrations", requireSuperAdmin, adminSettingsRoutes);
 
 router.post("/security/setup-questions", setupAdminSecurityQuestions);
 router.post("/security/setup-funding-password", setupAdminFundingPassword);

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { onConfigChange } from "../settings/runtimeConfig.js";
 import ProviderStatus from "../../models/ProviderStatus.js";
 
 // ============================================================================
@@ -13,9 +14,9 @@ import ProviderStatus from "../../models/ProviderStatus.js";
 // provider file in services/providers/ already returns.
 // ============================================================================
 
-const SMEPLUG_API_BASE_URL = (process.env.SMEPLUG_API_BASE_URL || "https://smeplug.ng/api/v1").replace(/\/$/, "");
-const SMEPLUG_API_KEY = process.env.SMEPLUG_API_KEY;
-const SMEPLUG_ENABLED = process.env.SMEPLUG_ENABLED === "true";
+let SMEPLUG_API_BASE_URL = (process.env.SMEPLUG_API_BASE_URL || "https://smeplug.ng/api/v1").replace(/\/$/, "");
+let SMEPLUG_API_KEY = process.env.SMEPLUG_API_KEY;
+let SMEPLUG_ENABLED = process.env.SMEPLUG_ENABLED === "true";
 
 // Documented (GET /networks response): {"1":"MTN","2":"Airtel","3":"9Mobile","4":"Glo"}.
 // Deliberately NOT the same mapping as Ogdams (which has 3=Glo/4=9mobile) --
@@ -398,3 +399,12 @@ export const SMEPLUG_ERROR_CODES = Object.freeze([
 ]);
 
 export { networkNameToId, maskPhone as maskSmeplugPhone };
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange((changedKeys) => {
+    SMEPLUG_API_BASE_URL = (process.env.SMEPLUG_API_BASE_URL || "https://smeplug.ng/api/v1").replace(/\/$/, "");
+    SMEPLUG_API_KEY = process.env.SMEPLUG_API_KEY;
+    SMEPLUG_ENABLED = process.env.SMEPLUG_ENABLED === "true";
+    smeplugClient.defaults.baseURL = SMEPLUG_API_BASE_URL;
+    if (changedKeys.some((k) => k.startsWith("SMEPLUG_"))) ensureSmeplugProviderStatus();
+});

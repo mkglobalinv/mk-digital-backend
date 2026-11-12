@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import { platformSubdomainOf } from '../services/domains/domainValidation.js';
+import { onConfigChange } from '../services/settings/runtimeConfig.js';
 
 /**
  * Resolves the reseller that owns `cleanHost` (lowercase, www stripped).
@@ -37,6 +38,11 @@ export const getLegacyFallbackHosts = () => (process.env.LEGACY_HOST_SUBDOMAIN_F
 const resellerCache = new Map();
 const CACHE_TTL = 60 * 1000; // 1 minute TTL
 const NEGATIVE_CACHE_TTL = 10 * 1000; // 10 seconds negative TTL for non-reseller domains
+
+// Hosts allowed through the legacy fallback can change from System Settings.
+onConfigChange((changedKeys = []) => {
+    if (changedKeys.includes('LEGACY_HOST_SUBDOMAIN_FALLBACK')) resellerCache.clear();
+});
 
 export const clearResellerCache = () => {
     resellerCache.clear();

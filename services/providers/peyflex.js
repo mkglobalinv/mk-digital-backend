@@ -1,10 +1,11 @@
 import axios from "axios";
+import { onConfigChange } from "../settings/runtimeConfig.js";
 
 // 1. Fix API Base URL
-const PEYFLEX_API_URL = (process.env.PEYFLEX_API_URL || "https://client.peyflex.com.ng").replace(/\/$/, "");
+let PEYFLEX_API_URL = (process.env.PEYFLEX_API_URL || "https://client.peyflex.com.ng").replace(/\/$/, "");
 
 // 2. Implement Proper Authentication (Token-based)
-const PEYFLEX_API_TOKEN = process.env.PEYFLEX_API_TOKEN || process.env.PEYFLEX_API_KEY;
+let PEYFLEX_API_TOKEN = process.env.PEYFLEX_API_TOKEN || process.env.PEYFLEX_API_KEY;
 
 /**
  * 3. Fix Request Headers
@@ -317,3 +318,9 @@ export const requeryPeyflex = async (reference) => {
     // Ideally, we'd use GET /api/data/status/ or similar if found.
     return { status: "pending", message: "Manual verification required for Peyflex" };
 };
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange(() => {
+    PEYFLEX_API_URL = (process.env.PEYFLEX_API_URL || "https://client.peyflex.com.ng").replace(/\/$/, "");
+    PEYFLEX_API_TOKEN = process.env.PEYFLEX_API_TOKEN || process.env.PEYFLEX_API_KEY;
+});

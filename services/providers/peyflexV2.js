@@ -1,8 +1,9 @@
 import axios from "axios";
+import { onConfigChange } from "../settings/runtimeConfig.js";
 
 // Configuration
-const PEYFLEX_API_URL = (process.env.PEYFLEX_API_URL || "https://client.peyflex.com.ng").replace(/\/$/, "");
-const PEYFLEX_API_TOKEN = process.env.PEYFLEX_API_TOKEN || process.env.PEYFLEX_API_KEY;
+let PEYFLEX_API_URL = (process.env.PEYFLEX_API_URL || "https://client.peyflex.com.ng").replace(/\/$/, "");
+let PEYFLEX_API_TOKEN = process.env.PEYFLEX_API_TOKEN || process.env.PEYFLEX_API_KEY;
 
 // Base Axios Instance
 const peyflexClient = axios.create({
@@ -440,3 +441,11 @@ export const getPeyflexBalance = async () => {
         return { success: false, message: error.message };
     }
 };
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange(() => {
+    PEYFLEX_API_URL = (process.env.PEYFLEX_API_URL || "https://client.peyflex.com.ng").replace(/\/$/, "");
+    PEYFLEX_API_TOKEN = process.env.PEYFLEX_API_TOKEN || process.env.PEYFLEX_API_KEY;
+    peyflexClient.defaults.baseURL = PEYFLEX_API_URL;
+    peyflexClient.defaults.headers['Authorization'] = `Token ${PEYFLEX_API_TOKEN}`;
+});

@@ -29,7 +29,7 @@ const seedProviders = async () => {
 /**
  * Fetch ClubKonnect balance via legacy nellobytes API
  */
-const fetchClubKonnectBalance = async () => {
+export const fetchClubKonnectBalance = async () => {
   const UserID = process.env.CLUBKONNECT_USERID;
   const APIKey = process.env.CLUBKONNECT_API_KEY;
   if (!UserID || !APIKey) {

@@ -114,6 +114,7 @@ const AdminServiceRequests = lazyWithRetry(() => import("./admin/pages/AdminServ
 const IdentityServiceRequests = lazyWithRetry(() => import("./admin/pages/IdentityServiceRequests"));
 const AdminDomainRequests = lazyWithRetry(() => import("./admin/pages/AdminDomainRequests"));
 const AdminDomains = lazyWithRetry(() => import("./admin/pages/AdminDomains"));
+const AdminIntegrations = lazyWithRetry(() => import("./admin/pages/AdminIntegrations"));
 const PromoCampaignManager = lazyWithRetry(() => import("./admin/pages/PromoCampaignManager"));
 const PromotionGridManager = lazyWithRetry(() => import("./admin/pages/PromotionGridManager"));
 const UserAudit = lazyWithRetry(() => import("./admin/pages/UserAudit"));
@@ -1214,6 +1215,7 @@ function App() {
                           <Route path="identity-requests" element={<IdentityServiceRequests />} />
                           <Route path="domain-requests" element={<AdminDomainRequests />} />
                           <Route path="domains" element={<AdminDomains />} />
+                          <Route path="system-settings/integrations" element={<AdminIntegrations />} />
                           
                           {/* Super Admin Exact Feature Routes */}
                           <Route path="deployment" element={<AdminAppRequests />} />

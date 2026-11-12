@@ -1,8 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { onConfigChange } from './settings/runtimeConfig.js';
 dotenv.config();
 
 let supabaseInstance = null;
+
+// Rebuild the client after Admin -> System Settings changes the URL or key.
+onConfigChange((changedKeys = []) => {
+    if (changedKeys.some((k) => k === 'SUPABASE_URL' || k === 'SUPABASE_SERVICE_KEY')) supabaseInstance = null;
+});
 
 export const getSupabaseClient = () => {
     if (supabaseInstance) return supabaseInstance;

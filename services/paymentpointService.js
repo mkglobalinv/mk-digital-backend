@@ -1,12 +1,13 @@
 import axios from "axios";
+import { onConfigChange } from "./settings/runtimeConfig.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const PAYMENTPOINT_BASE_URL = "https://api.paymentpoint.co";
-const PAYMENTPOINT_SECRET_KEY = process.env.PAYMENTPOINT_SECRET_KEY;
-const PAYMENTPOINT_API_KEY = process.env.PAYMENTPOINT_API_KEY;
-const PAYMENTPOINT_BUSINESS_ID = process.env.PAYMENTPOINT_BUSINESS_ID;
+let PAYMENTPOINT_SECRET_KEY = process.env.PAYMENTPOINT_SECRET_KEY;
+let PAYMENTPOINT_API_KEY = process.env.PAYMENTPOINT_API_KEY;
+let PAYMENTPOINT_BUSINESS_ID = process.env.PAYMENTPOINT_BUSINESS_ID;
 
 // Partner bank codes documented by PaymentPoint for reserved account issuance.
 // Confirmed via production tests (brand-new customer, OPay-only request) that
@@ -111,3 +112,10 @@ export const createVirtualAccount = async (userData) => {
     return { status: "error", message: error.response?.data?.message || error.message };
   }
 };
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange(() => {
+    PAYMENTPOINT_SECRET_KEY = process.env.PAYMENTPOINT_SECRET_KEY;
+    PAYMENTPOINT_API_KEY = process.env.PAYMENTPOINT_API_KEY;
+    PAYMENTPOINT_BUSINESS_ID = process.env.PAYMENTPOINT_BUSINESS_ID;
+});

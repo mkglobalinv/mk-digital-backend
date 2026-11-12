@@ -1,9 +1,10 @@
 import axios from "axios";
+import { onConfigChange } from "./settings/runtimeConfig.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const FLW_SECRET_KEY = process.env.FLW_SECRET_KEY;
+let FLW_SECRET_KEY = process.env.FLW_SECRET_KEY;
 
 /**
  * Verify Flutterwave Transaction
@@ -97,3 +98,8 @@ export const initializeFlutterwaveTransaction = async (data) => {
     throw new Error("Failed to initialize Flutterwave transaction");
   }
 };
+
+// Reload credentials when Admin -> System Settings changes them (no restart needed).
+onConfigChange(() => {
+    FLW_SECRET_KEY = process.env.FLW_SECRET_KEY;
+});

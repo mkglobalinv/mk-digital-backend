@@ -2,8 +2,12 @@ import axios from 'axios';
 
 class PaystackService {
     constructor() {
-        this.secretKey = process.env.PAYSTACK_SECRET_KEY;
         this.baseUrl = 'https://api.paystack.co';
+    }
+
+    // Read on every request so a key changed in Admin -> System Settings applies immediately.
+    get secretKey() {
+        return process.env.PAYSTACK_SECRET_KEY;
     }
 
     async initializeTransaction(email, amount) {

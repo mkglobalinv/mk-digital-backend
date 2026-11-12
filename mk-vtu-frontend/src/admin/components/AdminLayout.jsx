@@ -106,6 +106,7 @@ const AdminLayout = ({ children, admin, logout }) => {
     {
       title: 'SYSTEM & MAINTENANCE',
       items: [
+        { name: 'Integrations & API Config', path: '/admin/system-settings/integrations', icon: <Settings size={18} />, badge: 'NEW' },
         { name: 'Broadcast Center', path: '/admin/notifications', icon: <Bell size={18} /> },
         { name: 'Content Management', path: '/admin/content', icon: <Layout size={18} /> },
         { name: 'News & Blog', path: '/admin/blog', icon: <ImageIcon size={18} /> },
